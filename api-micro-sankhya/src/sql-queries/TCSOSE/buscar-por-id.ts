@@ -1,0 +1,78 @@
+export const buscarPorId = `
+SELECT
+  os.NUMOS,
+  os.NUMCONTRATO,
+  os.CODPARC,
+  os.CODCONTATO,
+  os.CONTATO,
+  os.NOMECONTATO,
+  os.TELCONTATO,
+  os.CODPARCATEND,
+  os.SITUACAO,
+  os.DHCHAMADA,
+  os.DTPREVISTA,
+  os.DTFECHAMENTO,
+  os.DHFECHAMENTOSLA,
+  os.CODATEND,
+  os.CODUSURESP,
+  os.CODUSUFECH,
+  os.CODUSUALTER,
+  os.CODUSUSOLICITANTE,
+  os.CODVEND,
+  os.TEMPPREVISTO,
+  os.TEMPGASTO,
+  os.TEMPOGASTOSLA,
+  os.TEMPOSLA,
+  os.POSSUISLA,
+  os.DESCRICAO,
+  os.TIPO,
+  os.IDENTIFICADOR,
+  os.ENDERECO,
+  os.COMPLEMENTO,
+  os.BAIRRO,
+  os.CIDADE,
+  os.CODBEM,
+  os.SERIE,
+  os.NUFAP,
+  os.NUMETAPA,
+  os.NUMOSCLIENTE,
+  os.CODCOS,
+  os.CODCOSANT,
+  os.CODCENCUS,
+  os.CODSERVFLUXO,
+  os.VARIACAOFLUXO,
+  os.CODTPN,
+  os.CODOAT,
+  os.CODPLA,
+  os.NOMEMODELO,
+  os.MODELOVISIVELAPPOS,
+  os.CODPROCMAHA,
+  os.IMPACTO,
+  os.URGENCIA,
+  os.AD_EXIBEDASH,
+  os.DTALTER,
+  parc.NOMEPARC as nomeParc,
+  usr.NOMEUSU as nomeResponsavel,
+  CASE os.SITUACAO
+    WHEN 'F' THEN 'Fechada'
+    WHEN 'A' THEN 'Aberta'
+    WHEN 'P' THEN 'Pendente'
+    WHEN 'C' THEN 'Cancelada'
+    ELSE os.SITUACAO
+  END as situacaoLabel,
+  (
+    SELECT COUNT(*)
+    FROM TCSITE itens
+    WHERE itens.NUMOS = os.NUMOS
+  ) as totalItens,
+  (
+    SELECT COUNT(DISTINCT itens.AD_CODVEICULO)
+    FROM TCSITE itens
+    WHERE itens.NUMOS = os.NUMOS
+      AND itens.AD_CODVEICULO IS NOT NULL
+  ) as totalVeiculos
+FROM TCSOSE os
+LEFT JOIN TGFPAR parc ON os.CODPARC = parc.CODPARC
+LEFT JOIN TSIUSU usr ON os.CODUSURESP = usr.CODUSU
+WHERE os.NUMOS = @numos
+`;

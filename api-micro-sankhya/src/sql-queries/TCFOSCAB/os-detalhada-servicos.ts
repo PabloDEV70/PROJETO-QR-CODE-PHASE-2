@@ -1,0 +1,25 @@
+export const osDetalhadaServicos = `
+SELECT
+    s.NUOS,
+    s.SEQUENCIA,
+    s.CODPROD,
+    CAST(ISNULL(p.DESCRPROD, '') AS VARCHAR(200)) AS SERVICO,
+    s.QTD,
+    s.VLRUNIT,
+    s.VLRTOT,
+    s.STATUS,
+    CASE s.STATUS
+        WHEN 'E' THEN 'Em Execucao'
+        WHEN 'F' THEN 'Finalizado'
+        WHEN 'R' THEN 'Rejeitado'
+        ELSE s.STATUS
+    END AS STATUS_DESCRICAO,
+    s.DATAINI,
+    s.DATAFIN,
+    s.TEMPO,
+    CAST(ISNULL(s.OBSERVACAO, '') AS VARCHAR(MAX)) AS OBSERVACAO
+FROM SANKHYA.TCFSERVOS s
+LEFT JOIN SANKHYA.TGFPRO p ON p.CODPROD = s.CODPROD
+WHERE s.NUOS = @nuos
+ORDER BY s.SEQUENCIA
+`;

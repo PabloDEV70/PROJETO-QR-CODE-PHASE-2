@@ -1,0 +1,12 @@
+export const produtosUtilizados = `
+SELECT TOP @LIMIT
+  S.CODPROD,
+  P.DESCRPROD,
+  COUNT(*) AS quantidadeUtilizacoes,
+  SUM(ISNULL(S.QTD, 1)) AS quantidadeTotal
+FROM AD_APONTSOL S WITH (NOLOCK)
+LEFT JOIN TGFPRO P ON P.CODPROD = S.CODPROD
+WHERE S.CODPROD IS NOT NULL
+GROUP BY S.CODPROD, P.DESCRPROD
+ORDER BY quantidadeUtilizacoes DESC
+`;

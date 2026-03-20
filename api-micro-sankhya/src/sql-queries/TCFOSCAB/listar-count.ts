@@ -1,0 +1,8 @@
+export const listarCount = `
+SELECT COUNT(*) as totalRegistros
+FROM TCFOSCAB os
+LEFT JOIN TGFVEI v ON os.CODVEICULO = v.CODVEICULO
+LEFT JOIN TGFPAR p ON os.CODPARC = p.CODPARC
+WHERE 1=1
+-- @WHERE
+`;

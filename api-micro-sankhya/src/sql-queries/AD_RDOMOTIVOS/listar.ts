@@ -1,0 +1,28 @@
+export const listar = `
+SELECT * FROM (
+  SELECT
+    m.RDOMOTIVOCOD,
+    m.DESCRICAO,
+    m.SIGLA,
+    m.ATIVO,
+    m.DTINC,
+    m.DTALT,
+    m.PRODUTIVO,
+    m.TOLERANCIA,
+    m.PENALIDADE,
+    m.WTCATEGORIA,
+    (
+        SELECT COUNT(DISTINCT a.CODRDO)
+        FROM AD_RDOAPONTAMENTOS a
+        INNER JOIN AD_RDOAPONDETALHES d ON a.CODRDO = d.CODRDO
+        WHERE d.RDOMOTIVOCOD = m.RDOMOTIVOCOD
+        -- @RDOCOUNT_WHERE
+    ) as rdoCount,
+    ROW_NUMBER() OVER (ORDER BY -- @ORDER
+    ) AS RowNum
+  FROM AD_RDOMOTIVOS m
+  WHERE 1=1
+  -- @WHERE
+) AS T
+WHERE RowNum > @OFFSET AND RowNum <= (@OFFSET + @LIMIT)
+`;

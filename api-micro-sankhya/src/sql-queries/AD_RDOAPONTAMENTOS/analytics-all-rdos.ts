@@ -1,0 +1,56 @@
+/** Fetch all RDOs in period (no pagination) - max TOP 3000 */
+export const analyticsAllRdos = `
+SELECT TOP 3000
+  rdo.CODRDO,
+  rdo.CODPARC,
+  CONVERT(VARCHAR(10), rdo.DTREF, 23) as DTREF,
+  parc.NOMEPARC as nomeparc,
+  dep.DESCRDEP as departamento,
+  car.DESCRCARGO as cargo,
+  fun.CODDEP as coddep,
+  (
+    SELECT COUNT(*)
+    FROM AD_RDOAPONDETALHES d
+    WHERE d.CODRDO = rdo.CODRDO
+  ) as totalItens,
+  (
+    SELECT ISNULL(SUM(CASE WHEN d.HRFIM > d.HRINI AND d.HRFIM <= 2400 THEN
+      ((d.HRFIM / 100) * 60 + (d.HRFIM % 100)) -
+      ((d.HRINI / 100) * 60 + (d.HRINI % 100))
+    ELSE 0 END), 0)
+    FROM AD_RDOAPONDETALHES d
+    WHERE d.CODRDO = rdo.CODRDO
+  ) as totalMinutos,
+  (
+    SELECT TOP 1
+      RIGHT('0' + CAST(d2.HRINI / 100 AS VARCHAR), 2)
+        + ':' + RIGHT('0' + CAST(d2.HRINI % 100 AS VARCHAR), 2)
+    FROM AD_RDOAPONDETALHES d2
+    WHERE d2.CODRDO = rdo.CODRDO
+    ORDER BY d2.ITEM ASC
+  ) as primeiraHora,
+  (
+    SELECT TOP 1
+      RIGHT('0' + CAST(d2.HRFIM / 100 AS VARCHAR), 2)
+        + ':' + RIGHT('0' + CAST(d2.HRFIM % 100 AS VARCHAR), 2)
+    FROM AD_RDOAPONDETALHES d2
+    WHERE d2.CODRDO = rdo.CODRDO
+    ORDER BY d2.ITEM DESC
+  ) as ultimaHora,
+  fun.CODCARGAHOR as codcargahor
+FROM AD_RDOAPONTAMENTOS rdo
+LEFT JOIN TGFPAR parc ON rdo.CODPARC = parc.CODPARC
+LEFT JOIN (
+  SELECT f2.CODPARC, f2.CODDEP, f2.CODCARGO, f2.CODFUNCAO, f2.CODEMP,
+    (SELECT TOP 1 fho.CODCARGAHOR FROM TFPFHO fho
+     WHERE fho.CODEMP = f2.CODEMP AND fho.CODFUNC = f2.CODFUNC
+     ORDER BY fho.DTINIESCALA DESC) AS CODCARGAHOR,
+    ROW_NUMBER() OVER (PARTITION BY f2.CODPARC ORDER BY f2.DTADM DESC) as rn
+  FROM TFPFUN f2 WHERE f2.SITUACAO = '1'
+) fun ON parc.CODPARC = fun.CODPARC AND fun.rn = 1
+LEFT JOIN TFPDEP dep ON fun.CODDEP = dep.CODDEP
+LEFT JOIN TFPCAR car ON fun.CODCARGO = car.CODCARGO
+WHERE 1=1
+-- @WHERE
+ORDER BY rdo.DTREF DESC
+`;

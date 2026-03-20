@@ -1,0 +1,45 @@
+export const listar = `
+SELECT * FROM (
+  SELECT
+    A.CODIGO,
+    A.CODUSU,
+    A.CODVEICULO,
+    A.KM,
+    A.HORIMETRO,
+    A.DTINCLUSAO,
+    A.NUOS,
+    A.TAG,
+    A.STATUSOS,
+    A.BORRCHARIA,
+    A.ELETRICA,
+    A.FUNILARIA,
+    A.MECANICA,
+    A.CALDEIRARIA,
+    A.OBS,
+    V.PLACA,
+    CAST(V.MARCAMODELO AS VARCHAR(200)) AS MARCAMODELO,
+    U.NOMEUSU,
+    CASE A.STATUSOS
+      WHEN 'MA' THEN 'Manutenção'
+      WHEN 'AN' THEN 'Em Análise'
+      WHEN 'AV' THEN 'Aprovado'
+      WHEN 'SN' THEN 'Sem Necessidade'
+      ELSE 'Sem Status'
+    END AS statusOsLabel,
+    CONCAT(
+      CASE WHEN A.BORRCHARIA = 'S' THEN 'Borracharia,' ELSE '' END,
+      CASE WHEN A.ELETRICA = 'S' THEN 'Elétrica,' ELSE '' END,
+      CASE WHEN A.FUNILARIA = 'S' THEN 'Funilaria,' ELSE '' END,
+      CASE WHEN A.MECANICA = 'S' THEN 'Mecânica,' ELSE '' END,
+      CASE WHEN A.CALDEIRARIA = 'S' THEN 'Caldeiraria' ELSE '' END
+    ) AS tiposServico,
+    (SELECT COUNT(*) FROM AD_APONTSOL S WHERE S.CODIGO = A.CODIGO) AS totalServicos,
+    ROW_NUMBER() OVER (ORDER BY -- @ORDER) AS RowNum
+  FROM AD_APONTAMENTO A WITH (NOLOCK)
+  LEFT JOIN TGFVEI V ON V.CODVEICULO = A.CODVEICULO
+  LEFT JOIN TSIUSU U ON U.CODUSU = A.CODUSU
+  WHERE 1=1
+  -- @WHERE
+) AS T
+WHERE RowNum > @OFFSET AND RowNum <= (@OFFSET + @LIMIT)
+`;

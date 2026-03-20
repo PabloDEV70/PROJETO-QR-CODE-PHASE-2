@@ -1,0 +1,28 @@
+/**
+ * Query AD_GIG_LOG for audit trail of a NUNOTA across TGFCAB, TGFITE, TGFFIN.
+ * Returns full lifecycle: INSERT, UPDATE, DELETE events.
+ * Handles both 'NUNOTA: 225887, ' (TGFCAB) and 'NUNOTA: 225887,' (TGFITE) formats.
+ * @param @nunota
+ */
+export const cabAuditLog = `
+SELECT TOP 100
+    L.ID,
+    L.ACAO,
+    L.TABELA,
+    L.CODUSU,
+    L.NOMEUSU,
+    L.CAMPOS_ALTERADOS,
+    CAST(L.VERSAO_NOVA AS VARCHAR(4000))   AS VERSAO_NOVA,
+    CAST(L.VERSAO_ANTIGA AS VARCHAR(4000)) AS VERSAO_ANTIGA,
+    CONVERT(VARCHAR(19), L.DTCREATED, 120) AS DTCREATED
+
+FROM AD_GIG_LOG L
+
+WHERE L.TABELA IN ('TGFCAB', 'TGFITE', 'TGFFIN')
+  AND (
+    L.VERSAO_NOVA LIKE 'NUNOTA: @nunota,%'
+    OR L.VERSAO_ANTIGA LIKE 'NUNOTA: @nunota,%'
+  )
+
+ORDER BY L.DTCREATED ASC, L.ID ASC
+`;

@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCP Sankhya - Documentação da API</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      header {
+        background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+      }
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+      header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+      }
+      nav {
+        background: #fff;
+        padding: 15px 20px;
+        border-bottom: 1px solid #ddd;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      nav ul {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      nav a {
+        color: #1a237e;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 8px 15px;
+        border-radius: 5px;
+        transition: background 0.3s;
+      }
+      nav a:hover {
+        background: #e8eaf6;
+      }
+      section {
+        background: white;
+        margin: 20px 0;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      section h2 {
+        color: #1a237e;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e8eaf6;
+      }
+      section h3 {
+        color: #283593;
+        margin: 20px 0 10px;
+      }
+      code {
+        background: #f5f5f5;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.9em;
+      }
+      pre {
+        background: #1e272e;
+        color: #d2dae2;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        margin: 15px 0;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        color: #d2dae2;
+      }
+      .endpoint {
+        background: #e8eaf6;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        border-left: 4px solid #1a237e;
+      }
+      .method {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      .get {
+        background: #4caf50;
+        color: white;
+      }
+      .post {
+        background: #2196f3;
+        color: white;
+      }
+      .url {
+        font-family: 'Fira Code', 'Consolas', monospace;
+        color: #333;
+      }
+      .tool-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+      }
+      .tool-card h4 {
+        color: #1a237e;
+        margin-bottom: 10px;
+      }
+      .tool-card .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        margin-left: 10px;
+      }
+      .badge-read {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .badge-dictionary {
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f5f5f5;
+        font-weight: 600;
+      }
+      .note {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .warning {
+        background: #ffebee;
+        border-left: 4px solid #f44336;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .success {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .columns {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      footer {
+        background: #1a237e;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+      }
+      .copy-btn {
+        background: #3949ab;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .copy-btn:hover {
+        background: #303f9f;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🚀 MCP Sankhya</h1>
+      <p>Model Context Protocol para Integração com Sankhya ERP</p>
+    </header>
+
+    <nav>
+      <ul>
+        <li><a href="#introducao">Introdução</a></li>
+        <li><a href="#autenticacao">Autenticação</a></li>
+        <li><a href="#ferramentas-sql">Ferramentas SQL</a></li>
+        <li><a href="#ferramentas-dicionario">Dicionário de Dados</a></li>
+        <li><a href="#exemplos">Exemplos</a></li>
+        <li><a href="#ferramentas-mcp">Ferramentas MCP</a></li>
+      </ul>
+    </nav>
+
+    <div class="container">
+      <section id="introducao">
+        <h2>📚 Introdução</h2>
+        <p>
+          O <strong>MCP Sankhya</strong> (Model Context Protocol) é um conjunto de ferramentas que permite interagir com
+          o banco de dados Sankhya ERP de forma segura e eficiente. Este serviço oferece duas categorias principais de
+          ferramentas:
+        </p>
+
+        <div class="columns">
+          <div class="tool-card">
+            <h4>🔍 Ferramentas SQL</h4>
+            <p>Execute queries SELECT, explore tabelas, schemas e relacionamentos do banco de dados Sankhya.</p>
+            <span class="badge badge-read">Apenas Leitura</span>
+          </div>
+          <div class="tool-card">
+            <h4>📖 Dicionário de Dados</h4>
+            <p>Acesse metadados completos das tabelas, campos, opções e relacionamentos do sistema Sankhya.</p>
+            <span class="badge badge-dictionary">Metadados</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="autenticacao">
+        <h2>🔐 Autenticação</h2>
+        <p>
+          Todas as requisições requerem autenticação JWT. Para obter um token, faça login com suas credenciais Sankhya:
+        </p>
+
+        <h3>Obter Token de Acesso</h3>
+        <div class="endpoint">
+          <span class="method post">POST</span>
+          <span class="url">/auth/login</span>
+        </div>
+
+        <h4>Corpo da Requisição</h4>
+        <pre><code>{
+  "username": "SEU_USUARIO",
+  "password": "SUA_SENHA"
+}</code></pre>
+
+        <h4>Resposta</h4>
+        <pre><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "tokenType": "Bearer",
+  "expiresIn": 3599
+}</code></pre>
+
+        <h4>Usando o Token</h4>
+        <p>Adicione o token no header de autorização:</p>
+        <pre><code>Authorization: Bearer SEU_TOKEN_AQUI</code></pre>
+
+        <div class="warning">
+          <strong>⚠️ Segurança:</strong> Nunca exponha seus tokens ou credenciais em código público. O token expira em 1
+          hora.
+        </div>
+      </section>
+
+      <section id="ferramentas-sql">
+        <h2>🔍 Ferramentas SQL</h2>
+        <p>Ferramentas para executar queries e explorar a estrutura do banco de dados.</p>
+
+        <h3>Executar Query SQL</h3>
+        <div class="endpoint">
+          <span class="method post">POST</span>
+          <span class="url">/mcp/query</span>
+        </div>
+        <pre><code>{
+  "query": "SELECT TOP 10 CODPARC, NOMEPARC FROM TGFPAR WHERE CODTIPPAR = ?",
+  "params": [1],
+  "limit": 100
+}</code></pre>
+
+        <h3>Listar Tabelas</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/tables?limit=100</span>
+        </div>
+
+        <h3>Obter Schema de Tabela</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/tables/:tableName/schema</span>
+        </div>
+
+        <h3>Buscar Tabelas</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/tables/search?term=PARCEIRO</span>
+        </div>
+
+        <h3>Buscar Campos</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/fields/search?term=CODPARC</span>
+        </div>
+
+        <h3>Chaves Primárias</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/tables/:tableName/primary-keys</span>
+        </div>
+
+        <h3>Relacionamentos</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/tables/:tableName/relationships</span>
+        </div>
+      </section>
+
+      <section id="ferramentas-dicionario">
+        <h2>📖 Dicionário de Dados</h2>
+        <p>Acesse informações detalhadas sobre tabelas, campos e relacionamentos do sistema Sankhya.</p>
+
+        <h3>Listar Tabelas do Dicionário</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables?limit=100</span>
+        </div>
+
+        <h3>Detalhes de uma Tabela</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName</span>
+        </div>
+
+        <h3>Listar Campos de uma Tabela</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName/fields</span>
+        </div>
+
+        <h3>Detalhes de um Campo</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName/fields/:fieldName</span>
+        </div>
+
+        <h3>Opções de um Campo (Enumerados)</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName/fields/:fieldName/options</span>
+        </div>
+
+        <h3>Propriedades de Interface</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName/fields/:fieldName/properties</span>
+        </div>
+
+        <h3>Instâncias de uma Tabela</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName/instances</span>
+        </div>
+
+        <h3>Relacionamentos no Dicionário</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/:tableName/relationships</span>
+        </div>
+
+        <h3>Buscar Tabelas</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/tables/search?term=PARCEIRO</span>
+        </div>
+
+        <h3>Buscar Campos</h3>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/mcp/dictionary/fields/search?term=CODPARC</span>
+        </div>
+      </section>
+
+      <section id="exemplos">
+        <h2>💻 Exemplos de Uso</h2>
+
+        <h3>1. cURL - Listar Tabelas do Dicionário</h3>
+        <pre><code>TOKEN="SEU_TOKEN_AQUI"
+
+curl -X GET "http://localhost:3027/mcp/dictionary/tables?limit=10" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "x-database: TREINA"</code></pre>
+
+        <h3>2. cURL - Buscar Parceiros</h3>
+        <pre><code>TOKEN="SEU_TOKEN_AQUI"
+
+curl -X POST "http://localhost:3027/mcp/query" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "x-database: TREINA" \
+  -d '{
+    "query": "SELECT TOP 10 CODPARC, NOMEPARC FROM TGFPAR WHERE NOMEPARC LIKE ?",
+    "params": ["%ACME%"]
+  }'</code></pre>
+
+        <h3>3. cURL - Verificar Estrutura de Tabela</h3>
+        <pre><code>TOKEN="SEU_TOKEN_AQUI"
+
+curl -X GET "http://localhost:3027/mcp/tables/TGFPAR/schema" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "x-database: TREINA"</code></pre>
+
+        <h3>4. JavaScript (Node.js)</h3>
+        <pre><code>const axios = require('axios');
+
+const BASE_URL = 'http://localhost:3027';
+const TOKEN = 'SEU_TOKEN_AQUI';
+
+const client = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Authorization': `Bearer ${TOKEN}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+async function listarTabelas() {
+  const response = await client.get('/mcp/dictionary/tables', {
+    params: { limit: 10 },
+    headers: { 'x-database': 'TREINA' }
+  });
+  return response.data;
+}
+
+async function executarQuery(query, params = []) {
+  const response = await client.post('/mcp/query', {
+    query,
+    params
+  }, {
+    headers: { 'x-database': 'TREINA' }
+  });
+  return response.data;
+}
+
+// Exemplo de uso
+(async () => {
+  const tabelas = await listarTabelas();
+  console.log('Tabelas:', tabelas.data);
+})();</code></pre>
+
+        <h3>5. Python</h3>
+        <pre><code>import requests
+
+BASE_URL = 'http://localhost:3027'
+TOKEN = 'SEU_TOKEN_AQUI'
+
+headers = {
+    'Authorization': f'Bearer {TOKEN}',
+    'Content-Type': 'application/json'
+}
+
+def listar_tabelas(limit=10):
+    response = requests.get(
+        f'{BASE_URL}/mcp/dictionary/tables',
+        params={'limit': limit},
+        headers={**headers, 'x-database': 'TREINA'}
+    )
+    return response.json()
+
+def executar_query(query, params=None):
+    response = requests.post(
+        f'{BASE_URL}/mcp/query',
+        json={'query': query, 'params': params or []},
+        headers={**headers, 'x-database': 'TREINA'}
+    )
+    return response.json()
+
+# Exemplo de uso
+if __name__ == '__main__':
+    result = executar_query(
+        'SELECT TOP 5 CODPARC, NOMEPARC FROM TGFPAR'
+    )
+    print(result)</code></pre>
+
+        <h3>6. Selecionar Banco de Dados</h3>
+        <p>Use o header <code>x-database</code> para escolher qual banco acessar:</p>
+        <table>
+          <tr>
+            <th>Header</th>
+            <th>Descrição</th>
+          </tr>
+          <tr>
+            <td><code>x-database: TREINA</code></td>
+            <td>Banco de treinamento (padrão, seguro)</td>
+          </tr>
+          <tr>
+            <td><code>x-database: TESTE</code></td>
+            <td>Banco de testes</td>
+          </tr>
+          <tr>
+            <td><code>x-database: PROD</code></td>
+            <td>Banco de produção</td>
+          </tr>
+        </table>
+      </section>
+
+      <section id="ferramentas-mcp">
+        <h2>🛠️ Ferramentas MCP Disponíveis</h2>
+        <p>O servidor MCP oferece as seguintes ferramentas que podem ser usadas com clientes MCP:</p>
+
+        <h3>Ferramentas SQL</h3>
+        <div class="tool-card">
+          <h4>query_sql_server</h4>
+          <p>Executa queries SQL SELECT no SQL Server Sankhya. Retorna até 10000 registros.</p>
+          <pre><code>{
+  "query": "SELECT TOP 10 * FROM TGFPAR WHERE CODTIPPAR = ?",
+  "params": [1],
+  "limit": 100
+}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>list_tables</h4>
+          <p>Lista todas as tabelas disponíveis que o usuário tem permissão.</p>
+        </div>
+
+        <div class="tool-card">
+          <h4>get_table_schema</h4>
+          <p>Retorna a estrutura/colunas de uma tabela específica.</p>
+          <pre><code>{"tableName": "TGFPAR"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>search_tables</h4>
+          <p>Busca tabelas por nome ou descrição no dicionário.</p>
+          <pre><code>{"term": "PARCEIRO", "limit": 100}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>search_fields</h4>
+          <p>Busca campos por nome ou descrição em todas as tabelas.</p>
+          <pre><code>{"term": "CODPARC", "limit": 100}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>get_table_primary_keys</h4>
+          <p>Retorna as chaves primárias de uma tabela.</p>
+          <pre><code>{"tableName": "TGFPAR"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>get_table_relationships</h4>
+          <p>Retorna os relacionamentos (foreign keys) de uma tabela.</p>
+          <pre><code>{"tableName": "TGFPAR"}</code></pre>
+        </div>
+
+        <h3>Ferramentas do Dicionário de Dados</h3>
+        <div class="tool-card">
+          <h4>dictionary_list_tables</h4>
+          <p>Lista todas as tabelas do dicionário de dados Sankhya.</p>
+          <pre><code>{"limit": 100, "offset": 0}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_get_table_details</h4>
+          <p>Obtém informações detalhadas de uma tabela específica.</p>
+          <pre><code>{"tableName": "TGFPAR"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_list_fields</h4>
+          <p>Lista todos os campos de uma tabela do dicionário.</p>
+          <pre><code>{"tableName": "TGFPAR", "limit": 500}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_get_field_details</h4>
+          <p>Obtém detalhes completos de um campo específico.</p>
+          <pre><code>{"tableName": "TGFPAR", "fieldName": "CODPARC"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_get_field_options</h4>
+          <p>Lista todas as opções/valores possíveis de um campo enumerado.</p>
+          <pre><code>{"tableName": "TGFPAR", "fieldName": "ATIVO"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_get_field_properties</h4>
+          <p>Retorna propriedades de interface de um campo.</p>
+          <pre><code>{"tableName": "TGFPAR", "fieldName": "CODPARC"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_get_table_instances</h4>
+          <p>Lista as instâncias (agrupamentos lógicos) de uma tabela.</p>
+          <pre><code>{"tableName": "TGFPAR"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_get_table_relationships</h4>
+          <p>Retorna os relacionamentos de uma tabela no dicionário.</p>
+          <pre><code>{"tableName": "TGFPAR"}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_search_tables</h4>
+          <p>Busca tabelas no dicionário por nome ou descrição.</p>
+          <pre><code>{"term": "PARCEIRO", "limit": 100}</code></pre>
+        </div>
+
+        <div class="tool-card">
+          <h4>dictionary_search_fields</h4>
+          <p>Busca campos por nome ou descrição em todas as tabelas.</p>
+          <pre><code>{"term": "CODPARC", "limit": 100}</code></pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>📋 Tabelas Comuns do Sankhya</h2>
+        <table>
+          <tr>
+            <th>Tabela</th>
+            <th>Descrição</th>
+          </tr>
+          <tr>
+            <td><code>TGFPAR</code></td>
+            <td>Parceiros (clientes, fornecedores, etc.)</td>
+          </tr>
+          <tr>
+            <td><code>TGFPRO</code></td>
+            <td>Produtos</td>
+          </tr>
+          <tr>
+            <td><code>TGFCAB</code></td>
+            <td>Cabecalho de documentos</td>
+          </tr>
+          <tr>
+            <td><code>TGFTOP</code></td>
+            <td>Tipo de operação</td>
+          </tr>
+          <tr>
+            <td><code>TSIUSU</code></td>
+            <td>Usuários do sistema</td>
+          </tr>
+          <tr>
+            <td><code>TSIEMP</code></td>
+            <td>Empresas</td>
+          </tr>
+          <tr>
+            <td><code>AD_FINANCEIRO</code></td>
+            <td>Contas a receber/pagar</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>⚠️ Limitações e Segurança</h2>
+        <div class="warning">
+          <strong>🔒 Restrições de Segurança:</strong>
+          <ul>
+            <li>Apenas queries SELECT são permitidas</li>
+            <li>Todas as operações são somente leitura</li>
+            <li>Rate limiting ativo (60 requests/minuto)</li>
+            <li>Limite de 10000 registros por query</li>
+            <li>Acesso baseado em permissões do usuário Sankhya</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>📞 Suporte</h2>
+        <p>Para dúvidas ou problemas:</p>
+        <ul>
+          <li>Consulte a <a href="/api">documentação Swagger</a> para detalhes da API</li>
+          <li>Verifique os logs de erro para debugging</li>
+          <li>Contate a equipe de desenvolvimento</li>
+        </ul>
+      </section>
+    </div>
+
+    <footer>
+      <p>© 2026 MCP Sankhya - Documentação da API</p>
+      <p>Acesse também: <a href="/api" style="color: #82b1ff">Swagger UI</a></p>
+    </footer>
+
+    <script>
+      // Smooth scroll for navigation
+      document.querySelectorAll('nav a').forEach((anchor) => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // Copy button functionality
+      document.querySelectorAll('pre').forEach((pre) => {
+        if (pre.querySelector('code')) {
+          const btn = document.createElement('button');
+          btn.className = 'copy-btn';
+          btn.textContent = 'Copiar';
+          btn.onclick = () => {
+            navigator.clipboard.writeText(pre.querySelector('code').textContent);
+            btn.textContent = 'Copiado!';
+            setTimeout(() => (btn.textContent = 'Copiar'), 2000);
+          };
+          pre.appendChild(btn);
+        }
+      });
+    </script>
+  </body>
+</html>

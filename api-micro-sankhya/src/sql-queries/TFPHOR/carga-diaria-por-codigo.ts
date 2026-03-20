@@ -1,0 +1,15 @@
+export const cargaDiariaPorCodigo = `
+SELECT
+  H.DIASEM AS diasem,
+  ISNULL(SUM(
+    CASE WHEN H.ENTRADA IS NOT NULL AND H.SAIDA IS NOT NULL THEN
+      ((H.SAIDA / 100) * 60 + (H.SAIDA % 100)) -
+      ((H.ENTRADA / 100) * 60 + (H.ENTRADA % 100))
+    ELSE 0 END
+  ), 0) AS minutosDia,
+  CASE WHEN MAX(H.ENTRADA) IS NULL THEN 1 ELSE 0 END AS folga
+FROM TFPHOR H
+WHERE H.CODCARGAHOR = @codcargahor
+GROUP BY H.DIASEM
+ORDER BY H.DIASEM
+`;

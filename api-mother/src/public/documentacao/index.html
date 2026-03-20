@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Sankhya DB Gateway - Documentação Completa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .warning-banner {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .warning-banner strong {
+            color: #856404;
+        }
+
+        .auth-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .auth-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .database-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .database-selector button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .database-selector button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .database-selector button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .curl-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .curl-example pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: #2d3748;
+        }
+
+        .endpoint-group {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .endpoint-group h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .endpoint {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f7fafc;
+            border-radius: 4px;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .method {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .method.get { background: #48bb78; color: white; }
+        .method.post { background: #4299e1; color: white; }
+        .method.put { background: #ed8936; color: white; }
+        .method.delete { background: #f56565; color: white; }
+        .method.patch { background: #9f7aea; color: white; }
+
+        .endpoint-path {
+            font-family: 'Monaco', monospace;
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .endpoint-description {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .param-table th {
+            background: #edf2f7;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .param-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .param-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .required {
+            color: #f56565;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .optional {
+            color: #a0aec0;
+            font-size: 12px;
+        }
+
+        .response-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+
+        .response-example pre {
+            margin: 0;
+            font-family: 'Monaco', monospace;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge.auth-required {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .badge.read-only {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge.write-operation {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        .badge.dangerous {
+            background: #fc8181;
+            color: #742a2a;
+        }
+
+        .toc {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .toc h3 {
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .sidebar {
+            flex: 0 0 280px;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .security-note {
+            background: #fed7e2;
+            border-left: 4px solid #e53e3e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .security-note strong {
+            color: #742a2a;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 968px) {
+            .flex-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                flex: 1;
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🚀 Sankhya DB Gateway API</h1>
+            <p>Documentação Completa da API | Versão 1.0.25 | Multi-Database Gateway</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="warning-banner">
+            <strong>⚠️ IMPORTANTE:</strong> Esta API é multi-database. Use o header <code>X-Database</code> em todas as requisições com os valores: <strong>PROD</strong>, <strong>TESTE</strong>, ou <strong>TREINA</strong>.
+        </div>
+
+        <div class="flex-container">
+            <div class="sidebar">
+                <div class="toc">
+                    <h3>📑 Índice</h3>
+                    <ul>
+                        <li><a href="#auth">🔐 Autenticação</a></li>
+                        <li><a href="#health">❤️ Health Check</a></li>
+                        <li><a href="#version">ℹ️ Versão</a></li>
+                        <li><a href="#dictionary">📖 Dicionário de Dados</a></li>
+                        <li><a href="#inspection">🔍 Inspeção de Tabelas</a></li>
+                        <li><a href="#monitoring">📊 Monitoramento</a></li>
+                        <li><a href="#database-selector">🗄️ Seletor de Database</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- AUTH SECTION -->
+                <div id="auth" class="endpoint-group">
+                    <h3>🔐 Autenticação (Auth)</h3>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/auth/login</span>
+                            <span class="badge read-only">READ-ONLY</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Autentica usuário com credenciais do Sankhya e retorna token JWT.
+                        </div>
+
+                        <h4>Headers</h4>
+                        <table class="param-table">
+                            <tr>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                            <tr>
+                                <td>Content-Type <span class="required">*</span></td>
+                                <td>string</td>
+                                <td>application/json</td>
+                            </tr>
+                            <tr>
+                                <td>X-Database <span class="required">*</span></td>
+                                <td>string</td>
+                                <td>PROD | TESTE | TREINA</td>
+                            </tr>
+                        </table>
+
+                        <h4>Body Parameters</h4>
+                        <table class="param-table">
+                            <tr>
+                                <th>Parâmetro</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                            <tr>
+                                <td>username <span class="required">*</span></td>
+                                <td>string</td>
+                                <td>Nome de usuário do Sankhya</td>
+                            </tr>
+                            <tr>
+                                <td>password <span class="required">*</span></td>
+                                <td>string</td>
+                                <td>Senha do usuário (min 4 caracteres)</td>
+                            </tr>
+                        </table>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-login')">Copiar</button>
+                            <pre id="curl-login">curl -X POST https://api-dbexplorer.gigantao.net/auth/login \
+  -H "Content-Type: application/json" \
+  -H "X-Database: PROD" \
+  -d '{
+    "username": "CONVIDADO",
+    "password": "guest123"
+  }'</pre>
+                        </div>
+
+                        <h4>Exemplo de Resposta (200 OK)</h4>
+                        <div class="response-example">
+                            <pre>{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 3599
+  }
+}</pre>
+                        </div>
+
+                        <div class="security-note">
+                            <strong>🔒 Usuário de Teste Disponível:</strong>
+                            Username: <code>CONVIDADO</code> | Password: <code>guest123</code>
+                            <br>Este usuário funciona nos 3 databases: PROD, TESTE e TREINA
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/auth/refresh</span>
+                            <span class="badge read-only">READ-ONLY</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Renova o access token usando o refresh token.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-refresh')">Copiar</button>
+                            <pre id="curl-refresh">curl -X POST https://api-dbexplorer.gigantao.net/auth/refresh \
+  -H "Content-Type: application/json" \
+  -H "X-Database: PROD" \
+  -d '{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'</pre>
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/auth/me</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Retorna informações detalhadas do usuário autenticado incluindo dados do funcionário, empresa, gestor e estrutura organizacional.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-me')">Copiar</button>
+                            <pre id="curl-me">curl -X GET https://api-dbexplorer.gigantao.net/auth/me \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEALTH CHECK SECTION -->
+                <div id="health" class="endpoint-group">
+                    <h3>❤️ Health Check</h3>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/health</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Verifica a saúde da aplicação, incluindo status do SQL Server e métricas do sistema.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-health')">Copiar</button>
+                            <pre id="curl-health">curl -X GET https://api-dbexplorer.gigantao.net/health \
+  -H "X-Database: PROD"</pre>
+                        </div>
+
+                        <h4>Resposta</h4>
+                        <div class="response-example">
+                            <pre>{
+  "data": {
+    "status": "ok",
+    "info": {
+      "sqlserver": { "status": "up" },
+      "system": {
+        "status": "up",
+        "memory": { "rss": 104955904, "heapTotal": 41091072 },
+        "cpu": { "loadavg_1m": 0.32 }
+      }
+    },
+    "version": "1.0.25",
+    "uptime": 42.42,
+    "database": "PROD"
+  }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VERSION SECTION -->
+                <div id="version" class="endpoint-group">
+                    <h3>ℹ️ Versão da API</h3>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/version</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Retorna informações sobre a versão da API, data de build e ambiente.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-version')">Copiar</button>
+                            <pre id="curl-version">curl -X GET https://api-dbexplorer.gigantao.net/version</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DICTIONARY SECTION -->
+                <div id="dictionary" class="endpoint-group">
+                    <h3>📖 Dicionário de Dados</h3>
+                    <p style="margin-bottom: 20px; color: #4a5568;">
+                        O dicionário de dados fornece acesso completo à estrutura do Sankhya: tabelas, campos, opções, propriedades e relacionamentos.
+                    </p>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/dictionary/tables</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Lista todas as tabelas cadastradas no dicionário de dados (TDDTAB).
+                        </div>
+
+                        <h4>Query Parameters</h4>
+                        <table class="param-table">
+                            <tr>
+                                <th>Parâmetro</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                            <tr>
+                                <td>limit <span class="optional">opcional</span></td>
+                                <td>number</td>
+                                <td>Limite de registros (padrão: 100)</td>
+                            </tr>
+                            <tr>
+                                <td>offset <span class="optional">opcional</span></td>
+                                <td>number</td>
+                                <td>Offset para paginação (padrão: 0)</td>
+                            </tr>
+                        </table>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-dict-tables')">Copiar</button>
+                            <pre id="curl-dict-tables">curl -X GET "https://api-dbexplorer.gigantao.net/dictionary/tables?limit=50" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/dictionary/tables/:tableName/fields</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Retorna todos os campos de uma tabela específica (TDDCAM).
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-fields')">Copiar</button>
+                            <pre id="curl-fields">curl -X GET https://api-dbexplorer.gigantao.net/dictionary/tables/TSIUSU/fields \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/dictionary/search/:term</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Busca global no dicionário: pesquisa em tabelas, campos e opções simultaneamente.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-search')">Copiar</button>
+                            <pre id="curl-search">curl -X GET "https://api-dbexplorer.gigantao.net/dictionary/search/PARCEIRO?limit=50" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INSPECTION SECTION -->
+                <div id="inspection" class="endpoint-group">
+                    <h3>🔍 Inspeção de Tabelas e Queries</h3>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/inspection/tables</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Lista todas as tabelas disponíveis no database.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-insp-tables')">Copiar</button>
+                            <pre id="curl-insp-tables">curl -X GET https://api-dbexplorer.gigantao.net/inspection/tables \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/inspection/table-schema</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Retorna o schema completo de uma tabela (colunas, tipos, constraints).
+                        </div>
+
+                        <h4>Query Parameters</h4>
+                        <table class="param-table">
+                            <tr>
+                                <th>Parâmetro</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                            <tr>
+                                <td>tableName <span class="required">*</span></td>
+                                <td>string</td>
+                                <td>Nome da tabela a inspecionar</td>
+                            </tr>
+                        </table>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-schema')">Copiar</button>
+                            <pre id="curl-schema">curl -X GET "https://api-dbexplorer.gigantao.net/inspection/table-schema?tableName=TSIUSU" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/inspection/query</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                            <span class="badge read-only">READ-ONLY</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Executa query SQL SELECT (somente leitura). Queries de escrita (INSERT, UPDATE, DELETE) são bloqueadas por segurança.
+                        </div>
+
+                        <div class="security-note">
+                            <strong>🔒 SEGURANÇA:</strong>
+                            Apenas queries SELECT são permitidas. INSERT, UPDATE, DELETE, DROP e outras operações de escrita são bloqueadas automaticamente.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-query')">Copiar</button>
+                            <pre id="curl-query">curl -X POST https://api-dbexplorer.gigantao.net/inspection/query \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-Database: PROD" \
+  -d '{
+    "query": "SELECT TOP 10 CODUSU, NOMEUSU, EMAIL FROM TSIUSU"
+  }'</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MONITORING SECTION -->
+                <div id="monitoring" class="endpoint-group">
+                    <h3>📊 Monitoramento SQL Server</h3>
+                    <p style="margin-bottom: 20px; color: #4a5568;">
+                        Endpoints para monitoramento de performance, queries ativas e estatísticas do SQL Server (requer permissão VIEW SERVER STATE).
+                    </p>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/monitoring/active-queries</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Retorna queries atualmente em execução no SQL Server.
+                        </div>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-active')">Copiar</button>
+                            <pre id="curl-active">curl -X GET https://api-dbexplorer.gigantao.net/monitoring/active-queries \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/monitoring/query-stats</span>
+                            <span class="badge auth-required">🔐 AUTH</span>
+                        </div>
+                        <div class="endpoint-description">
+                            Estatísticas de performance das queries mais executadas.
+                        </div>
+
+                        <h4>Query Parameters</h4>
+                        <table class="param-table">
+                            <tr>
+                                <th>Parâmetro</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                            <tr>
+                                <td>limit <span class="optional">opcional</span></td>
+                                <td>number</td>
+                                <td>Número máximo de queries (padrão: 50, max: 200)</td>
+                            </tr>
+                        </table>
+
+                        <div class="curl-example">
+                            <button class="copy-btn" onclick="copyToClipboard(this, 'curl-stats')">Copiar</button>
+                            <pre id="curl-stats">curl -X GET "https://api-dbexplorer.gigantao.net/monitoring/query-stats?limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Database: PROD"</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DATABASE SELECTOR -->
+                <div id="database-selector" class="auth-section">
+                    <h2>🗄️ Seletor de Database</h2>
+                    <p style="margin-bottom: 20px; color: #4a5568;">
+                        Esta API é multi-database. Selecione qual database deseja usar em suas requisições:
+                    </p>
+
+                    <div class="database-selector">
+                        <button class="active" onclick="selectDatabase('PROD', this)">
+                            🟢 PROD<br>
+                            <small style="font-weight: normal;">SANKHYA_PROD</small>
+                        </button>
+                        <button onclick="selectDatabase('TESTE', this)">
+                            🔵 TESTE<br>
+                            <small style="font-weight: normal;">SANKHYA_TESTE</small>
+                        </button>
+                        <button onclick="selectDatabase('TREINA', this)">
+                            🟡 TREINA<br>
+                            <small style="font-weight: normal;">SANKHYA_TREINA</small>
+                        </button>
+                    </div>
+
+                    <div class="security-note">
+                        <strong>🔒 IMPORTANTE - Política de Escrita:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            <li><strong>PROD (SANKHYA_PROD):</strong> ❌ BLOQUEADO - Somente leitura (SELECT). Nenhuma operação de escrita permitida.</li>
+                            <li><strong>TREINA (SANKHYA_TREINA):</strong> ❌ BLOQUEADO - Somente leitura (SELECT). Nenhuma operação de escrita permitida.</li>
+                            <li><strong>TESTE (SANKHYA_TESTE):</strong> ✅ PERMITIDO - Operações de escrita (INSERT, UPDATE, DELETE) são permitidas apenas neste database.</li>
+                        </ul>
+                    </div>
+
+                    <p style="margin-top: 15px; color: #4a5568;">
+                        Use o header <code>X-Database: PROD|TESTE|TREINA</code> em todas as requisições para especificar qual database usar.
+                    </p>
+                </div>
+
+                <!-- FINAL NOTES -->
+                <div class="endpoint-group">
+                    <h3>📝 Notas Importantes</h3>
+                    <ul style="line-height: 2; color: #4a5568; margin-left: 20px;">
+                        <li>🔐 Endpoints marcados com <span class="badge auth-required">🔐 AUTH</span> requerem token JWT no header <code>Authorization: Bearer TOKEN</code></li>
+                        <li>🗄️ Sempre especifique o database usando o header <code>X-Database: PROD|TESTE|TREINA</code></li>
+                        <li>📖 Use o Dicionário de Dados para entender a estrutura das tabelas antes de fazer queries</li>
+                        <li>🔍 Use o Inspection para verificar schemas e testar queries com segurança</li>
+                        <li>⚠️ Operações de escrita (INSERT/UPDATE/DELETE) só são permitidas no database TESTE</li>
+                        <li>🚫 Queries maliciosas ou de escrita não autorizada são bloqueadas automaticamente</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background: #2d3748; color: white; padding: 30px 0; margin-top: 50px; text-align: center;">
+        <div class="container">
+            <p>Sankhya DB Gateway API v1.0.25</p>
+            <p style="opacity: 0.8; margin-top: 10px;">Multi-Database SQL Server Gateway | NestJS + TypeScript</p>
+        </div>
+    </footer>
+
+    <script>
+        let selectedDatabase = 'PROD';
+
+        function selectDatabase(db, button) {
+            selectedDatabase = db;
+
+            // Update button states
+            document.querySelectorAll('.database-selector button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+
+            // Update all curl examples
+            updateCurlExamples(db);
+        }
+
+        function updateCurlExamples(db) {
+            // Update X-Database header in all curl examples
+            document.querySelectorAll('.curl-example pre').forEach(pre => {
+                let content = pre.textContent;
+                content = content.replace(/X-Database: (PROD|TESTE|TREINA)/g, `X-Database: ${db}`);
+                pre.textContent = content;
+            });
+        }
+
+        function copyToClipboard(button, elementId) {
+            const pre = document.getElementById(elementId);
+            const text = pre.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✓ Copiado!';
+                button.style.background = '#48bb78';
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#4a5568';
+                }, 2000);
+            });
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

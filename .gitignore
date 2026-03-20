@@ -1,0 +1,89 @@
+# ============================================
+# PROJETOS UNIFICADOS - .gitignore Principal
+# ============================================
+
+# --- Environment variables (NUNCA commitar) ---
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+sshpass
+
+# --- Dependencies ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Build outputs ---
+dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# --- Logs ---
+*.log
+logs/
+npm-debug.log*
+yarn-error.log*
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Database & Dados ---
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Temporary ---
+tmp/
+temp/
+coverage/
+.nyc_output/
+*.tmp
+*.temp
+
+# --- API docs (gereados automaticamente) ---
+docs/_generated/
+docs/.vite/
+storybook-static/
+
+# --- Backup files ---
+*.bak
+*.backup
+*~
+*.swp
+.swo
+
+# --- Ferramentas dev ---
+.claude/
+.omc/
+agentes/
+
+# --- Docs pessoais (repo separado: duard/minha-documentacao-referencia) ---
+minha-docs/
+
+# --- Build artifacts ---
+*.tgz
+*.tar.gz
+.DS_Store
+lightpanda
+.gstack/

@@ -1,0 +1,35 @@
+export interface OsItem {
+  NUMOS: number;
+  NUMITEM: number;
+  CODSERV: number;
+  CODPROD: number;
+  CODUSU: number | null;
+  HRINICIAL: number | null;
+  HRFINAL: number | null;
+  INTERVALO: number | null;
+  INICEXEC: Date | null;
+  TERMEXEC: Date | null;
+  TEMPGASTO: number | null;
+  QTDHORA: number | null;
+  QTDHORAEXT: number | null;
+  VLRHORAFAT: number | null;
+  VLRHORAEXTFAT: number | null;
+  VLRCOBRADO: number | null;
+  COBRAR: string;
+  LIBERADO: string;
+  DESCSERV: string | null;
+  SOLUCAO: string | null;
+  GRAUDIFIC: number;
+  PRIORIDADE: number | null;
+  RETRABALHO: string;
+  AD_CODVEICULO: number | null;
+  AD_KMINI: number | null;
+  AD_KMFIM: number | null;
+  AD_EXIBEDASH: string | null;
+  nomeServico?: string | null;
+  nomeExecutor?: string | null;
+  placa?: string | null;
+  marcaModelo?: string | null;
+  horaInicialFormatada?: string | null;
+  horaFinalFormatada?: string | null;
+}

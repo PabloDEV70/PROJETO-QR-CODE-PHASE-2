@@ -1,0 +1,25 @@
+export const pesquisar = `
+SELECT TOP 50
+    m.RDOMOTIVOCOD,
+    m.DESCRICAO,
+    m.SIGLA,
+    m.ATIVO,
+    m.DTINC,
+    m.DTALT,
+    m.PRODUTIVO,
+    m.TOLERANCIA,
+    m.PENALIDADE,
+    m.WTCATEGORIA,
+    (
+        SELECT COUNT(DISTINCT a.CODRDO)
+        FROM AD_RDOAPONTAMENTOS a
+        INNER JOIN AD_RDOAPONDETALHES d ON a.CODRDO = d.CODRDO
+        WHERE d.RDOMOTIVOCOD = m.RDOMOTIVOCOD
+        -- @RDOCOUNT_WHERE
+    ) as rdoCount
+FROM AD_RDOMOTIVOS m
+WHERE
+    m.DESCRICAO LIKE '%@sanitizedTerm%'
+    OR m.SIGLA LIKE '%@sanitizedTerm%'
+ORDER BY m.DESCRICAO
+`;

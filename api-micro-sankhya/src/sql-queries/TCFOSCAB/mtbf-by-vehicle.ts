@@ -1,0 +1,43 @@
+/**
+ * MTBF (Mean Time Between Failures) por veiculo
+ * Calcula media de dias entre falhas corretivas consecutivas
+ * Self-join com ROW_NUMBER PARTITION BY CODVEICULO
+ * NO CTE - usa inline subqueries
+ * Filtro: STATUS = 'F' AND MANUTENCAO = 'C' (corretivas finalizadas)
+ */
+export const mtbfByVehicle = `
+SELECT
+  os1.CODVEICULO,
+  v.PLACA,
+  AVG(CAST(DATEDIFF(DAY, os1.DATAFIN, os2.DATAFIN) AS FLOAT)) AS mtbfDias,
+  COUNT(*) AS totalFalhas
+FROM (
+  SELECT
+    NUOS,
+    CODVEICULO,
+    DATAFIN,
+    ROW_NUMBER() OVER (PARTITION BY CODVEICULO ORDER BY DATAFIN) AS rn
+  FROM TCFOSCAB
+  WHERE STATUS = 'F'
+    AND MANUTENCAO = 'C'
+    AND DATAFIN IS NOT NULL
+) os1
+INNER JOIN (
+  SELECT
+    NUOS,
+    CODVEICULO,
+    DATAFIN,
+    ROW_NUMBER() OVER (PARTITION BY CODVEICULO ORDER BY DATAFIN) AS rn
+  FROM TCFOSCAB
+  WHERE STATUS = 'F'
+    AND MANUTENCAO = 'C'
+    AND DATAFIN IS NOT NULL
+) os2
+  ON os1.CODVEICULO = os2.CODVEICULO
+  AND os2.rn = os1.rn + 1
+LEFT JOIN TGFVEI v
+  ON os1.CODVEICULO = v.CODVEICULO
+WHERE DATEDIFF(DAY, os1.DATAFIN, os2.DATAFIN) > 0
+GROUP BY os1.CODVEICULO, v.PLACA
+ORDER BY mtbfDias ASC
+`;

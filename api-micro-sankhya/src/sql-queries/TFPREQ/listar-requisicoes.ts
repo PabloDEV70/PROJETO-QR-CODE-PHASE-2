@@ -1,0 +1,68 @@
+export const listarRequisicoes = `
+SELECT * FROM (
+  SELECT
+    REQ.ID AS id,
+    CONVERT(VARCHAR(19), REQ.DTCRIACAO, 120) AS dtCriacao,
+    REQ.STATUS AS status,
+    CASE
+      WHEN REQ.STATUS = 0 THEN 'Aguardando'
+      WHEN REQ.STATUS = 1 THEN 'Aguardando'
+      WHEN REQ.STATUS = 2 THEN 'Aprovado'
+      WHEN REQ.STATUS = 3 THEN 'Executado'
+      WHEN REQ.STATUS = -2 THEN 'Cancelado'
+      WHEN REQ.STATUS = -1 THEN 'Rejeitado'
+      ELSE 'Desconhecido'
+    END AS statusLabel,
+    REQ.ORIGEMTIPO AS origemTipo,
+    CASE
+      WHEN REQ.ORIGEMTIPO = 'R' THEN 'Rescisao/Demissao'
+      WHEN REQ.ORIGEMTIPO = 'A' THEN 'Admissao'
+      WHEN REQ.ORIGEMTIPO = 'V' THEN 'Ferias'
+      WHEN REQ.ORIGEMTIPO = 'S' THEN 'Alt. Cargo/Salario'
+      WHEN REQ.ORIGEMTIPO = 'G' THEN 'Alt. Carga Horaria'
+      WHEN REQ.ORIGEMTIPO = 'D' THEN 'Decimo Terceiro'
+      WHEN REQ.ORIGEMTIPO = 'T' THEN 'Transferencia'
+      WHEN REQ.ORIGEMTIPO = 'C' THEN 'Alt. Cadastral'
+      WHEN REQ.ORIGEMTIPO = 'E' THEN 'Alt. Endereco'
+      WHEN REQ.ORIGEMTIPO = 'F' THEN 'Folha'
+      ELSE REQ.ORIGEMTIPO
+    END AS origemTipoLabel,
+    REQ.CODEMP AS codemp,
+    REQ.CODFUNC AS codfunc,
+    REQ.OBSERVACAO AS observacao,
+    REQ.PRIORIDADE AS prioridade,
+    CONVERT(VARCHAR(10), REQ.DTLIMITE, 120) AS dtLimite,
+    REQ.ORIGEMID AS origemId,
+    REQ.CODUSU AS codusu,
+    FUN.CODPARC AS codparc,
+    COALESCE(FUN.NOMEFUNC, ADM.NOMEFUNC, USU.NOMEUSU) AS nomeFuncionario,
+    EMP.NOMEFANTASIA AS nomeEmpresa,
+    CAR.DESCRCARGO AS descricaoCargo,
+    DEP.DESCRCENCUS AS departamento,
+    FNC.DESCRFUNCAO AS funcao,
+    USU.NOMEUSU AS nomeSolicitante,
+    CASE
+      WHEN REQ.STATUS IN (2, 3, -2, -1) THEN NULL
+      ELSE DATEDIFF(day, GETDATE(), DATEADD(day, 20, REQ.DTCRIACAO))
+    END AS diasRestantes,
+    ROW_NUMBER() OVER (ORDER BY @orderBy) AS RowNum
+  FROM TFPREQ REQ
+  LEFT JOIN TFPFUN FUN ON FUN.CODFUNC = REQ.CODFUNC AND FUN.CODEMP = REQ.CODEMP
+  LEFT JOIN TFPREQADM ADM ON ADM.ID = REQ.ORIGEMID AND REQ.ORIGEMTIPO = 'A'
+  LEFT JOIN TSIEMP EMP ON EMP.CODEMP = REQ.CODEMP
+  LEFT JOIN TFPCAR CAR ON CAR.CODCARGO = FUN.CODCARGO
+  LEFT JOIN TSICUS DEP ON DEP.CODCENCUS = FUN.CODDEP
+  LEFT JOIN TFPFCO FNC ON FNC.CODFUNCAO = FUN.CODFUNCAO
+  LEFT JOIN TSIUSU USU ON USU.CODUSU = REQ.CODUSU
+  WHERE 1=1 @whereClause
+) AS T
+WHERE RowNum > @offset AND RowNum <= (@offset + @limit)
+`;
+
+export const contarRequisicoes = `
+SELECT COUNT(*) AS total
+FROM TFPREQ REQ
+LEFT JOIN TFPFUN FUN ON FUN.CODFUNC = REQ.CODFUNC AND FUN.CODEMP = REQ.CODEMP
+LEFT JOIN TFPREQADM ADM ON ADM.ID = REQ.ORIGEMID AND REQ.ORIGEMTIPO = 'A'
+WHERE 1=1 @whereClause
+`;

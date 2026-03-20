@@ -1,0 +1,295 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { TokenService } from './token.service';
+import { UserValidationService } from './user-validation.service';
+import { ConfigService } from '@nestjs/config';
+import { AppLogger } from '../../../common/logging/app-logger.service';
+
+describe('AuthService', () => {
+  let service: AuthService;
+  let tokenService: TokenService;
+  let userValidationService: UserValidationService;
+  let configService: ConfigService;
+  let appLogger: AppLogger;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        {
+          provide: TokenService,
+          useValue: {
+            generateAccessToken: jest.fn(),
+            generateRefreshToken: jest.fn(),
+            verifyToken: jest.fn(),
+            isTokenExpired: jest.fn(),
+            getTokenExpiration: jest.fn(),
+            extractTokenFromHeader: jest.fn(), // Mock this method here
+          },
+        },
+        {
+          provide: UserValidationService,
+          useValue: {
+            validateUser: jest.fn(),
+            getUserDetails: jest.fn(),
+            updateUserLastLogin: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'JWT_SECRET') return 'test_jwt_secret';
+              if (key === 'JWT_ACCESS_TOKEN_EXPIRATION') return '1h';
+              if (key === 'JWT_REFRESH_TOKEN_EXPIRATION') return '7d';
+              return null;
+            }),
+          },
+        },
+        {
+          provide: AppLogger,
+          useValue: {
+            logDebug: jest.fn(),
+            logInfo: jest.fn(),
+            logError: jest.fn(),
+            logWarning: jest.fn(),
+            logAuth: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<AuthService>(AuthService);
+    tokenService = module.get<TokenService>(TokenService);
+    userValidationService = module.get<UserValidationService>(UserValidationService);
+    configService = module.get<ConfigService>(ConfigService);
+    appLogger = module.get<AppLogger>(AppLogger);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('login', () => {
+    it('should return access and refresh tokens on successful validation', async () => {
+      const username = 'testuser';
+      const password = 'testpassword';
+      const ip = '127.0.0.1';
+
+      (userValidationService.validateUser as jest.Mock).mockResolvedValue({
+        success: true,
+        user: { CODUSU: 1, NOMEUSU: 'testuser_name' },
+      });
+      (tokenService.generateAccessToken as jest.Mock).mockReturnValue('access_token_mock');
+      (tokenService.generateRefreshToken as jest.Mock).mockReturnValue('refresh_token_mock');
+      (tokenService.getTokenExpiration as jest.Mock).mockReturnValue(new Date(Date.now() + 3600 * 1000)); // 1 hour from now
+
+      const result = await service.login(username, password, ip);
+
+      expect(userValidationService.validateUser).toHaveBeenCalledWith(username, password);
+      expect(tokenService.generateAccessToken).toHaveBeenCalledWith({ username: 'testuser_name', sub: 1 });
+      expect(tokenService.generateRefreshToken).toHaveBeenCalledWith({ username: 'testuser_name', sub: 1 });
+      expect(appLogger.logAuth).toHaveBeenCalledWith(username, true, ip);
+      expect(result).toEqual({
+        access_token: 'access_token_mock',
+        refreshToken: 'refresh_token_mock',
+        tokenType: 'Bearer',
+        expiresIn: expect.any(Number),
+      });
+    });
+
+    it('should throw UnauthorizedException on failed validation', async () => {
+      const username = 'testuser';
+      const password = 'wrongpassword';
+      const ip = '127.0.0.1';
+
+      (userValidationService.validateUser as jest.Mock).mockResolvedValue({ success: false });
+
+      await expect(service.login(username, password, ip)).rejects.toThrow(UnauthorizedException);
+      expect(appLogger.logAuth).toHaveBeenCalledWith(username, false, ip);
+    });
+  });
+
+  describe('refreshTokens', () => {
+    it('should return new access and refresh tokens if refresh token is valid', async () => {
+      const refreshToken = 'valid_refresh_token';
+      const ip = '127.0.0.1';
+      const decodedPayload = { username: 'testuser_refresh', sub: '2' };
+
+      (tokenService.verifyToken as jest.Mock).mockReturnValue(decodedPayload);
+      (tokenService.isTokenExpired as jest.Mock).mockReturnValue(false);
+      (tokenService.generateAccessToken as jest.Mock).mockReturnValue('new_access_token');
+      (tokenService.generateRefreshToken as jest.Mock).mockReturnValue('new_refresh_token');
+      (tokenService.getTokenExpiration as jest.Mock).mockReturnValue(new Date(Date.now() + 3600 * 1000));
+
+      const result = await service.refreshTokens(refreshToken, ip);
+
+      expect(tokenService.verifyToken).toHaveBeenCalledWith(refreshToken);
+      expect(tokenService.isTokenExpired).toHaveBeenCalledWith(refreshToken);
+      expect(tokenService.generateAccessToken).toHaveBeenCalledWith({
+        username: decodedPayload.username,
+        sub: parseInt(decodedPayload.sub),
+      });
+      expect(tokenService.generateRefreshToken).toHaveBeenCalledWith({
+        username: decodedPayload.username,
+        sub: parseInt(decodedPayload.sub),
+      });
+      expect(appLogger.logAuth).toHaveBeenCalledWith(decodedPayload.username, true, ip);
+      expect(result).toEqual({
+        access_token: 'new_access_token',
+        refreshToken: 'new_refresh_token',
+        tokenType: 'Bearer',
+        expiresIn: expect.any(Number),
+      });
+    });
+
+    it('should throw UnauthorizedException if refresh token is invalid', async () => {
+      const refreshToken = 'invalid_refresh_token';
+      const ip = '127.0.0.1';
+
+      // Mock verifyToken to throw an UnauthorizedException directly, as the service rethrows it
+      (tokenService.verifyToken as jest.Mock).mockImplementation(() => {
+        throw new UnauthorizedException('invalid token');
+      });
+
+      await expect(service.refreshTokens(refreshToken, ip)).rejects.toThrow(UnauthorizedException);
+      expect(appLogger.logAuth).toHaveBeenCalledWith('unknown', false, ip);
+    });
+
+    it('should throw UnauthorizedException if refresh token is expired', async () => {
+      const refreshToken = 'expired_refresh_token';
+      const ip = '127.0.0.1';
+      const decodedPayload = { username: 'testuser_expired', sub: '3' };
+
+      (tokenService.verifyToken as jest.Mock).mockReturnValue(decodedPayload);
+      (tokenService.isTokenExpired as jest.Mock).mockReturnValue(true);
+
+      await expect(service.refreshTokens(refreshToken, ip)).rejects.toThrow(UnauthorizedException);
+      expect(appLogger.logAuth).toHaveBeenCalledWith(decodedPayload.username, false, ip);
+    });
+  });
+
+  describe('getUserDetails', () => {
+    it('should return user details', async () => {
+      const userId = '1';
+      const userDetails = { CODUSU: 1, NOMEUSU: 'testuser' };
+      (userValidationService.getUserDetails as jest.Mock).mockResolvedValue(userDetails);
+
+      const result = await service.getUserDetails(userId);
+      expect(result).toEqual(userDetails);
+      expect(userValidationService.getUserDetails).toHaveBeenCalledWith(userId);
+    });
+
+    it('should throw UnauthorizedException if user not found', async () => {
+      const userId = '999';
+      (userValidationService.getUserDetails as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.getUserDetails(userId)).rejects.toThrow(UnauthorizedException);
+      expect(appLogger.logWarning).toHaveBeenCalledWith('User not found in getUserDetails', { userId });
+    });
+  });
+
+  describe('validateToken', () => {
+    it('should return payload if token is valid and not expired', async () => {
+      const token = 'valid_token';
+      const payload = { username: 'test', sub: '1' };
+      (tokenService.verifyToken as jest.Mock).mockReturnValue(payload);
+      (tokenService.isTokenExpired as jest.Mock).mockReturnValue(false);
+
+      const result = await service.validateToken(token);
+      expect(result).toEqual(payload);
+    });
+
+    it('should return null if token is expired', async () => {
+      const token = 'expired_token';
+      const payload = { username: 'test', sub: '1' };
+      (tokenService.verifyToken as jest.Mock).mockReturnValue(payload);
+      (tokenService.isTokenExpired as jest.Mock).mockReturnValue(true);
+
+      const result = await service.validateToken(token);
+      expect(result).toBeNull();
+      expect(appLogger.logWarning).toHaveBeenCalledWith('Expired token used', {
+        username: payload.username,
+        userId: payload.sub,
+      });
+    });
+
+    it('should return null if token verification fails', async () => {
+      const token = 'invalid_token';
+      (tokenService.verifyToken as jest.Mock).mockImplementation(() => {
+        throw new Error('invalid token');
+      });
+
+      const result = await service.validateToken(token);
+      expect(result).toBeNull();
+      expect(appLogger.logError).toHaveBeenCalled();
+    });
+  });
+
+  describe('extractTokenFromHeader', () => {
+    it('should extract token from Bearer header', () => {
+      const header = 'Bearer abc.123.xyz';
+      (tokenService.extractTokenFromHeader as jest.Mock).mockReturnValue('abc.123.xyz'); // Correctly mock the injected service
+      const result = service.extractTokenFromHeader(header);
+      expect(result).toBe('abc.123.xyz');
+    });
+
+    it('should return null for invalid header', () => {
+      const header = 'Basic abc.123.xyz';
+      (tokenService.extractTokenFromHeader as jest.Mock).mockReturnValue(null); // Correctly mock the injected service
+      const result = service.extractTokenFromHeader(header);
+      expect(result).toBeNull();
+      expect(appLogger.logWarning).toHaveBeenCalledWith('Invalid authorization header format');
+    });
+
+    it('should return null for undefined header', () => {
+      (tokenService.extractTokenFromHeader as jest.Mock).mockReturnValue(null); // Correctly mock the injected service
+      expect(service.extractTokenFromHeader(undefined)).toBeNull();
+    });
+  });
+
+  describe('updateLastLogin', () => {
+    it('should call userValidationService.updateUserLastLogin', async () => {
+      const userId = '1';
+      (userValidationService.updateUserLastLogin as jest.Mock).mockResolvedValue(undefined);
+      await service.updateLastLogin(userId);
+      expect(userValidationService.updateUserLastLogin).toHaveBeenCalledWith(userId);
+    });
+
+    it('should log error if update fails', async () => {
+      const userId = '1';
+      const error = new Error('db error');
+      (userValidationService.updateUserLastLogin as jest.Mock).mockRejectedValue(error);
+      await service.updateLastLogin(userId);
+      expect(appLogger.logError).toHaveBeenCalledWith('Failed to update last login', error, { userId });
+    });
+  });
+
+  describe('getJwtSecret', () => {
+    it('should return JWT secret', () => {
+      const secret = service.getJwtSecret();
+      expect(secret).toBe('test_jwt_secret');
+    });
+
+    it('should throw error if JWT_SECRET is not configured', () => {
+      (configService.get as jest.Mock).mockReturnValueOnce(null);
+      expect(() => service.getJwtSecret()).toThrow('JWT_SECRET environment variable is required');
+      expect(appLogger.logError).toHaveBeenCalledWith('JWT_SECRET not configured');
+    });
+  });
+
+  describe('isDevelopmentEnvironment', () => {
+    it('should return true for non-production environments', () => {
+      (configService.get as jest.Mock).mockReturnValueOnce('development');
+      expect(service.isDevelopmentEnvironment()).toBe(true);
+      (configService.get as jest.Mock).mockReturnValueOnce('staging');
+      expect(service.isDevelopmentEnvironment()).toBe(true);
+    });
+
+    it('should return false for production environment', () => {
+      (configService.get as jest.Mock).mockReturnValueOnce('production');
+      expect(service.isDevelopmentEnvironment()).toBe(false);
+    });
+  });
+});

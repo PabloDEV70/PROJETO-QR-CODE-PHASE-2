@@ -1,0 +1,40 @@
+module.exports = {
+  apps: [
+    {
+      name: 'api-micro-sankhya',
+      cwd: '/home/mirofsadafs/proj-micro-sankhya/api-micro-sankhya',
+      script: 'dist/src/main.js',
+      instances: 1,
+      exec_mode: 'fork',
+      max_memory_restart: '512M',
+      env_file: '.env',
+    },
+    {
+      name: 'publico-vite',
+      cwd: '/home/mirofsadafs/proj-micro-sankhya/publico-vite',
+      script: '/usr/bin/serve',
+      args: '-s dist -l 7101',
+      instances: 1,
+      exec_mode: 'fork',
+      max_memory_restart: '128M',
+    },
+    {
+      name: 'pwa-rdomotivos',
+      cwd: '/home/mirofsadafs/proj-micro-sankhya/app-pwa-rdomotivos',
+      script: '/usr/bin/serve',
+      args: '-s dist -l 7106',
+      instances: 1,
+      exec_mode: 'fork',
+      max_memory_restart: '256M',
+    },
+    {
+      name: 'gestao-veiculos-pwa',
+      cwd: '/home/mirofsadafs/proj-micro-sankhya/app-gestao-veiculos-pwa-vite',
+      script: '/usr/bin/serve',
+      args: '-s dist -l 7109',
+      instances: 1,
+      exec_mode: 'fork',
+      max_memory_restart: '256M',
+    },
+  ],
+};

@@ -1,0 +1,21 @@
+export const buscarPorId = `
+SELECT
+    m.RDOMOTIVOCOD,
+    m.DESCRICAO,
+    m.SIGLA,
+    m.ATIVO,
+    m.DTINC,
+    m.DTALT,
+    m.PRODUTIVO,
+    m.TOLERANCIA,
+    m.PENALIDADE,
+    m.WTCATEGORIA,
+    (
+        SELECT COUNT(DISTINCT a.CODRDO)
+        FROM AD_RDOAPONTAMENTOS a
+        INNER JOIN AD_RDOAPONDETALHES d ON a.CODRDO = d.CODRDO
+        WHERE d.RDOMOTIVOCOD = m.RDOMOTIVOCOD
+    ) as rdoCount
+FROM AD_RDOMOTIVOS m
+WHERE m.RDOMOTIVOCOD = @id
+`;

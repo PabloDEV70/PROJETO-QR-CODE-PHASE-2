@@ -1,0 +1,40 @@
+export const resumoRequisicoesPorStatus = `
+SELECT
+  SUM(CASE WHEN REQ.STATUS IN (0, 1) THEN 1 ELSE 0 END) AS pendentes,
+  SUM(CASE WHEN REQ.STATUS = 2 THEN 1 ELSE 0 END) AS aprovados,
+  SUM(CASE WHEN REQ.STATUS = 3 THEN 1 ELSE 0 END) AS executados,
+  SUM(CASE WHEN REQ.STATUS = -2 THEN 1 ELSE 0 END) AS cancelados,
+  SUM(CASE WHEN REQ.STATUS = -1 THEN 1 ELSE 0 END) AS rejeitados,
+  COUNT(*) AS total,
+  SUM(CASE
+    WHEN REQ.STATUS IN (0, 1) AND DATEDIFF(day, GETDATE(), DATEADD(day, 20, REQ.DTCRIACAO)) <= 3
+    THEN 1 ELSE 0
+  END) AS pendentesUrgentes
+FROM TFPREQ REQ
+LEFT JOIN TFPFUN FUN ON FUN.CODFUNC = REQ.CODFUNC AND FUN.CODEMP = REQ.CODEMP
+WHERE 1=1 @whereClause
+`;
+
+export const resumoRequisicoesPorTipo = `
+SELECT
+  REQ.ORIGEMTIPO AS origemTipo,
+  CASE
+    WHEN REQ.ORIGEMTIPO = 'R' THEN 'Rescisao/Demissao'
+    WHEN REQ.ORIGEMTIPO = 'A' THEN 'Admissao'
+    WHEN REQ.ORIGEMTIPO = 'V' THEN 'Ferias'
+    WHEN REQ.ORIGEMTIPO = 'S' THEN 'Alt. Cargo/Salario'
+    WHEN REQ.ORIGEMTIPO = 'G' THEN 'Alt. Carga Horaria'
+    WHEN REQ.ORIGEMTIPO = 'D' THEN 'Decimo Terceiro'
+    WHEN REQ.ORIGEMTIPO = 'T' THEN 'Transferencia'
+    WHEN REQ.ORIGEMTIPO = 'C' THEN 'Alt. Cadastral'
+    WHEN REQ.ORIGEMTIPO = 'E' THEN 'Alt. Endereco'
+    WHEN REQ.ORIGEMTIPO = 'F' THEN 'Folha'
+    ELSE REQ.ORIGEMTIPO
+  END AS origemTipoLabel,
+  COUNT(*) AS quantidade
+FROM TFPREQ REQ
+LEFT JOIN TFPFUN FUN ON FUN.CODFUNC = REQ.CODFUNC AND FUN.CODEMP = REQ.CODEMP
+WHERE 1=1 @whereClause
+GROUP BY REQ.ORIGEMTIPO
+ORDER BY quantidade DESC
+`;

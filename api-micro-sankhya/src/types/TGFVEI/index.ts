@@ -1,0 +1,15 @@
+export { TgfVei } from './tgf-vei';
+export { VeiculoComStatus } from './tgf-vei-status';
+export { OsComercial } from './tgf-vei-os-comercial';
+export { OsManutencao } from './tgf-vei-os-manutencao';
+export { ContratoVeiculo } from './tgf-vei-contrato';
+export { TgfVeiPerfilCompleto } from './tgf-vei-perfil-completo';
+export { PerfilVeiculoInclude, VALID_INCLUDES } from './perfil-include';
+export { VeiculoDashboard } from './tgf-vei-dashboard';
+export { VeiculoStats } from './tgf-vei-stats';
+export { VeiculoStatsManutencao } from './tgf-vei-stats-manutencao';
+export { ResumoManutencao } from './tgf-vei-resumo-manutencao';
+export { VeiculoAlerta } from './tgf-vei-alerta';
+export { VeiculoAuditoria } from './tgf-vei-auditoria';
+export type { HistoricoOsUnificado } from './tgf-vei-historico-unificado';
+export type { OsManutencaoEnriched } from './tgf-vei-os-manutencao-enriched';

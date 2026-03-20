@@ -1,0 +1,13 @@
+export const estatisticas = `
+SELECT
+  (SELECT COUNT(*) FROM TCFOSCAB) as totalOs,
+  (SELECT COUNT(*) FROM TCFOSCAB WHERE STATUS <> 'F') as osAbertas,
+  (SELECT COUNT(*) FROM TCFOSCAB WHERE STATUS = 'F') as osFechadas,
+  (
+    SELECT AVG(DATEDIFF(DAY, DTABERTURA, DATAFIN))
+    FROM TCFOSCAB
+    WHERE STATUS = 'F'
+      AND DATAFIN IS NOT NULL
+      AND DTABERTURA IS NOT NULL
+  ) as mediaDiasParaFechar
+`;

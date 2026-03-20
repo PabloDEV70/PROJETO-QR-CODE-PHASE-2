@@ -1,0 +1,7 @@
+export const osListCount = `
+SELECT COUNT(*) as total
+FROM TCFOSCAB os
+LEFT JOIN TGFVEI v ON os.CODVEICULO = v.CODVEICULO
+WHERE 1=1
+-- @WHERE
+`;

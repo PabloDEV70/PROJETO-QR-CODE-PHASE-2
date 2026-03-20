@@ -1,0 +1,5 @@
+export const prioridades = `
+SELECT IDPRI, SIGLA, DESCRICAO
+FROM AD_ADHSTVEIPRI
+ORDER BY IDPRI
+`;

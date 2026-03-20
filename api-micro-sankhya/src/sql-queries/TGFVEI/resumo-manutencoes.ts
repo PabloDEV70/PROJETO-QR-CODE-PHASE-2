@@ -1,0 +1,38 @@
+export const resumoManutencoes = `
+SELECT
+  m.NUOS AS nuos,
+  m.CODVEICULO AS codveiculo,
+  v.PLACA AS placa,
+  CAST(v.MARCAMODELO AS VARCHAR(200)) AS marcamodelo,
+  m.STATUS AS status,
+  CASE m.STATUS
+    WHEN 'A' THEN 'Aberta'
+    WHEN 'E' THEN 'Em Execucao'
+    ELSE m.STATUS
+  END AS statusDescricao,
+  ISNULL(m.TIPO, '') AS tipo,
+  ISNULL(m.MANUTENCAO, '') AS manutencao,
+  CASE m.MANUTENCAO
+    WHEN 'I' THEN 'Interna'
+    WHEN 'E' THEN 'Externa'
+    WHEN 'P' THEN 'Preventiva'
+    WHEN 'C' THEN 'Corretiva'
+    ELSE ISNULL(m.MANUTENCAO, '')
+  END AS manutencaoDescricao,
+  CONVERT(VARCHAR, m.DATAINI, 120) AS dataini,
+  CONVERT(VARCHAR, m.PREVISAO, 120) AS previsao,
+  CAST(ISNULL(p.NOMEPARC, '') AS VARCHAR(200)) AS parceiroNome,
+  ISNULL(m.AD_STATUSGIG, '') AS statusGig,
+  ISNULL(m.AD_BLOQUEIOS, '') AS bloqueios,
+  (SELECT COUNT(*) FROM SANKHYA.TCFSERVOS s WHERE s.NUOS = m.NUOS) AS qtdServicos,
+  DATEDIFF(DAY, m.DATAINI, GETDATE()) AS diasAberta
+FROM SANKHYA.TCFOSCAB m
+INNER JOIN SANKHYA.TGFVEI v ON v.CODVEICULO = m.CODVEICULO
+LEFT JOIN SANKHYA.TGFPAR p ON p.CODPARC = m.CODPARC
+WHERE m.DATAFIN IS NULL
+  AND m.CODVEICULO IS NOT NULL
+ORDER BY
+  CASE WHEN m.AD_BLOQUEIOS = 'S' THEN 0 ELSE 1 END,
+  CASE WHEN m.PREVISAO < GETDATE() THEN 0 ELSE 1 END,
+  m.DATAINI ASC
+`;

@@ -1,0 +1,13 @@
+export const porVeiculo = `
+SELECT DISTINCT TOP 50
+  os.NUMOS,
+  os.SITUACAO,
+  os.DHCHAMADA
+FROM TCSOSE os
+WHERE os.NUMOS IN (
+  SELECT itens.NUMOS
+  FROM TCSITE itens
+  WHERE itens.AD_CODVEICULO = @codveiculo
+)
+ORDER BY os.DHCHAMADA DESC
+`;

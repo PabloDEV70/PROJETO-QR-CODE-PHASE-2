@@ -1,0 +1,28 @@
+{
+  "name": "Chamados TI - Gigantao",
+  "short_name": "Chamados",
+  "description": "Gerenciamento de chamados de TI",
+  "start_url": "/chamados/chat",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#00a884",
+  "background_color": "#111b21",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

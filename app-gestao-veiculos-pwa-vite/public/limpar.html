@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limpar Cache</title>
+  <style>
+    body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+    .card { background: #fff; padding: 2rem; border-radius: 8px; text-align: center; max-width: 400px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    button { background: #c62828; color: #fff; border: none; padding: 12px 24px; font-size: 16px; font-weight: 700; border-radius: 4px; cursor: pointer; margin-top: 16px; }
+    button:hover { background: #b71c1c; }
+    .ok { color: #2e7d32; font-weight: 700; }
+    #status { margin-top: 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Limpar Cache e Service Worker</h2>
+    <p>Isto ira limpar todos os dados locais, cache e Service Worker do aplicativo.</p>
+    <button onclick="limpar()">Limpar Tudo</button>
+    <div id="status"></div>
+  </div>
+  <script>
+    async function limpar() {
+      const el = document.getElementById('status');
+      el.textContent = 'Limpando...';
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+        const names = await caches.keys();
+        for (const n of names) await caches.delete(n);
+        localStorage.clear();
+        sessionStorage.clear();
+        el.innerHTML = '<span class="ok">Tudo limpo! Redirecionando...</span>';
+        setTimeout(() => window.location.href = '/login', 1500);
+      } catch (e) {
+        el.textContent = 'Erro: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+export const getResumo = `
+SELECT
+  (SELECT COUNT(DISTINCT IDACESSO) FROM TDDPER) AS totalTelas,
+  (SELECT COUNT(DISTINCT CODUSU) FROM TDDPER WHERE CODUSU > 0) AS totalUsuarios,
+  (SELECT COUNT(*) FROM TSIGRU) AS totalGrupos,
+  (SELECT COUNT(*) FROM TDDPER) AS totalAtribuicoes
+`;

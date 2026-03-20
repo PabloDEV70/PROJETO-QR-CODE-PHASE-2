@@ -1,0 +1,24 @@
+import { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import { CabDetalhamentoService } from '../../../domain/services/cab-detalhamento.service';
+
+const paramsSchema = z.object({
+  nunota: z.string().transform(Number),
+});
+
+export async function cabDetalhamentoRoutes(app: FastifyInstance) {
+  const service = new CabDetalhamentoService();
+
+  app.get('/cabs/detalhamento-completo/:nunota', async (request, reply) => {
+    const parsed = paramsSchema.safeParse(request.params);
+
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: 'Parametro invalido',
+        details: parsed.error.flatten(),
+      });
+    }
+
+    return service.getDetalhamentoCompleto(parsed.data.nunota);
+  });
+}

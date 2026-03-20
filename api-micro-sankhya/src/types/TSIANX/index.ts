@@ -1,0 +1,1 @@
+export { TsiAnexo } from './tsianx';

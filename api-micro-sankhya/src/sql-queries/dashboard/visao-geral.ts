@@ -1,0 +1,10 @@
+export const visaoGeral = `
+  SELECT
+    (SELECT COUNT(*) FROM TGFVEI WHERE ATIVO = 'S') as totalVeiculosAtivos,
+    (SELECT COUNT(*) FROM TCFOSCAB WHERE STATUS <> 'F') as osManutencaoAbertas,
+    (SELECT COUNT(*) FROM TCFOSCAB WHERE STATUS = 'F') as osManutencaoFechadas,
+    (SELECT COUNT(*) FROM TCSOSE WHERE SITUACAO <> 'F') as osComercialAbertas,
+    (SELECT COUNT(*) FROM TCSOSE WHERE SITUACAO = 'F') as osComercialFechadas,
+    (SELECT COUNT(DISTINCT CODRDO) FROM AD_RDOAPONTAMENTOS WHERE DTREF >= DATEADD(MONTH, -1, GETDATE())) as rdosUltimo30Dias,
+    (SELECT COUNT(*) FROM AD_CONTRATOS WHERE (ISDELETED = 'N' OR ISDELETED IS NULL) AND GETDATE() BETWEEN DHINIC AND DHFIN) as contratosVigentes
+`;

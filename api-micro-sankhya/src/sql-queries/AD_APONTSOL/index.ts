@@ -1,0 +1,9 @@
+export { getByApontamento } from './get-by-apontamento';
+export { getResumo } from './get-resumo';
+export { getPendentesSemOs } from './get-pendentes-sem-os';
+export { getComOs } from './get-com-os';
+export { getServicosFrequentes } from './get-servicos-frequentes';
+export { getByProduto } from './get-by-produto';
+export { getByVeiculo } from './get-by-veiculo';
+export { getByPeriodo } from './get-by-periodo';
+export { getTimelineVeiculo } from './get-timeline-veiculo';

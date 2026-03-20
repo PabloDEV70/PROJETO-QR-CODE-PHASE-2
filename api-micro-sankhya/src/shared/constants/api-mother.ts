@@ -1,0 +1,2 @@
+export const API_MOTHER_MAX_BATCH_SIZE = 10;
+export const API_MOTHER_MAX_ITERATIONS_SAFETY = 20;

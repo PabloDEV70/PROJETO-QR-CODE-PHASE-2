@@ -1,0 +1,55 @@
+export const alertas = `
+SELECT * FROM (
+  SELECT
+    'CRITICO' AS tipo,
+    'Bloqueio comercial ativo' AS mensagem,
+    v.CODVEICULO AS codveiculo,
+    v.PLACA AS placa,
+    CAST(v.MARCAMODELO AS VARCHAR(200)) AS marcamodelo,
+    m.NUOS AS nuos,
+    CONVERT(VARCHAR, m.DATAINI, 120) AS dataReferencia,
+    DATEDIFF(DAY, m.DATAINI, GETDATE()) AS diasAtraso
+  FROM SANKHYA.TCFOSCAB m
+  INNER JOIN SANKHYA.TGFVEI v ON v.CODVEICULO = m.CODVEICULO
+  WHERE m.DATAFIN IS NULL AND m.AD_BLOQUEIOS = 'S'
+
+  UNION ALL
+
+  SELECT
+    CASE WHEN DATEDIFF(DAY, m.PREVISAO, GETDATE()) > 30 THEN 'CRITICO' ELSE 'ATENCAO' END AS tipo,
+    'Manutencao atrasada' AS mensagem,
+    v.CODVEICULO AS codveiculo,
+    v.PLACA AS placa,
+    CAST(v.MARCAMODELO AS VARCHAR(200)) AS marcamodelo,
+    m.NUOS AS nuos,
+    CONVERT(VARCHAR, m.PREVISAO, 120) AS dataReferencia,
+    DATEDIFF(DAY, m.PREVISAO, GETDATE()) AS diasAtraso
+  FROM SANKHYA.TCFOSCAB m
+  INNER JOIN SANKHYA.TGFVEI v ON v.CODVEICULO = m.CODVEICULO
+  WHERE m.DATAFIN IS NULL
+    AND m.PREVISAO IS NOT NULL
+    AND m.PREVISAO < GETDATE()
+    AND ISNULL(m.AD_BLOQUEIOS, 'N') != 'S'
+
+  UNION ALL
+
+  SELECT
+    'INFO' AS tipo,
+    'Manutencao proxima do vencimento' AS mensagem,
+    v.CODVEICULO AS codveiculo,
+    v.PLACA AS placa,
+    CAST(v.MARCAMODELO AS VARCHAR(200)) AS marcamodelo,
+    m.NUOS AS nuos,
+    CONVERT(VARCHAR, m.PREVISAO, 120) AS dataReferencia,
+    DATEDIFF(DAY, GETDATE(), m.PREVISAO) AS diasAtraso
+  FROM SANKHYA.TCFOSCAB m
+  INNER JOIN SANKHYA.TGFVEI v ON v.CODVEICULO = m.CODVEICULO
+  WHERE m.DATAFIN IS NULL
+    AND m.PREVISAO IS NOT NULL
+    AND m.PREVISAO >= GETDATE()
+    AND m.PREVISAO <= DATEADD(DAY, 7, GETDATE())
+) AS alertas
+ORDER BY
+  CASE tipo WHEN 'CRITICO' THEN 0 WHEN 'ATENCAO' THEN 1 ELSE 2 END,
+  diasAtraso DESC
+`;
