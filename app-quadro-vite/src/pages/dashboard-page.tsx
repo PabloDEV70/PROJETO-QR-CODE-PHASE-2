@@ -65,7 +65,7 @@ export function DashboardPage() {
   const { data: stats, isLoading } = useHstVeiStats();
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto', width: '100%' }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto', width: '100%', flex: 1, overflow: 'auto' }}>
       <Typography variant="h6" fontWeight={700} sx={{ mb: 2.5 }}>
         Dashboard
       </Typography>

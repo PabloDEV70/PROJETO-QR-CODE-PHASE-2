@@ -803,7 +803,7 @@ export function VeiculosStatusPage() {
   return (
     <Box sx={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
       {/* Sidebar */}
-      <Box sx={{ width: 310, flexShrink: 0, borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
+      <Box sx={{ width: { xs: 260, md: 310, lg: 340 }, flexShrink: 0, borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper', minWidth: 240 }}>
 
         {/* Search + Filter */}
         <Box sx={{ p: 1.5 }}>
