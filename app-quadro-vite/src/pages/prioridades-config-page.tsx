@@ -98,7 +98,7 @@ export function PrioridadesConfigPage() {
   }
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
       <DataGrid
         rows={rows} columns={columns} getRowId={(row) => row.IDPRI}
         loading={isLoading} density="compact" disableRowSelectionOnClick
