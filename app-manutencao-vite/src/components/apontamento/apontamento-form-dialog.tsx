@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  TextField, FormControlLabel, Checkbox, Stack, Box, Typography,
+  TextField, Stack, Box, Typography, MenuItem,
 } from '@mui/material';
 import { CrudFormDialog } from '@/components/shared/crud-form-dialog';
 import { VeiculoCombobox } from '@/components/shared/veiculo-combobox';
-import type { ApontamentoFormData, ApontamentoListItem } from '@/types/apontamento-types';
+import {
+  TIPO_SERVICO_MAP, STATUS_OS_LABELS,
+  type ApontamentoFormData, type ApontamentoListItem,
+} from '@/types/apontamento-types';
 
 const EMPTY_FORM: ApontamentoFormData = {
   codveiculo: null,
@@ -12,14 +15,15 @@ const EMPTY_FORM: ApontamentoFormData = {
   horimetro: null,
   tag: '',
   obs: '',
-  borrcharia: false,
-  eletrica: false,
-  funilaria: false,
-  mecanica: false,
-  caldeiraria: false,
-  osExterna: false,
+  borrcharia: '',
+  eletrica: '',
+  funilaria: '',
+  mecanica: '',
+  caldeiraria: '',
+  osExterna: 'N',
   opExterno: '',
   dtProgramacao: '',
+  statusOs: '',
 };
 
 interface ApontamentoFormDialogProps {
@@ -46,14 +50,15 @@ export function ApontamentoFormDialog({
           horimetro: editingItem.HORIMETRO,
           tag: editingItem.TAG ?? '',
           obs: editingItem.OBS ?? '',
-          borrcharia: editingItem.BORRCHARIA === 'S',
-          eletrica: editingItem.ELETRICA === 'S',
-          funilaria: editingItem.FUNILARIA === 'S',
-          mecanica: editingItem.MECANICA === 'S',
-          caldeiraria: editingItem.CALDEIRARIA === 'S',
-          osExterna: editingItem.OSEXTERNA === 'S',
+          borrcharia: editingItem.BORRCHARIA ?? '',
+          eletrica: editingItem.ELETRICA ?? '',
+          funilaria: editingItem.FUNILARIA ?? '',
+          mecanica: editingItem.MECANICA ?? '',
+          caldeiraria: editingItem.CALDEIRARIA ?? '',
+          osExterna: editingItem.OSEXTERNA ?? 'N',
           opExterno: editingItem.OPEXTERNO ?? '',
           dtProgramacao: editingItem.DTPROGRAMACAO ?? '',
+          statusOs: editingItem.STATUSOS ?? '',
         });
       } else {
         setForm(EMPTY_FORM);
@@ -61,7 +66,7 @@ export function ApontamentoFormDialog({
     }
   }, [open, editingItem]);
 
-  const handleChange = (field: keyof ApontamentoFormData, value: unknown) => {
+  const set = (field: keyof ApontamentoFormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -90,62 +95,74 @@ export function ApontamentoFormDialog({
           required
         />
 
-        <TextField
-          label="TAG" size="small" fullWidth
-          value={form.tag}
-          onChange={(e) => handleChange('tag', e.target.value)}
-        />
+        <Stack direction="row" spacing={2}>
+          <TextField
+            label="TAG" size="small" fullWidth
+            value={form.tag}
+            onChange={(e) => set('tag', e.target.value)}
+          />
+          <TextField
+            label="Status OS" size="small" fullWidth select
+            value={form.statusOs}
+            onChange={(e) => set('statusOs', e.target.value)}
+          >
+            <MenuItem value="">Nenhum</MenuItem>
+            {Object.entries(STATUS_OS_LABELS).map(([val, label]) => (
+              <MenuItem key={val} value={val}>{label}</MenuItem>
+            ))}
+          </TextField>
+        </Stack>
 
         <Stack direction="row" spacing={2}>
           <TextField
             label="KM" size="small" fullWidth type="number"
             value={form.km ?? ''}
-            onChange={(e) => handleChange('km', e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) => set('km', e.target.value ? Number(e.target.value) : null)}
           />
           <TextField
             label="Horimetro" size="small" fullWidth type="number"
             value={form.horimetro ?? ''}
-            onChange={(e) => handleChange('horimetro', e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) => set('horimetro', e.target.value ? Number(e.target.value) : null)}
           />
         </Stack>
 
+        {/* Tipos de Servico com subcategorias */}
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Tipo de Servico</Typography>
-          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0 }}>
-            {(['borrcharia', 'eletrica', 'funilaria', 'mecanica', 'caldeiraria'] as const).map((f) => (
-              <FormControlLabel
-                key={f}
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={form[f]}
-                    onChange={(e) => handleChange(f, e.target.checked)}
-                  />
-                }
-                label={f.charAt(0).toUpperCase() + f.slice(1)}
-                sx={{ '& .MuiFormControlLabel-label': { fontSize: 13 } }}
-              />
+          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Tipos de Servico</Typography>
+          <Stack spacing={1.5}>
+            {Object.entries(TIPO_SERVICO_MAP).map(([key, { label, options }]) => (
+              <TextField
+                key={key}
+                label={label}
+                size="small"
+                fullWidth
+                select
+                value={form[key.toLowerCase() as keyof ApontamentoFormData] || ''}
+                onChange={(e) => set(key.toLowerCase() as keyof ApontamentoFormData, e.target.value)}
+              >
+                <MenuItem value="">Nenhum</MenuItem>
+                {options.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                ))}
+              </TextField>
             ))}
           </Stack>
         </Box>
 
         <Stack direction="row" spacing={2} alignItems="center">
-          <FormControlLabel
-            control={
-              <Checkbox
-                size="small"
-                checked={form.osExterna}
-                onChange={(e) => handleChange('osExterna', e.target.checked)}
-              />
-            }
-            label="OS Externa"
-            sx={{ '& .MuiFormControlLabel-label': { fontSize: 13 } }}
-          />
-          {form.osExterna && (
+          <TextField
+            label="OS Externa" size="small" select sx={{ minWidth: 120 }}
+            value={form.osExterna}
+            onChange={(e) => set('osExterna', e.target.value)}
+          >
+            <MenuItem value="N">Nao</MenuItem>
+            <MenuItem value="S">Sim</MenuItem>
+          </TextField>
+          {form.osExterna === 'S' && (
             <TextField
               label="Operador Externo" size="small" fullWidth
               value={form.opExterno}
-              onChange={(e) => handleChange('opExterno', e.target.value)}
+              onChange={(e) => set('opExterno', e.target.value)}
             />
           )}
         </Stack>
@@ -154,14 +171,14 @@ export function ApontamentoFormDialog({
           label="Data Programacao" size="small" fullWidth
           type="date"
           value={form.dtProgramacao}
-          onChange={(e) => handleChange('dtProgramacao', e.target.value)}
+          onChange={(e) => set('dtProgramacao', e.target.value)}
           slotProps={{ inputLabel: { shrink: true } }}
         />
 
         <TextField
           label="Observacoes" size="small" fullWidth multiline rows={3}
           value={form.obs}
-          onChange={(e) => handleChange('obs', e.target.value)}
+          onChange={(e) => set('obs', e.target.value)}
         />
       </Stack>
     </CrudFormDialog>

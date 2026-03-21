@@ -20,8 +20,8 @@ const listSchema = z.object({
 const colabSchema = z.object({
   codusu: z.string().optional(),
   codparc: z.string().optional(),
-  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')).transform((v) => v || undefined),
+  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')).transform((v) => v || undefined),
 }).refine((d) => d.codusu || d.codparc, {
   message: 'codusu or codparc is required',
 });

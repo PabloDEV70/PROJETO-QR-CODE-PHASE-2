@@ -51,8 +51,15 @@ export function buildServicosColumns(): GridColDef<OsColabServico>[] {
     {
       field: 'DTABERTURA', headerName: 'Abertura', width: 82,
       description: 'Data de abertura da OS',
-      valueGetter: (_v, row) => row.DTABERTURA ? new Date(row.DTABERTURA) : null,
-      valueFormatter: (v: Date | null) => v ? fmtDate(v.toISOString()) : '-',
+      valueGetter: (_v, row) => {
+        if (!row.DTABERTURA) return null;
+        const d = new Date(row.DTABERTURA);
+        return isNaN(d.getTime()) ? null : d;
+      },
+      valueFormatter: (v: Date | null) => {
+        if (!v || isNaN(v.getTime())) return '-';
+        return fmtDate(v.toISOString());
+      },
     },
     {
       field: 'nomeServico', headerName: 'Servico', flex: 1, minWidth: 160,
@@ -110,14 +117,28 @@ export function buildServicosColumns(): GridColDef<OsColabServico>[] {
     {
       field: 'dtInicio', headerName: 'Inicio', width: 95,
       description: 'Data/hora de inicio da execucao',
-      valueGetter: (_v, row) => row.dtInicio ? new Date(row.dtInicio) : null,
-      valueFormatter: (v: Date | null) => v ? fmtDateTime(v.toISOString()) : '-',
+      valueGetter: (_v, row) => {
+        if (!row.dtInicio) return null;
+        const d = new Date(row.dtInicio);
+        return isNaN(d.getTime()) ? null : d;
+      },
+      valueFormatter: (v: Date | null) => {
+        if (!v || isNaN(v.getTime())) return '-';
+        return fmtDateTime(v.toISOString());
+      },
     },
     {
       field: 'dtFim', headerName: 'Fim', width: 95,
       description: 'Data/hora do fim da execucao',
-      valueGetter: (_v, row) => row.dtFim ? new Date(row.dtFim) : null,
-      valueFormatter: (v: Date | null) => v ? fmtDateTime(v.toISOString()) : '-',
+      valueGetter: (_v, row) => {
+        if (!row.dtFim) return null;
+        const d = new Date(row.dtFim);
+        return isNaN(d.getTime()) ? null : d;
+      },
+      valueFormatter: (v: Date | null) => {
+        if (!v || isNaN(v.getTime())) return '-';
+        return fmtDateTime(v.toISOString());
+      },
     },
     {
       field: 'tempoGastoMin', headerName: 'Tempo', width: 80,

@@ -54,6 +54,7 @@ const PRESETS = [
   { label: 'API + TI Admin',                   ids: ['api', 'tiadmin'] },
   { label: 'API + Grupos e Servicos',          ids: ['api', 'grupos'] },
   { label: 'API + Quadro Veiculos',            ids: ['api', 'quadro'] },
+  { label: 'API + Manutencao',                 ids: ['api', 'manutencao'] },
   { label: 'Escolher manualmente...',           ids: null },
 ]
 

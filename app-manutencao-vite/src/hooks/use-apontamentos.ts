@@ -50,7 +50,7 @@ function useApontMutation<TArgs extends unknown[]>(
 }
 
 export function useCreateApontamento() {
-  return useApontMutation<[ApontamentoFormData]>(
+  return useApontMutation<[ApontamentoFormData, number?]>(
     'Apontamento criado',
     createApontamento,
   );

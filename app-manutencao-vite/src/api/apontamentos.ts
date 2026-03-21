@@ -26,6 +26,7 @@ export async function getApontamentos(
   if (params.dtFim) query.dtFim = params.dtFim;
   if (params.codveiculo) query.codveiculo = params.codveiculo;
   if (params.statusOs) query.statusOs = params.statusOs;
+  if (params.search) query.search = params.search;
 
   const { data } = await apiClient.get<{
     data: ApontamentoListItem[];
@@ -45,8 +46,9 @@ export async function getApontamentoServicos(
 
 export async function createApontamento(
   formData: ApontamentoFormData,
+  codusu?: number,
 ): Promise<MutationResult> {
-  const body = mapFormToPayload(formData);
+  const body = { ...mapFormToPayload(formData), CODUSU: codusu ?? 0 };
   const res = await apiClient.post<MutationResult>('/apontamentos', body);
   return res.data;
 }
@@ -114,14 +116,15 @@ function mapFormToPayload(f: ApontamentoFormData) {
     HORIMETRO: f.horimetro,
     TAG: f.tag || null,
     OBS: f.obs || null,
-    BORRCHARIA: f.borrcharia ? 'S' : 'N',
-    ELETRICA: f.eletrica ? 'S' : 'N',
-    FUNILARIA: f.funilaria ? 'S' : 'N',
-    MECANICA: f.mecanica ? 'S' : 'N',
-    CALDEIRARIA: f.caldeiraria ? 'S' : 'N',
-    OSEXTERNA: f.osExterna ? 'S' : 'N',
+    BORRCHARIA: f.borrcharia || null,
+    ELETRICA: f.eletrica || null,
+    FUNILARIA: f.funilaria || null,
+    MECANICA: f.mecanica || null,
+    CALDEIRARIA: f.caldeiraria || null,
+    OSEXTERNA: f.osExterna || 'N',
     OPEXTERNO: f.opExterno || null,
     DTPROGRAMACAO: f.dtProgramacao || null,
+    STATUSOS: f.statusOs || null,
   };
 }
 

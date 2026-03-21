@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Autocomplete, TextField, Box, Typography } from '@mui/material';
 import { DirectionsCarRounded } from '@mui/icons-material';
 import { apiClient } from '@/api/client';
@@ -35,9 +35,7 @@ export function VeiculoCombobox({
     apiClient.get<FrotaStatusResponse>('/man/frota/status')
       .then(({ data }) => {
         if (!cancelled) {
-          // Flatten veiculos from porStatus
           const veiculos = (data.porStatus ?? []).flatMap((s) => s.veiculos);
-          // Deduplicate by codveiculo
           const map = new Map<number, VeiculoOption>();
           for (const v of veiculos) {
             if (!map.has(v.codveiculo)) map.set(v.codveiculo, v);
@@ -50,13 +48,20 @@ export function VeiculoCombobox({
     return () => { cancelled = true; };
   }, []);
 
-  const selected = options.find((o) => o.codveiculo === value) ?? null;
+  // Ensure current value always has a matching option (even if not in frota list)
+  const finalOptions = useMemo(() => {
+    if (!value || options.some((o) => o.codveiculo === value)) return options;
+    // Value exists but not in loaded options — add placeholder
+    return [...options, { codveiculo: value, placa: `Veiculo #${value}`, adTag: null }];
+  }, [options, value]);
+
+  const selected = finalOptions.find((o) => o.codveiculo === value) ?? null;
 
   return (
     <Autocomplete
       value={selected}
       onChange={(_, opt) => onChange(opt?.codveiculo ?? null, opt)}
-      options={options}
+      options={finalOptions}
       loading={loading}
       disabled={disabled}
       fullWidth
