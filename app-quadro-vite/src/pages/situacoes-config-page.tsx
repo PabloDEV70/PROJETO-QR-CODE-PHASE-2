@@ -112,7 +112,7 @@ export function SituacoesConfigPage() {
       <DataGrid
         rows={rows} columns={columns} getRowId={(row) => row.ID}
         loading={isLoading} density="compact" disableRowSelectionOnClick
-        slots={{ toolbar: CustomToolbar }}
+        showToolbar slots={{ toolbar: CustomToolbar }}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         initialState={{ sorting: { sortModel: [{ field: 'ID', sort: 'asc' }] } }}
         sx={{ flex: 1, border: 'none', '& .MuiDataGrid-cell': { fontSize: 13 }, '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 700, fontSize: 13 } }}
