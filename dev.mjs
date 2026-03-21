@@ -38,6 +38,7 @@ const APPS = [
   { id: 'tiadmin',      dir: 'app-ti-admin-vite',            port: 3010, label: 'TI Admin',        type: 'vite' },
   { id: 'grupos',       dir: 'app-gruposeservicos-vite',     port: 3011, label: 'Grupos Servicos', type: 'vite' },
   { id: 'quadro',       dir: 'app-quadro-vite',              port: 3012, label: 'Quadro Veiculos', type: 'vite' },
+  { id: 'compras',      dir: 'app-compras-vite',             port: 3013, label: 'Compras',         type: 'vite' },
 ]
 
 // ── Presets ──────────────────────────────────────────────────
@@ -55,6 +56,7 @@ const PRESETS = [
   { label: 'API + Grupos e Servicos',          ids: ['api', 'grupos'] },
   { label: 'API + Quadro Veiculos',            ids: ['api', 'quadro'] },
   { label: 'API + Manutencao',                 ids: ['api', 'manutencao'] },
+  { label: 'API + Compras',                    ids: ['api', 'compras'] },
   { label: 'Escolher manualmente...',           ids: null },
 ]
 

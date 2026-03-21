@@ -57,6 +57,7 @@ import { dbDictionaryRoutes } from './db-dictionary.routes';
 import { dbAuditRoutes } from './db-audit.routes';
 import { painelSaidasRoutes } from './painel-saidas.routes';
 import { analiseFrotaRoutes } from './analise-frota.routes';
+import { comprasRoutes } from './compras.routes';
 
 export const routePlugins: FastifyPluginAsync[] = [
   versionRoutes,
@@ -117,4 +118,6 @@ export const routePlugins: FastifyPluginAsync[] = [
   dbAuditRoutes,
   painelSaidasRoutes,
   analiseFrotaRoutes,
+  comprasRoutes,
 ];
+// compras routes loaded
