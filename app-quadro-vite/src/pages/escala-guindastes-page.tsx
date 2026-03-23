@@ -33,10 +33,6 @@ interface DisplaySettings {
 
 const DisplayCtx = createContext<DisplaySettings>({ scale: 1.2, darkMode: false, compact: false });
 
-function s(base: number): number {
-  // Will be used inside components via hook
-  return base;
-}
 
 function useScale() {
   const { scale } = useContext(DisplayCtx);

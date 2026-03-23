@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box, Typography, Stack, Chip, alpha, keyframes, Paper,
-  AvatarGroup, Tooltip, IconButton, Divider,
+  Tooltip, IconButton, Divider,
 } from '@mui/material';
 import {
   FlightTakeoff, FlightLand, FiberManualRecord, Fullscreen,
