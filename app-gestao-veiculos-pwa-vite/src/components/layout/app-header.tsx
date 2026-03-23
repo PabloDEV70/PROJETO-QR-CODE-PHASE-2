@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import {
   Box, Stack, Typography, IconButton, alpha, keyframes, AppBar, Toolbar,
-  Menu, MenuItem, ListItemIcon, ListItemText, Divider,
+  Menu, MenuItem, ListItemIcon, ListItemText, Divider, Chip,
 } from '@mui/material';
-import { DarkMode, LightMode, Circle, Logout, DeleteSweep, Settings } from '@mui/icons-material';
+import {
+  DarkMode, LightMode, Circle, Logout, DeleteSweep, Settings,
+  Storage, Check,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
@@ -18,13 +21,21 @@ const DB_META: Record<DatabaseEnv, { color: string; label: string }> = {
 
 const pulse = keyframes`0%,100%{opacity:1}50%{opacity:0.4}`;
 
+const DB_OPTIONS: DatabaseEnv[] = ['PROD', 'TESTE', 'TREINA'];
+
 export function AppHeader() {
   const navigate = useNavigate();
-  const { user, database, logout } = useAuthStore();
+  const { user, database, logout, setDatabase } = useAuthStore();
   const { mode, toggleTheme } = useThemeStore();
   const isDark = mode === 'dark';
   const meta = DB_META[database];
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleDbChange = (db: DatabaseEnv) => {
+    setDatabase(db);
+    // Reload to apply new database across all queries
+    window.location.reload();
+  };
 
   const handleLogout = () => {
     setAnchorEl(null);
@@ -47,12 +58,19 @@ export function AppHeader() {
           <Typography sx={{ fontFamily: "'STOP', 'Arial Black', sans-serif", fontSize: 13, fontWeight: 900, letterSpacing: '0.08em', color: '#fff', lineHeight: 1 }}>GIGANTAO</Typography>
         </Stack>
         <Box sx={{ flex: 1 }} />
-        {database !== 'PROD' && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, px: 0.6, py: 0.2, borderRadius: 1, bgcolor: alpha('#fff', 0.15) }}>
-            <Circle sx={{ fontSize: 6, color: meta.color, animation: `${pulse} 2s ease-in-out infinite` }} />
-            <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, fontFamily: 'monospace', letterSpacing: '0.04em' }}>{meta.label}</Typography>
-          </Box>
-        )}
+        <Box sx={{
+          display: 'flex', alignItems: 'center', gap: 0.4, px: 0.8, py: 0.25, borderRadius: 1,
+          bgcolor: database === 'PROD' ? alpha('#fff', 0.1) : alpha(meta.color, 0.25),
+          border: database !== 'PROD' ? `1px solid ${alpha(meta.color, 0.5)}` : 'none',
+        }}>
+          <Circle sx={{
+            fontSize: 7, color: database === 'PROD' ? '#4ade80' : meta.color,
+            animation: database !== 'PROD' ? `${pulse} 1.5s ease-in-out infinite` : 'none',
+          }} />
+          <Typography sx={{ fontSize: '0.65rem', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+            {meta.label}
+          </Typography>
+        </Box>
         <IconButton size="small" onClick={toggleTheme} sx={{ color: '#fff' }}>
           {isDark ? <LightMode sx={{ fontSize: 20 }} /> : <DarkMode sx={{ fontSize: 20 }} />}
         </IconButton>
@@ -85,6 +103,50 @@ export function AppHeader() {
             )}
           </Box>
           <Divider />
+
+          {/* Database selector */}
+          <Box sx={{ px: 2, py: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+              <Storage sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Base de dados
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 0.75 }}>
+              {DB_OPTIONS.map((db) => {
+                const dbMeta = DB_META[db];
+                const isActive = database === db;
+                return (
+                  <Chip
+                    key={db}
+                    label={dbMeta.label}
+                    icon={isActive ? <Check sx={{ fontSize: '14px !important' }} /> : undefined}
+                    onClick={() => { if (!isActive) handleDbChange(db); }}
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      height: 32,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      fontFamily: 'monospace',
+                      cursor: isActive ? 'default' : 'pointer',
+                      bgcolor: isActive ? alpha(dbMeta.color, 0.15) : 'transparent',
+                      color: isActive ? dbMeta.color : 'text.disabled',
+                      border: `2px solid ${isActive ? dbMeta.color : alpha(dbMeta.color, 0.2)}`,
+                      '&:hover': isActive ? {} : {
+                        bgcolor: alpha(dbMeta.color, 0.08),
+                        borderColor: alpha(dbMeta.color, 0.5),
+                        color: dbMeta.color,
+                      },
+                      '& .MuiChip-icon': { color: `${dbMeta.color} !important` },
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          </Box>
+          <Divider />
+
           <MenuItem onClick={() => { setAnchorEl(null); navigate('/config'); }}>
             <ListItemIcon><Settings fontSize="small" /></ListItemIcon>
             <ListItemText>Configuracoes</ListItemText>

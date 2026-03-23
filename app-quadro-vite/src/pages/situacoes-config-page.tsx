@@ -24,11 +24,13 @@ const StyledSearchTrigger = styled(ToolbarButton)<{ ownerState: OwnerState }>(({
 const StyledSearchField = styled(TextField)<{ ownerState: OwnerState }>(({ theme, ownerState }) => ({ gridArea: '1 / 1', overflowX: 'clip', width: ownerState.expanded ? 200 : 'var(--trigger-width)', opacity: ownerState.expanded ? 1 : 0, transition: theme.transitions.create(['width', 'opacity']) }));
 
 const DEPARTAMENTOS = [
-  { cod: 1050000, nome: 'Manutencao' },
   { cod: 1020000, nome: 'Comercial' },
+  { cod: 1050000, nome: 'Manutencao' },
+  { cod: 1060000, nome: 'Seguranca' },
+  { cod: 1070000, nome: 'Compras' },
   { cod: 1090000, nome: 'Logistica' },
   { cod: 1140000, nome: 'Operacao' },
-  { cod: 1070000, nome: 'Compras' },
+  { cod: 1240000, nome: 'Programacao' },
 ];
 
 const gridSx = {

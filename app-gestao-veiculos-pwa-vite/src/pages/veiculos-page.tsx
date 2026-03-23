@@ -25,7 +25,16 @@ export function VeiculosPage() {
       list = list.filter((v) =>
         v.placa.toLowerCase().includes(q)
         || v.tag?.toLowerCase().includes(q)
-        || v.marcaModelo?.toLowerCase().includes(q),
+        || v.marcaModelo?.toLowerCase().includes(q)
+        || v.tipo?.toLowerCase().includes(q)
+        || v.situacoesAtivas.some((s) =>
+          s.situacao?.toLowerCase().includes(q)
+          || s.nomeParc?.toLowerCase().includes(q)
+          || s.mosCliente?.toLowerCase().includes(q)
+          || s.descricao?.toLowerCase().includes(q)
+          || s.operadores.some((p) => p.nome?.toLowerCase().includes(q))
+          || s.mecanicos.some((p) => p.nome?.toLowerCase().includes(q)),
+        ),
       );
     }
     return [...list].sort((a, b) => {

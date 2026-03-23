@@ -2,14 +2,39 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Paper, TextField, Button, Typography, IconButton, Stack, Box,
-  CircularProgress, Divider,
+  CircularProgress, alpha,
 } from '@mui/material';
-import { ArrowBack, Save } from '@mui/icons-material';
+import {
+  ArrowBack, Save, DirectionsCar, Description,
+  Schedule, LinkRounded, People, Receipt,
+} from '@mui/icons-material';
 import { useCreateHstVei } from '@/hooks/use-hstvei';
 import { VeiculoCombobox } from '@/components/situacoes/veiculo-combobox';
 import { SituacaoSelect } from '@/components/situacoes/situacao-select';
 import { PrioridadeSelect } from '@/components/situacoes/prioridade-select';
+import { ParceiroCombobox } from '@/components/situacoes/parceiro-combobox';
+import { OsManutencaoCombobox } from '@/components/situacoes/os-manutencao-combobox';
+import { OsComercialCombobox } from '@/components/situacoes/os-comercial-combobox';
+import { EquipeSelect } from '@/components/situacoes/equipe-select';
 import type { CriarSituacaoPayload } from '@/types/hstvei-types';
+
+function SectionHeader({ icon, label, color }: { icon: React.ReactNode; label: string; color: string }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+      <Box sx={{
+        width: 32, height: 32, borderRadius: '50%',
+        bgcolor: alpha(color, 0.1),
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color,
+      }}>
+        {icon}
+      </Box>
+      <Typography sx={{ fontSize: 14, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: 1 }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+}
 
 export function NovaSituacaoPage() {
   const navigate = useNavigate();
@@ -25,11 +50,12 @@ export function NovaSituacaoPage() {
   const [obs, setObs] = useState('');
   const [dtinicio, setDtinicio] = useState('');
   const [dtprevisao, setDtprevisao] = useState('');
-  const [codparc, setCodparc] = useState('');
-  const [nuos, setNuos] = useState('');
-  const [numos, setNumos] = useState('');
-  const [exeope, setExeope] = useState('');
-  const [exemec, setExemec] = useState('');
+  const [codparc, setCodparc] = useState<number | ''>('');
+  const [nuos, setNuos] = useState<number | ''>('');
+  const [numos, setNumos] = useState<number | ''>('');
+  const [nunota, setNunota] = useState('');
+  const [operadores, setOperadores] = useState<number[]>([]);
+  const [mecanicos, setMecanicos] = useState<number[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +68,12 @@ export function NovaSituacaoPage() {
       ...(obs && { obs }),
       ...(dtinicio && { dtinicio }),
       ...(dtprevisao && { dtprevisao }),
-      ...(nuos && { nuos: Number(nuos) }),
-      ...(numos && { numos: Number(numos) }),
-      ...(codparc && { codparc: Number(codparc) }),
-      ...(exeope.trim() && { exeope: exeope.trim() }),
-      ...(exemec.trim() && { exemec: exemec.trim() }),
+      ...(nuos !== '' && { nuos: nuos as number }),
+      ...(numos !== '' && { numos: numos as number }),
+      ...(codparc !== '' && { codparc: codparc as number }),
+      ...(nunota && { nunota: Number(nunota) }),
+      ...(operadores.length > 0 && { exeope: operadores.join(',') }),
+      ...(mecanicos.length > 0 && { exemec: mecanicos.join(',') }),
     };
     criar.mutate(payload, { onSuccess: () => navigate('/dashboard') });
   };
@@ -54,115 +81,155 @@ export function NovaSituacaoPage() {
   const canSubmit = !!codveiculo && !!idsit && !criar.isPending;
 
   return (
-    <Box sx={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', py: 4, px: 2 }}>
-      <Paper variant="outlined" sx={{ maxWidth: 720, width: '100%', overflow: 'hidden' }}>
-        {/* Header */}
-        <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <IconButton onClick={() => navigate(-1)} size="small"><ArrowBack /></IconButton>
-          <Typography sx={{ fontSize: 18, fontWeight: 700 }}>Nova Situacao</Typography>
-        </Box>
+    <Box sx={{ flex: 1, overflow: 'auto', py: 3, px: 2 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, maxWidth: 1400, mx: 'auto' }}>
+        <IconButton onClick={() => navigate(-1)} size="small"><ArrowBack /></IconButton>
+        <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Nova Situacao</Typography>
+      </Box>
 
-        {/* Form */}
-        <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
-          <Stack spacing={3}>
-            {/* Veiculo */}
-            <Box>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
-                Veiculo
-              </Typography>
-              <VeiculoCombobox value={codveiculo} onChange={setCodveiculo} required />
-            </Box>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          maxWidth: 1400,
+          mx: 'auto',
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: '1fr 1fr 1fr' },
+          gap: 2,
+          alignItems: 'start',
+        }}
+      >
+        {/* ═══ COLUNA 1: Veiculo + Classificacao + Descricao ═══ */}
+        <Stack spacing={2}>
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<DirectionsCar sx={{ fontSize: 18 }} />} label="Veiculo" color="#2e7d32" />
+            <VeiculoCombobox value={codveiculo} onChange={setCodveiculo} required />
+          </Paper>
 
-            <Divider />
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<Description sx={{ fontSize: 18 }} />} label="Classificacao" color="#1565c0" />
+            <Stack spacing={2}>
+              <SituacaoSelect value={idsit} onChange={setIdsit} required />
+              <PrioridadeSelect value={idpri} onChange={setIdpri} />
+            </Stack>
+          </Paper>
 
-            {/* Situacao + Prioridade */}
-            <Box>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
-                Classificacao
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                <SituacaoSelect value={idsit} onChange={setIdsit} required />
-                <PrioridadeSelect value={idpri} onChange={setIdpri} />
-              </Box>
-            </Box>
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<Description sx={{ fontSize: 18 }} />} label="Descricao" color="#1565c0" />
+            <Stack spacing={2}>
+              <TextField
+                label="Descricao"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                fullWidth multiline rows={3}
+                inputProps={{ maxLength: 500 }}
+                placeholder="O que esta acontecendo com o veiculo?"
+              />
+              <TextField
+                label="Observacoes"
+                value={obs}
+                onChange={(e) => setObs(e.target.value)}
+                fullWidth multiline rows={2}
+                inputProps={{ maxLength: 1000 }}
+                placeholder="Notas internas..."
+              />
+            </Stack>
+          </Paper>
+        </Stack>
 
-            <Divider />
+        {/* ═══ COLUNA 2: Datas + Vinculacoes ═══ */}
+        <Stack spacing={2}>
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<Schedule sx={{ fontSize: 18 }} />} label="Periodo" color="#6a1b9a" />
+            <Stack spacing={2}>
+              <TextField
+                label="Data Inicio"
+                type="datetime-local"
+                value={dtinicio}
+                onChange={(e) => setDtinicio(e.target.value)}
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+                helperText="Padrao: data/hora atual"
+              />
+              <TextField
+                label="Previsao de Conclusao"
+                type="datetime-local"
+                value={dtprevisao}
+                onChange={(e) => setDtprevisao(e.target.value)}
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+                helperText="Gera alertas quando vencer"
+              />
+            </Stack>
+          </Paper>
 
-            {/* Descricao + Obs */}
-            <Box>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
-                Detalhes
-              </Typography>
-              <Stack spacing={2}>
-                <TextField label="Descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)}
-                  fullWidth size="small" multiline rows={2} inputProps={{ maxLength: 100 }} />
-                <TextField label="Observacoes" value={obs} onChange={(e) => setObs(e.target.value)}
-                  fullWidth size="small" multiline rows={2} inputProps={{ maxLength: 100 }} />
-              </Stack>
-            </Box>
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<LinkRounded sx={{ fontSize: 18 }} />} label="Vinculacoes" color="#00838f" />
+            <Stack spacing={2}>
+              <ParceiroCombobox value={codparc} onChange={setCodparc} />
+              <OsManutencaoCombobox value={nuos} onChange={setNuos} />
+              <OsComercialCombobox value={numos} onChange={setNumos} />
+            </Stack>
+          </Paper>
 
-            <Divider />
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<Receipt sx={{ fontSize: 18 }} />} label="Nota / Requisicao de Compra" color="#f57f17" />
+            <TextField
+              label="Numero da Nota ou Requisicao (NUNOTA)"
+              type="number"
+              value={nunota}
+              onChange={(e) => setNunota(e.target.value)}
+              fullWidth
+              placeholder="Ex: 123456"
+              helperText="Vincula requisicao de compras ou nota fiscal do Sankhya"
+            />
+          </Paper>
+        </Stack>
 
-            {/* Datas */}
-            <Box>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
-                Periodo
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                <TextField label="Data Inicio" type="datetime-local" value={dtinicio}
-                  onChange={(e) => setDtinicio(e.target.value)} fullWidth size="small"
-                  slotProps={{ inputLabel: { shrink: true } }} />
-                <TextField label="Previsao Termino" type="datetime-local" value={dtprevisao}
-                  onChange={(e) => setDtprevisao(e.target.value)} fullWidth size="small"
-                  slotProps={{ inputLabel: { shrink: true } }} />
-              </Box>
-            </Box>
+        {/* ═══ COLUNA 3: Equipe + Acoes ═══ */}
+        <Stack spacing={2}>
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<People sx={{ fontSize: 18 }} />} label="Operadores" color="#e65100" />
+            <EquipeSelect
+              label="Operadores"
+              value={operadores}
+              onChange={setOperadores}
+              placeholder="Buscar operador por nome..."
+            />
+          </Paper>
 
-            <Divider />
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <SectionHeader icon={<People sx={{ fontSize: 18 }} />} label="Mecanicos" color="#ff9800" />
+            <EquipeSelect
+              label="Mecanicos"
+              value={mecanicos}
+              onChange={setMecanicos}
+              placeholder="Buscar mecanico por nome..."
+            />
+          </Paper>
 
-            {/* Vinculacoes */}
-            <Box>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
-                Vinculacoes
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2 }}>
-                <TextField label="Parceiro (CODPARC)" type="number" value={codparc}
-                  onChange={(e) => setCodparc(e.target.value)} fullWidth size="small" />
-                <TextField label="OS Manutencao" type="number" value={nuos}
-                  onChange={(e) => setNuos(e.target.value)} fullWidth size="small" />
-                <TextField label="OS Comercial" type="number" value={numos}
-                  onChange={(e) => setNumos(e.target.value)} fullWidth size="small" />
-              </Box>
-            </Box>
-
-            <Divider />
-
-            {/* Equipe */}
-            <Box>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
-                Equipe
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                <TextField label="Operadores" value={exeope} onChange={(e) => setExeope(e.target.value)}
-                  fullWidth size="small" placeholder="10012, 10184"
-                  helperText="Codigos de usuario separados por virgula" />
-                <TextField label="Mecanicos" value={exemec} onChange={(e) => setExemec(e.target.value)}
-                  fullWidth size="small" placeholder="288, 340"
-                  helperText="Codigos de usuario separados por virgula" />
-              </Box>
-            </Box>
-          </Stack>
-
-          {/* Actions */}
-          <Stack direction="row" justifyContent="flex-end" spacing={1.5} sx={{ mt: 4, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Button onClick={() => navigate(-1)} disabled={criar.isPending}>Cancelar</Button>
-            <Button type="submit" variant="contained" disabled={!canSubmit}
-              startIcon={criar.isPending ? <CircularProgress size={16} color="inherit" /> : <Save />}>
-              {criar.isPending ? 'Salvando...' : 'Criar Situacao'}
-            </Button>
-          </Stack>
-        </Box>
-      </Paper>
+          {/* Acoes */}
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+            <Stack spacing={1.5}>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!canSubmit}
+                size="large"
+                fullWidth
+                startIcon={criar.isPending ? <CircularProgress size={18} color="inherit" /> : <Save />}
+                sx={{ py: 1.5, fontWeight: 700, fontSize: 15 }}
+              >
+                {criar.isPending ? 'Salvando...' : 'Criar Situacao'}
+              </Button>
+              <Button onClick={() => navigate(-1)} disabled={criar.isPending} size="large" fullWidth>
+                Cancelar
+              </Button>
+            </Stack>
+          </Paper>
+        </Stack>
+      </Box>
     </Box>
   );
 }

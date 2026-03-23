@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Autocomplete, TextField, Box, Typography, InputAdornment } from '@mui/material';
-import { DirectionsCarRounded, Search } from '@mui/icons-material';
+import { Autocomplete, TextField, Box, Typography, alpha, Chip } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { apiClient } from '@/api/client';
+import { PlacaVeiculo } from '@/components/shared/placa-veiculo';
 
 interface VeiculoOption {
   codveiculo: number;
@@ -46,7 +47,6 @@ export function VeiculoCombobox({ value, onChange, disabled, required }: Veiculo
     debounceRef.current = setTimeout(() => search(val), 250);
   }, [search]);
 
-  // Load selected vehicle on mount if value is set
   useEffect(() => {
     if (!value) return;
     apiClient.get<VeiculoOption[]>('/veiculos/search', { params: { q: String(value) } })
@@ -70,7 +70,6 @@ export function VeiculoCombobox({ value, onChange, disabled, required }: Veiculo
       loading={loading}
       disabled={disabled}
       fullWidth
-      size="small"
       filterOptions={(x) => x}
       getOptionLabel={(opt) => [opt.placa, opt.tag].filter(Boolean).join(' - ')}
       getOptionKey={(opt) => opt.codveiculo}
@@ -78,37 +77,107 @@ export function VeiculoCombobox({ value, onChange, disabled, required }: Veiculo
       noOptionsText={inputValue.length < 2 ? 'Digite placa ou tag...' : 'Nenhum veiculo encontrado'}
       loadingText="Buscando..."
       renderOption={({ key, ...props }, option) => (
-        <li key={key} {...props}>
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', width: '100%' }}>
-            <DirectionsCarRounded sx={{ fontSize: 20, color: 'text.secondary', flexShrink: 0 }} />
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography variant="body2" fontWeight={700} noWrap>
-                {option.placa}
-                {option.tag && <Typography component="span" variant="body2" sx={{ ml: 0.5, color: 'primary.main', fontWeight: 600 }}>({option.tag})</Typography>}
-              </Typography>
-              {option.marcamodelo && <Typography variant="caption" color="text.secondary" noWrap display="block">{option.marcamodelo}</Typography>}
-            </Box>
-          </Box>
-        </li>
-      )}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Veiculo"
-          placeholder="Buscar por placa, tag, modelo..."
-          required={required}
-          slotProps={{
-            input: {
-              ...params.InputProps,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
-                </InputAdornment>
-              ),
+        <Box
+          component="li"
+          key={key}
+          {...props}
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            alignItems: 'center',
+            py: 1.5,
+            px: 2,
+            '&:hover': {
+              bgcolor: (t) => `${alpha(t.palette.primary.main, 0.06)} !important`,
             },
           }}
-        />
+        >
+          <PlacaVeiculo placa={option.placa} scale={0.55} />
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            {option.tag && (
+              <Chip
+                label={option.tag}
+                size="small"
+                sx={{
+                  height: 20, fontSize: 11, fontWeight: 800, mb: 0.25,
+                  bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
+                  color: 'primary.main',
+                  fontFamily: '"JetBrains Mono", monospace',
+                }}
+              />
+            )}
+            {option.marcamodelo && (
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.3 }} noWrap>
+                {option.marcamodelo}
+              </Typography>
+            )}
+          </Box>
+        </Box>
       )}
+      renderInput={(params) => (
+        <Box>
+          {/* Placa visual quando selecionado */}
+          {selected && (
+            <Box sx={{
+              display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5,
+              p: 1.5, borderRadius: 2,
+              bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+              border: '1px solid',
+              borderColor: (t) => alpha(t.palette.primary.main, 0.15),
+            }}>
+              <PlacaVeiculo placa={selected.placa} scale={0.7} />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {selected.tag && (
+                  <Typography sx={{
+                    fontSize: 15, fontWeight: 800, color: 'primary.main',
+                    fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2,
+                  }}>
+                    {selected.tag}
+                  </Typography>
+                )}
+                {selected.marcamodelo && (
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.3 }} noWrap>
+                    {selected.marcamodelo}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          )}
+
+          <TextField
+            {...params}
+            label="Veiculo"
+            placeholder={selected ? 'Trocar veiculo...' : 'Buscar por placa, tag, modelo...'}
+            required={required}
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <Search sx={{ fontSize: 20, color: 'text.disabled', mr: 0.5 }} />
+                    {params.InputProps.startAdornment}
+                  </>
+                ),
+              },
+            }}
+          />
+        </Box>
+      )}
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            border: '1px solid',
+            borderColor: 'divider',
+            mt: 0.5,
+          },
+        },
+        listbox: {
+          sx: { maxHeight: 320, p: 0 },
+        },
+      }}
     />
   );
 }

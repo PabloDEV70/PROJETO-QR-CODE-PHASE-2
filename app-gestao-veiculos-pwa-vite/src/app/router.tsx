@@ -11,6 +11,7 @@ import { CadeiaNotasPage } from '@/pages/cadeia-notas-page';
 import { ConfigPage } from '@/pages/config-page';
 import { RegistrosPage } from '@/pages/registros-page';
 import { OperadoresPage } from '@/pages/operadores-page';
+import { AgendaPage } from '@/pages/agenda-page';
 import { AnaliseFrotaPage } from '@/pages/analise-frota-page';
 import { AnaliseFrotaDetalhePage } from '@/pages/analise-frota-detalhe-page';
 
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: 'situacao/:id', element: <SituacaoDetailPage /> },
       { path: 'situacao/:id/editar', element: <SituacaoEditPage /> },
       { path: 'situacao/:id/notas', element: <CadeiaNotasPage /> },
+      { path: 'agenda', element: <AgendaPage /> },
       { path: 'registros', element: <RegistrosPage /> },
       { path: 'operadores', element: <OperadoresPage /> },
       { path: 'analise-frota', element: <AnaliseFrotaPage /> },

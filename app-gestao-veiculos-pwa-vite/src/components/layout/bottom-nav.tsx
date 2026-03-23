@@ -2,16 +2,18 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { BottomNavigation, BottomNavigationAction, Paper, alpha } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 
-const ROUTES = ['/', '/veiculos', '/registros', '/operadores'];
+const ROUTES = ['/', '/veiculos', '/agenda', '/registros', '/operadores'];
 
 function pathToValue(pathname: string): number {
   if (pathname === '/') return 0;
   if (pathname.startsWith('/veiculos') || pathname.startsWith('/veiculo/')) return 1;
-  if (pathname.startsWith('/registros') || pathname.startsWith('/situacao/')) return 2;
-  if (pathname.startsWith('/operadores')) return 3;
+  if (pathname.startsWith('/agenda')) return 2;
+  if (pathname.startsWith('/registros') || pathname.startsWith('/situacao/')) return 3;
+  if (pathname.startsWith('/operadores')) return 4;
   return -1;
 }
 
@@ -51,6 +53,7 @@ export function BottomNav() {
       }}>
         <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
         <BottomNavigationAction label="Veiculos" icon={<DirectionsCarIcon />} />
+        <BottomNavigationAction label="Agenda" icon={<CalendarMonthIcon />} />
         <BottomNavigationAction label="Registros" icon={<HistoryIcon />} />
         <BottomNavigationAction label="Equipe" icon={<PeopleIcon />} />
       </BottomNavigation>

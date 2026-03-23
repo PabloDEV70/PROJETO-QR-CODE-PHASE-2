@@ -1,6 +1,6 @@
 import {
   Dashboard, ViewQuilt, ListAlt, PersonAdd, History, People, Settings,
-  DirectionsCar, AccountTree, FlightTakeoff,
+  DirectionsCar, AccountTree, FlightTakeoff, Assignment, PrecisionManufacturing,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -74,6 +74,18 @@ export const pagesConfig: PageConfig[] = [
     description: 'Visao full-screen estilo aeroporto de saidas e chegadas',
     group: 'Principal',
     keywords: ['aeroporto', 'painel', 'saidas', 'chegadas', 'fullscreen', 'tv', 'monitor'],
+  },
+  {
+    path: '/escala-servicos', label: 'Escala de Servicos', icon: Assignment,
+    description: 'Quadro de escala estilo lousa com placa, operador, cliente, local e saida',
+    group: 'Principal',
+    keywords: ['escala', 'servicos', 'quadro', 'lousa', 'guindaste', 'operador', 'placa', 'fullscreen'],
+  },
+  {
+    path: '/escala-guindastes', label: 'Escala Guindastes', icon: PrecisionManufacturing,
+    description: 'Saidas e chegadas de guindastes e guindautos estilo aeroporto',
+    group: 'Principal',
+    keywords: ['escala', 'guindaste', 'guindauto', 'saida', 'chegada', 'aeroporto', 'fullscreen'],
   },
   {
     path: '/fluxo', label: 'Fluxo da Frota', icon: AccountTree,

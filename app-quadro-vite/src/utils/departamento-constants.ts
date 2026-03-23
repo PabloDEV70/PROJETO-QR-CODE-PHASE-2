@@ -1,6 +1,7 @@
 import {
   Build, LocalShipping, Engineering, Storefront, Settings,
   Handyman, BusinessCenter, ShoppingCart, PrecisionManufacturing,
+  Security, CalendarMonth,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -32,6 +33,10 @@ const DEP_STYLES: Record<string, { color: string; bgLight: string; Icon: SvgIcon
   'operação':            { color: '#00bcd4', bgLight: '#e0f7fa', Icon: PrecisionManufacturing },
   'manutencao':          { color: '#ff9800', bgLight: '#fff3e0', Icon: Build },
   'manutenção':          { color: '#ff9800', bgLight: '#fff3e0', Icon: Build },
+  'seguranca':           { color: '#6a1b9a', bgLight: '#f3e5f5', Icon: Security },
+  'seguranca do trabalho': { color: '#6a1b9a', bgLight: '#f3e5f5', Icon: Security },
+  'programacao':         { color: '#0277bd', bgLight: '#e1f5fe', Icon: CalendarMonth },
+  'programação':         { color: '#0277bd', bgLight: '#e1f5fe', Icon: CalendarMonth },
 };
 
 function normalize(s: string): string {

@@ -22,4 +22,5 @@ export async function comprasRoutes(app: FastifyInstance) {
     return comprasService.getResumoDashboard();
   });
 
+
 }

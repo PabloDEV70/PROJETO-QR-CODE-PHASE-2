@@ -41,6 +41,8 @@ export class TabelaProtegidaGuard implements CanActivate {
     'AD_COMADM', // Chamados - header
     'AD_COMADM1', // Chamados - ocorrencias/timeline
     'AD_HSTVEI', // Painel Veiculos - historico situacoes
+    'AD_ADHSTVEISIT', // Painel Veiculos - situacoes (lookup)
+    'AD_ADHSTVEIPRI', // Painel Veiculos - prioridades (lookup)
     'AD_RDOAPONTAMENTOS', // RDO Master
     'AD_RDOAPONDETALHES', // RDO Detalhes
     'AD_RDOMOTIVOS', // RDO Motivos

@@ -43,6 +43,12 @@ const FluxoFrotaPage = lazy(() =>
 const PainelAeroportoPage = lazy(() =>
   import('@/pages/painel-aeroporto-page').then((m) => ({ default: m.PainelAeroportoPage })),
 );
+const EscalaServicosPage = lazy(() =>
+  import('@/pages/escala-servicos-page').then((m) => ({ default: m.EscalaServicosPage })),
+);
+const EscalaGuindastesPage = lazy(() =>
+  import('@/pages/escala-guindastes-page').then((m) => ({ default: m.EscalaGuindastesPage })),
+);
 
 function Loading() {
   return (
@@ -59,6 +65,26 @@ export const router = createBrowserRouter([
       <ProtectedRoute>
         <Suspense fallback={<Loading />}>
           <PainelAeroportoPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/escala-servicos',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<Loading />}>
+          <EscalaServicosPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/escala-guindastes',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<Loading />}>
+          <EscalaGuindastesPage />
         </Suspense>
       </ProtectedRoute>
     ),

@@ -1,45 +1,151 @@
-import { Paper, Box, Typography, Chip, Divider, alpha, useTheme } from '@mui/material';
-import { DirectionsCar, Schedule, Warning } from '@mui/icons-material';
+import { Paper, Box, Typography, Chip, alpha, Divider } from '@mui/material';
+import {
+  Schedule, Warning, Person, FiberManualRecord,
+  Storefront, Build,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getPrioridadeInfo } from '@/utils/prioridade-constants';
 import { calcPrevisaoCountdown } from '@/utils/previsao-utils';
 import { DepartamentoChip } from '@/components/shared/departamento-chip';
 import { PessoaAvatarGroup } from '@/components/shared/pessoa-avatar-group';
-import type { PainelVeiculo, PainelPessoa } from '@/types/hstvei-types';
+import { PlacaVeiculo } from '@/components/shared/placa-veiculo';
+import type { PainelVeiculo, PainelSituacao, PainelPessoa } from '@/types/hstvei-types';
 
 interface VeiculoListItemProps {
   veiculo: PainelVeiculo;
 }
 
+const MOS_SIT_LABELS: Record<string, { label: string; color: string }> = {
+  A: { label: 'Aberta', color: '#2e7d32' },
+  F: { label: 'Fechada', color: '#546e7a' },
+  P: { label: 'Pendente', color: '#e65100' },
+  C: { label: 'Cancelada', color: '#c62828' },
+};
+
+// ── Linha de situacao com dados completos ──
+
+function SituacaoRow({ sit }: { sit: PainelSituacao }) {
+  const prio = getPrioridadeInfo(sit.idpri);
+  const previsao = calcPrevisaoCountdown(sit.dtprevisao);
+  const allPessoas: PainelPessoa[] = [...sit.operadores, ...sit.mecanicos];
+
+  // Parceiro direto (vinculado a situacao)
+  const parceiroDireto = sit.nomeParc;
+  // Cliente da OS comercial
+  const clienteOS = sit.mosCliente;
+  // Situacao da OS comercial
+  const mosSit = sit.mosSituacao ? MOS_SIT_LABELS[sit.mosSituacao] : null;
+
+  return (
+    <Box sx={{ py: 1 }}>
+      {/* Linha 1: Situacao + departamento + prazo */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+        <FiberManualRecord sx={{ fontSize: 10, color: prio.color, flexShrink: 0 }} />
+        <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.primary' }}>
+          {sit.situacao}
+        </Typography>
+        {sit.departamento && (
+          <DepartamentoChip departamento={sit.departamento} size="small" />
+        )}
+        {previsao && (
+          <Chip
+            icon={<Schedule sx={{ fontSize: 12 }} />}
+            label={previsao.text}
+            size="small"
+            sx={{
+              height: 22, fontSize: 12, fontWeight: 700, ml: 'auto',
+              bgcolor: alpha(previsao.isOverdue ? '#f44336' : '#43a047', 0.08),
+              color: previsao.isOverdue ? '#e53935' : '#2e7d32',
+              '& .MuiChip-icon': { color: previsao.isOverdue ? '#e53935' : '#2e7d32' },
+            }}
+          />
+        )}
+      </Box>
+
+      {/* Linha 2: Parceiro / Cliente (direto) */}
+      {parceiroDireto && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, pl: 2 }}>
+          <Person sx={{ fontSize: 16, color: 'text.secondary' }} />
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>
+            {parceiroDireto}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Linha 3: OS Comercial + cliente da OS */}
+      {sit.numos && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5, pl: 2, flexWrap: 'wrap' }}>
+          <Storefront sx={{ fontSize: 15, color: '#c62828' }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#c62828', fontFamily: 'monospace' }}>
+            OS {sit.numos}
+          </Typography>
+          {clienteOS && (
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary' }}>
+              {clienteOS}
+            </Typography>
+          )}
+          {mosSit && (
+            <Chip
+              label={mosSit.label}
+              size="small"
+              sx={{
+                height: 18, fontSize: 10, fontWeight: 700,
+                bgcolor: alpha(mosSit.color, 0.08),
+                color: mosSit.color,
+                '& .MuiChip-label': { px: 0.5 },
+              }}
+            />
+          )}
+        </Box>
+      )}
+
+      {/* Linha 4: OS Manutencao */}
+      {sit.nuos && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5, pl: 2 }}>
+          <Build sx={{ fontSize: 15, color: '#ff9800' }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#e65100', fontFamily: 'monospace' }}>
+            OS {sit.nuos}
+          </Typography>
+          {sit.osStatus && (
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+              {sit.osStatus}
+            </Typography>
+          )}
+          {sit.osTipo && (
+            <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+              · {sit.osTipo}
+            </Typography>
+          )}
+        </Box>
+      )}
+
+      {/* Linha 5: Descricao + equipe */}
+      {(sit.descricao || allPessoas.length > 0) && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, pl: 2 }}>
+          {sit.descricao && (
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', flex: 1, minWidth: 0 }} noWrap>
+              {sit.descricao}
+            </Typography>
+          )}
+          {allPessoas.length > 0 && (
+            <Box sx={{ flexShrink: 0, ml: 'auto' }}>
+              <PessoaAvatarGroup pessoas={allPessoas} max={3} size={22} />
+            </Box>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 export function VeiculoListItem({ veiculo }: VeiculoListItemProps) {
   const navigate = useNavigate();
-  const theme = useTheme();
   const prio = getPrioridadeInfo(veiculo.prioridadeMaxima);
-  const previsao = calcPrevisaoCountdown(veiculo.previsaoMaisProxima);
-
-  const departments = [...new Set(
-    veiculo.situacoesAtivas.map((s) => s.departamento).filter(Boolean),
-  )] as string[];
-
-  const allPessoas: PainelPessoa[] = [];
-  const seenIds = new Set<number>();
-  for (const sit of veiculo.situacoesAtivas) {
-    for (const p of [...sit.operadores, ...sit.mecanicos]) {
-      if (!seenIds.has(p.codusu)) {
-        seenIds.add(p.codusu);
-        allPessoas.push(p);
-      }
-    }
-  }
-
   const urgentes = veiculo.situacoesAtivas.filter((s) => s.idpri === 0).length;
 
-  // Build info pairs: label → value (only if value exists)
-  const infoPairs: { label: string; value: string }[] = [];
-  if (veiculo.marcaModelo) infoPairs.push({ label: 'Modelo', value: veiculo.marcaModelo });
-  if (veiculo.tipo) infoPairs.push({ label: 'Tipo', value: veiculo.tipo });
-  if (veiculo.fabricante) infoPairs.push({ label: 'Fabricante', value: veiculo.fabricante });
-  if (veiculo.capacidade) infoPairs.push({ label: 'Capacidade', value: veiculo.capacidade });
+  const infoItems: string[] = [];
+  if (veiculo.tipo) infoItems.push(veiculo.tipo);
+  if (veiculo.capacidade) infoItems.push(veiculo.capacidade);
 
   return (
     <Paper
@@ -48,166 +154,70 @@ export function VeiculoListItem({ veiculo }: VeiculoListItemProps) {
         mb: 1.5,
         cursor: 'pointer',
         overflow: 'hidden',
-        transition: 'border-color 0.15s ease',
+        transition: 'box-shadow 0.15s ease',
         '&:active': { transform: 'scale(0.985)' },
-        '&:hover': { borderColor: alpha(prio.color, 0.35) },
+        '&:hover': { boxShadow: 3 },
       }}
     >
-      {/* ── Header ── */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, px: 1.75, pt: 1.5, pb: 1 }}>
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: 2.5,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: alpha(theme.palette.primary.main, 0.08),
-            flexShrink: 0,
-          }}
-        >
-          <DirectionsCar sx={{ fontSize: 22, color: 'primary.main' }} />
-        </Box>
+      {/* ── Header: Placa + Tag + Modelo ── */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, pt: 1.5, pb: 1 }}>
+        <PlacaVeiculo placa={veiculo.placa} scale={0.65} />
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
-            <Typography
-              sx={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                letterSpacing: '0.03em',
-                lineHeight: 1.2,
-              }}
-            >
-              {veiculo.placa}
-            </Typography>
             {veiculo.tag && (
-              <Typography sx={{ fontSize: '0.73rem', fontWeight: 500, color: 'primary.main' }}>
+              <Typography sx={{
+                fontSize: 17, fontWeight: 800, color: 'text.primary',
+                fontFamily: '"JetBrains Mono", monospace',
+              }}>
                 {veiculo.tag}
               </Typography>
             )}
+            {infoItems.length > 0 && (
+              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+                {infoItems.join(' · ')}
+              </Typography>
+            )}
           </Box>
+          {veiculo.marcaModelo && (
+            <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.3 }} noWrap>
+              {veiculo.marcaModelo}
+            </Typography>
+          )}
         </Box>
 
-        <Chip
-          label={`${veiculo.totalSituacoes} sit.`}
-          size="small"
-          sx={{
-            height: 26,
-            fontWeight: 600,
-            fontSize: '0.72rem',
-            bgcolor: alpha(prio.color, 0.1),
-            color: prio.color,
-            flexShrink: 0,
-          }}
-        />
+        {/* Urgentes + contador */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+          {urgentes > 0 && (
+            <Warning sx={{ fontSize: 20, color: '#e53935' }} />
+          )}
+          <Typography sx={{
+            fontSize: 18, fontWeight: 900, color: prio.color,
+            fontFamily: '"JetBrains Mono", monospace',
+          }}>
+            {veiculo.totalSituacoes}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* ── Info rows: each on its own line, label inline ── */}
-      {infoPairs.length > 0 && (
-        <Box sx={{ px: 1.75, pb: 1 }}>
-          {infoPairs.map(({ label, value }) => (
-            <Box key={label} sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, mb: 0.3 }}>
-              <Typography
-                sx={{
-                  fontSize: '0.68rem',
-                  fontWeight: 600,
-                  color: 'text.disabled',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  lineHeight: 1.4,
-                  flexShrink: 0,
-                  minWidth: 72,
-                }}
-              >
-                {label}
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: '0.8rem',
-                  fontWeight: 450,
-                  color: 'text.primary',
-                  lineHeight: 1.4,
-                }}
-              >
-                {value}
-              </Typography>
+      {/* ── Situacoes com dados completos ── */}
+      {veiculo.situacoesAtivas.length > 0 && (
+        <Box sx={{ px: 2, pb: 1.25 }}>
+          <Divider />
+          {veiculo.situacoesAtivas.slice(0, 3).map((sit, i) => (
+            <Box key={sit.id}>
+              <SituacaoRow sit={sit} />
+              {i < Math.min(veiculo.situacoesAtivas.length, 3) - 1 && (
+                <Divider sx={{ opacity: 0.3 }} />
+              )}
             </Box>
           ))}
-        </Box>
-      )}
-
-      {/* ── Alerts ── */}
-      {(urgentes > 0 || previsao) && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 1.75, pb: 1 }}>
-          {urgentes > 0 && (
-            <Chip
-              icon={<Warning sx={{ fontSize: 14 }} />}
-              label={`${urgentes} urgente${urgentes > 1 ? 's' : ''}`}
-              size="small"
-              sx={{
-                height: 24,
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                bgcolor: alpha('#f44336', 0.08),
-                color: '#e53935',
-                '& .MuiChip-icon': { color: '#e53935' },
-              }}
-            />
-          )}
-          {previsao && (
-            <Chip
-              icon={<Schedule sx={{ fontSize: 14 }} />}
-              label={previsao.isOverdue ? previsao.text : `Prazo ${previsao.text}`}
-              size="small"
-              sx={{
-                height: 24,
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                bgcolor: alpha(previsao.isOverdue ? '#f44336' : '#43a047', 0.08),
-                color: previsao.isOverdue ? '#e53935' : '#2e7d32',
-                '& .MuiChip-icon': { color: previsao.isOverdue ? '#e53935' : '#2e7d32' },
-              }}
-            />
+          {veiculo.situacoesAtivas.length > 3 && (
+            <Typography sx={{ fontSize: 12, color: 'text.disabled', textAlign: 'center', pt: 0.5, fontWeight: 600 }}>
+              +{veiculo.situacoesAtivas.length - 3} mais
+            </Typography>
           )}
         </Box>
-      )}
-
-      {/* ── Footer: departments + equipe ── */}
-      {(departments.length > 0 || allPessoas.length > 0) && (
-        <>
-          <Divider sx={{ mx: 1.75, borderColor: alpha(theme.palette.divider, 0.5) }} />
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1,
-              px: 1.75,
-              py: 1.25,
-            }}
-          >
-            {departments.length > 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
-                {departments.slice(0, 3).map((dep) => (
-                  <DepartamentoChip key={dep} departamento={dep} size="small" />
-                ))}
-                {departments.length > 3 && (
-                  <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', fontWeight: 500 }}>
-                    +{departments.length - 3}
-                  </Typography>
-                )}
-              </Box>
-            )}
-            {allPessoas.length > 0 && (
-              <Box sx={{ flexShrink: 0 }}>
-                <PessoaAvatarGroup pessoas={allPessoas} max={4} size={24} />
-              </Box>
-            )}
-          </Box>
-        </>
       )}
     </Paper>
   );
