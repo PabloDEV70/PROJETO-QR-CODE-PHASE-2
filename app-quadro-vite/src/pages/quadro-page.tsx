@@ -5,7 +5,7 @@ import {
   Box, Typography, Chip, Stack, TextField, InputAdornment,
   Tooltip, Divider, Badge, Menu, MenuItem, ListItemText,
   ToggleButtonGroup, ToggleButton, alpha, IconButton, Button,
-  Paper, Dialog, DialogTitle, DialogContent, DialogActions,
+  Paper,
 } from '@mui/material';
 import {
   Search, Edit, Warning, ViewColumn, FilterList, FileDownload,
@@ -290,7 +290,6 @@ function KanbanView({ rows }: { rows: QuadroRow[] }) {
       {KANBAN_COLUMNS.map((col) => {
         const items = grouped.get(col.key) ?? [];
         if (items.length === 0 && col.key === 'outros') return null;
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         return (
           <Box key={col.key} sx={{
             minWidth: 290, flex: '0 0 290px',
