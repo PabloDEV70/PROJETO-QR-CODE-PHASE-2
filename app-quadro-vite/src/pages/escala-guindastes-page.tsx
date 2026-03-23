@@ -144,7 +144,7 @@ function isToday(val: string | null | undefined): boolean {
 function buildRows(
   veiculos: PainelVeiculo[],
   situacaoFilter: Set<string>,
-  mode: 'saida' | 'chegada',
+  _mode: 'saida' | 'chegada',
   familiaFilter: FamiliaFilter,
 ): BoardRow[] {
   const rows: BoardRow[] = [];
