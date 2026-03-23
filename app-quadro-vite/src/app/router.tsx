@@ -40,6 +40,9 @@ const VeiculosStatusPage = lazy(() =>
 const FluxoFrotaPage = lazy(() =>
   import('@/pages/fluxo-frota-page').then((m) => ({ default: m.FluxoFrotaPage })),
 );
+const PainelAeroportoPage = lazy(() =>
+  import('@/pages/painel-aeroporto-page').then((m) => ({ default: m.PainelAeroportoPage })),
+);
 
 function Loading() {
   return (
@@ -50,6 +53,16 @@ function Loading() {
 }
 
 export const router = createBrowserRouter([
+  {
+    path: '/painel-aeroporto',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<Loading />}>
+          <PainelAeroportoPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
   {
     path: '/login',
     element: (

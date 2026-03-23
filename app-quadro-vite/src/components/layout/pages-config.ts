@@ -1,6 +1,6 @@
 import {
   Dashboard, ViewQuilt, ListAlt, PersonAdd, History, People, Settings,
-  DirectionsCar, AccountTree,
+  DirectionsCar, AccountTree, FlightTakeoff,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -68,6 +68,12 @@ export const pagesConfig: PageConfig[] = [
     description: 'Cadastro de niveis de prioridade',
     group: 'Configuracao',
     keywords: ['prioridade', 'config', 'cadastro', 'urgente', 'alta', 'normal'],
+  },
+  {
+    path: '/painel-aeroporto', label: 'Painel Aeroporto', icon: FlightTakeoff,
+    description: 'Visao full-screen estilo aeroporto de saidas e chegadas',
+    group: 'Principal',
+    keywords: ['aeroporto', 'painel', 'saidas', 'chegadas', 'fullscreen', 'tv', 'monitor'],
   },
   {
     path: '/fluxo', label: 'Fluxo da Frota', icon: AccountTree,
