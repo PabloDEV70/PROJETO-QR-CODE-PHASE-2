@@ -1,6 +1,6 @@
 {
   "name": "sankhya-db-gateway",
-  "version": "1.0.144",
+  "version": "1.0.145",
   "description": "Sankhya Database Gateway API - Standalone",
   "main": "dist/main.js",
   "scripts": {
