@@ -35,6 +35,7 @@ const DEP_OPTIONS = [
 
 type TimeFilter = 'ativos' | 'recentes' | 'atrasados';
 type ViewMode = 'tabela' | 'kanban' | 'cards';
+type KanbanGroupBy = 'etapa' | 'departamento' | 'situacao' | 'prioridade' | 'tipo';
 
 function fmtDate(val: string | null | undefined): string {
   if (!val) return '-';
@@ -127,24 +128,156 @@ const TOGGLE_SX = {
 };
 
 // ══════════════════════════════════════
-// KANBAN VIEW
+// KANBAN GROUPING STRATEGIES
 // ══════════════════════════════════════
 
-const KANBAN_COLUMNS = [
-  { key: 'saindo', label: 'Saindo', color: '#2e7d32', bg: '#e8f5e9', sits: new Set(['Agendado', 'Mobilizando', 'Checklist Saida', 'Separacao Materiais', 'Carregamento']) },
-  { key: 'transito', label: 'Em Transito', color: '#1565c0', bg: '#e3f2fd', sits: new Set(['Em Trânsito', 'Entregue']) },
-  { key: 'operando', label: 'Em Operacao', color: '#00838f', bg: '#e0f7fa', sits: new Set(['Em Serviço', 'Em Contrato']) },
-  { key: 'retornando', label: 'Retornando', color: '#e65100', bg: '#fff3e0', sits: new Set(['Desmobilizando', 'Retorno Pendente']) },
-  { key: 'patio', label: 'No Patio', color: '#546e7a', bg: '#eceff1', sits: new Set(['No Pátio', 'Disponível', 'Checklist Patio']) },
-  { key: 'manutencao', label: 'Manutencao', color: '#ff9800', bg: '#fff8e1', sits: new Set(['Em Manutenção', 'Em Planejamento', 'Aguardando Peça', 'Pausada', 'Serviço Terceiro']) },
-  { key: 'outros', label: 'Outros', color: '#9e9e9e', bg: '#fafafa', sits: new Set<string>() },
+interface KanbanColDef { key: string; label: string; color: string; bg: string }
+
+// Strategy 1: Etapa operacional (padrão)
+const ETAPA_COLUMNS: KanbanColDef[] = [
+  { key: 'saindo', label: 'Saindo', color: '#2e7d32', bg: '#e8f5e9' },
+  { key: 'transito', label: 'Em Transito', color: '#1565c0', bg: '#e3f2fd' },
+  { key: 'operando', label: 'Em Operacao', color: '#00838f', bg: '#e0f7fa' },
+  { key: 'retornando', label: 'Retornando', color: '#e65100', bg: '#fff3e0' },
+  { key: 'patio', label: 'No Patio', color: '#546e7a', bg: '#eceff1' },
+  { key: 'manutencao', label: 'Manutencao', color: '#ff9800', bg: '#fff8e1' },
+  { key: 'outros', label: 'Outros', color: '#9e9e9e', bg: '#fafafa' },
 ];
 
-function categorizeRow(row: QuadroRow): string {
-  for (const col of KANBAN_COLUMNS) {
-    if (col.sits.has(row.situacao)) return col.key;
+const ETAPA_MAP: Record<string, string> = {
+  'Agendado': 'saindo', 'Mobilizando': 'saindo', 'Checklist Saida': 'saindo',
+  'Separacao Materiais': 'saindo', 'Carregamento': 'saindo',
+  'Em Trânsito': 'transito', 'Entregue': 'transito',
+  'Em Serviço': 'operando', 'Em Contrato': 'operando',
+  'Desmobilizando': 'retornando', 'Retorno Pendente': 'retornando',
+  'No Pátio': 'patio', 'Disponível': 'patio', 'Checklist Patio': 'patio',
+  'Em Manutenção': 'manutencao', 'Em Planejamento': 'manutencao',
+  'Aguardando Peça': 'manutencao', 'Pausada': 'manutencao', 'Serviço Terceiro': 'manutencao',
+};
+
+// Strategy 2: Por departamento
+const DEP_COLORS: Record<string, { color: string; bg: string }> = {
+  'COMERCIAL.': { color: '#c62828', bg: '#ffebee' },
+  'MANUTENÇÃO': { color: '#ff9800', bg: '#fff3e0' },
+  'LOGISTICA / PATIO': { color: '#00838f', bg: '#e0f7fa' },
+  'OPERAÇÃO': { color: '#00bcd4', bg: '#e0f7fa' },
+  'SEGURANCA DO TRABALHO': { color: '#6a1b9a', bg: '#f3e5f5' },
+  'PROGRAMAÇÃO': { color: '#0277bd', bg: '#e1f5fe' },
+  'COMPRAS': { color: '#f9a825', bg: '#fffde7' },
+};
+
+// Strategy 3: Por prioridade
+const PRI_COLUMNS: KanbanColDef[] = [
+  { key: 'URG', label: 'Urgente', color: '#d50000', bg: '#ffebee' },
+  { key: 'ALT', label: 'Alta', color: '#e65100', bg: '#fff3e0' },
+  { key: 'NOR', label: 'Normal', color: '#2e7d32', bg: '#e8f5e9' },
+  { key: 'BAI', label: 'Baixa', color: '#546e7a', bg: '#eceff1' },
+  { key: '-', label: 'Sem Prioridade', color: '#9e9e9e', bg: '#fafafa' },
+];
+
+// GroupBy config
+const GROUP_BY_OPTIONS: { value: KanbanGroupBy; label: string; icon: string }[] = [
+  { value: 'etapa', label: 'Etapa Operacional', icon: '🔄' },
+  { value: 'departamento', label: 'Departamento', icon: '🏢' },
+  { value: 'situacao', label: 'Situacao', icon: '📋' },
+  { value: 'prioridade', label: 'Prioridade', icon: '🔥' },
+  { value: 'tipo', label: 'Tipo Veiculo', icon: '🚛' },
+];
+
+function buildKanbanColumns(rows: QuadroRow[], groupBy: KanbanGroupBy): { columns: KanbanColDef[]; grouped: Map<string, QuadroRow[]> } {
+  const grouped = new Map<string, QuadroRow[]>();
+
+  if (groupBy === 'etapa') {
+    for (const col of ETAPA_COLUMNS) grouped.set(col.key, []);
+    for (const row of rows) {
+      const key = ETAPA_MAP[row.situacao] ?? 'outros';
+      grouped.get(key)?.push(row);
+    }
+    return { columns: ETAPA_COLUMNS, grouped };
   }
-  return 'outros';
+
+  if (groupBy === 'departamento') {
+    // Build columns from actual data
+    const depOrder = ['COMERCIAL.', 'MANUTENÇÃO', 'LOGISTICA / PATIO', 'OPERAÇÃO', 'SEGURANCA DO TRABALHO', 'PROGRAMAÇÃO', 'COMPRAS'];
+    const cols: KanbanColDef[] = [];
+    const seen = new Set<string>();
+
+    for (const dep of depOrder) {
+      const hasRows = rows.some((r) => r.departamento === dep);
+      if (hasRows) {
+        const dc = DEP_COLORS[dep] ?? { color: '#9e9e9e', bg: '#fafafa' };
+        cols.push({ key: dep, label: dep.replace(/\.$/, ''), color: dc.color, bg: dc.bg });
+        seen.add(dep);
+      }
+    }
+    // Add any remaining
+    for (const row of rows) {
+      if (!seen.has(row.departamento)) {
+        const dc = DEP_COLORS[row.departamento] ?? { color: '#9e9e9e', bg: '#fafafa' };
+        cols.push({ key: row.departamento, label: row.departamento.replace(/\.$/, ''), color: dc.color, bg: dc.bg });
+        seen.add(row.departamento);
+      }
+    }
+
+    for (const col of cols) grouped.set(col.key, []);
+    for (const row of rows) {
+      if (!grouped.has(row.departamento)) grouped.set(row.departamento, []);
+      grouped.get(row.departamento)?.push(row);
+    }
+    return { columns: cols, grouped };
+  }
+
+  if (groupBy === 'situacao') {
+    // One column per unique situacao
+    const sitMap = new Map<string, QuadroRow[]>();
+    for (const row of rows) {
+      if (!sitMap.has(row.situacao)) sitMap.set(row.situacao, []);
+      sitMap.get(row.situacao)!.push(row);
+    }
+    // Sort by count desc
+    const sorted = Array.from(sitMap.entries()).sort((a, b) => b[1].length - a[1].length);
+    const cols: KanbanColDef[] = [];
+    const COLORS = ['#c62828', '#1565c0', '#2e7d32', '#e65100', '#6a1b9a', '#00838f', '#ff9800', '#546e7a', '#0277bd', '#f9a825'];
+    const BGS = ['#ffebee', '#e3f2fd', '#e8f5e9', '#fff3e0', '#f3e5f5', '#e0f7fa', '#fff8e1', '#eceff1', '#e1f5fe', '#fffde7'];
+    for (const [i, [sit]] of sorted.entries()) {
+      const depInfo = getDepartamentoInfo(rows.find((r) => r.situacao === sit)?.departamento ?? '');
+      cols.push({ key: sit, label: sit, color: depInfo.color || COLORS[i % COLORS.length], bg: depInfo.bgLight || BGS[i % BGS.length] });
+    }
+    const result = new Map<string, QuadroRow[]>();
+    for (const [sit, items] of sorted) result.set(sit, items);
+    return { columns: cols, grouped: result };
+  }
+
+  if (groupBy === 'prioridade') {
+    for (const col of PRI_COLUMNS) grouped.set(col.key, []);
+    for (const row of rows) {
+      const key = row.prioridadeSigla || '-';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)?.push(row);
+    }
+    return { columns: PRI_COLUMNS, grouped };
+  }
+
+  if (groupBy === 'tipo') {
+    const tipoMap = new Map<string, QuadroRow[]>();
+    for (const row of rows) {
+      const tipo = row.tipo || 'Sem Tipo';
+      if (!tipoMap.has(tipo)) tipoMap.set(tipo, []);
+      tipoMap.get(tipo)!.push(row);
+    }
+    const sorted = Array.from(tipoMap.entries()).sort((a, b) => b[1].length - a[1].length);
+    const COLORS = ['#c62828', '#1565c0', '#2e7d32', '#e65100', '#6a1b9a', '#00838f', '#ff9800', '#546e7a'];
+    const BGS = ['#ffebee', '#e3f2fd', '#e8f5e9', '#fff3e0', '#f3e5f5', '#e0f7fa', '#fff8e1', '#eceff1'];
+    const cols: KanbanColDef[] = sorted.map(([tipo], i) => ({
+      key: tipo, label: tipo, color: COLORS[i % COLORS.length], bg: BGS[i % BGS.length],
+    }));
+    const result = new Map<string, QuadroRow[]>();
+    for (const [t, items] of sorted) result.set(t, items);
+    return { columns: cols, grouped: result };
+  }
+
+  // Fallback
+  return { columns: [], grouped };
 }
 
 function KanbanCard({ row }: { row: QuadroRow }) {
@@ -265,17 +398,9 @@ function KanbanCard({ row }: { row: QuadroRow }) {
   );
 }
 
-function KanbanView({ rows }: { rows: QuadroRow[] }) {
+function KanbanView({ rows, groupBy }: { rows: QuadroRow[]; groupBy: KanbanGroupBy }) {
   const navigate = useNavigate();
-  const grouped = useMemo(() => {
-    const map = new Map<string, QuadroRow[]>();
-    for (const col of KANBAN_COLUMNS) map.set(col.key, []);
-    for (const row of rows) {
-      const key = categorizeRow(row);
-      map.get(key)?.push(row);
-    }
-    return map;
-  }, [rows]);
+  const { columns, grouped } = useMemo(() => buildKanbanColumns(rows, groupBy), [rows, groupBy]);
 
   return (
     <Box sx={{
@@ -287,7 +412,7 @@ function KanbanView({ rows }: { rows: QuadroRow[] }) {
       '&::-webkit-scrollbar': { height: 6 },
       '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 3 },
     }}>
-      {KANBAN_COLUMNS.map((col) => {
+      {columns.map((col) => {
         const items = grouped.get(col.key) ?? [];
         if (items.length === 0 && col.key === 'outros') return null;
         return (
@@ -571,6 +696,7 @@ export function QuadroPage() {
   const time = (sp.get('time') as TimeFilter) || 'ativos';
   const view = (sp.get('view') as ViewMode) || 'tabela';
   const searchParam = sp.get('q') || '';
+  const groupBy = (sp.get('group') as KanbanGroupBy) || 'etapa';
 
   const setParam = useCallback((key: string, val: string, def: string) => {
     setSp((prev) => {
@@ -584,6 +710,7 @@ export function QuadroPage() {
   const setTime = useCallback((v: TimeFilter) => setParam('time', v, 'ativos'), [setParam]);
   const setView = useCallback((v: ViewMode) => setParam('view', v, 'tabela'), [setParam]);
   const setSearch = useCallback((v: string) => setParam('q', v, ''), [setParam]);
+  const setGroupBy = useCallback((v: KanbanGroupBy) => setParam('group', v, 'etapa'), [setParam]);
 
   const { data, isLoading } = useHstVeiPainel();
   const allRows = useMemo(() => buildRows(data?.veiculos ?? []), [data]);
@@ -741,6 +868,19 @@ export function QuadroPage() {
               <ToggleButton value="kanban"><ViewKanban sx={{ fontSize: 16 }} /></ToggleButton>
               <ToggleButton value="cards"><GridView sx={{ fontSize: 16 }} /></ToggleButton>
             </ToggleButtonGroup>
+            {view === 'kanban' && (
+              <>
+                <Divider orientation="vertical" variant="middle" flexItem sx={{ mx: 0.5 }} />
+                <Typography sx={{ fontSize: 10, color: 'text.disabled', fontWeight: 600, mr: 0.25 }}>Agrupar:</Typography>
+                <ToggleButtonGroup value={groupBy} exclusive onChange={(_, v) => { if (v) setGroupBy(v); }} size="small" sx={TOGGLE_SX}>
+                  {GROUP_BY_OPTIONS.map((opt) => (
+                    <ToggleButton key={opt.value} value={opt.value}>
+                      <Tooltip title={opt.label}><span>{opt.icon} {opt.label.split(' ')[0]}</span></Tooltip>
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </>
+            )}
             <Divider orientation="vertical" variant="middle" flexItem sx={{ mx: 0.5 }} />
             <ToggleButtonGroup value={time} exclusive onChange={(_, v) => { if (v) setTime(v); }} size="small" sx={TOGGLE_SX}>
               <ToggleButton value="ativos">Ativos</ToggleButton>
@@ -772,7 +912,7 @@ export function QuadroPage() {
           </Box>
 
           {view === 'kanban' ? (
-            <KanbanView rows={filteredRows} />
+            <KanbanView rows={filteredRows} groupBy={groupBy} />
           ) : (
             <CardView rows={filteredRows} />
           )}

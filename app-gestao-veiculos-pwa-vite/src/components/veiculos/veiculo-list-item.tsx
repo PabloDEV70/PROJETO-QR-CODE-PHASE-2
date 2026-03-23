@@ -74,27 +74,37 @@ function SituacaoRow({ sit }: { sit: PainelSituacao }) {
 
       {/* Linha 3: OS Comercial + cliente da OS */}
       {sit.numos && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5, pl: 2, flexWrap: 'wrap' }}>
-          <Storefront sx={{ fontSize: 15, color: '#c62828' }} />
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#c62828', fontFamily: 'monospace' }}>
-            OS {sit.numos}
-          </Typography>
-          {clienteOS && (
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary' }}>
-              {clienteOS}
+        <Box sx={{ mt: 0.5, pl: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+            <Storefront sx={{ fontSize: 15, color: '#c62828' }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#c62828', fontFamily: 'monospace' }}>
+              OS {sit.numos}
+            </Typography>
+            {clienteOS && (
+              <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary' }}>
+                {clienteOS}
+              </Typography>
+            )}
+            {mosSit && (
+              <Chip label={mosSit.label} size="small" sx={{
+                height: 18, fontSize: 10, fontWeight: 700,
+                bgcolor: alpha(mosSit.color, 0.08), color: mosSit.color,
+                '& .MuiChip-label': { px: 0.5 },
+              }} />
+            )}
+          </Box>
+          {/* Detalhes OS Comercial */}
+          {(sit.mosLocalExec || sit.mosEndereco || sit.mosCidade) && (
+            <Typography sx={{ fontSize: 11, color: 'text.secondary', pl: 2.5, mt: 0.25 }} noWrap>
+              {[sit.mosLocalExec, sit.mosEndereco, sit.mosCidade].filter(Boolean).join(' · ')}
             </Typography>
           )}
-          {mosSit && (
-            <Chip
-              label={mosSit.label}
-              size="small"
-              sx={{
-                height: 18, fontSize: 10, fontWeight: 700,
-                bgcolor: alpha(mosSit.color, 0.08),
-                color: mosSit.color,
-                '& .MuiChip-label': { px: 0.5 },
-              }}
-            />
+          {sit.mosResponsavel && (
+            <Typography sx={{ fontSize: 11, color: 'text.disabled', pl: 2.5 }} noWrap>
+              Resp: {sit.mosResponsavel}
+              {sit.mosNrProposta ? ` · Proposta ${sit.mosNrProposta}` : ''}
+              {sit.mosContrato ? ` · Contrato ${sit.mosContrato}` : ''}
+            </Typography>
           )}
         </Box>
       )}

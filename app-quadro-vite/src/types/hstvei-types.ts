@@ -26,6 +26,16 @@ export interface PainelSituacao {
   osTipo: string | null;
   mosCliente: string | null;
   mosSituacao: string | null;
+  mosDhChamada: string | null;
+  mosDtPrevista: string | null;
+  mosDescricao: string | null;
+  mosEndereco: string | null;
+  mosCidade: string | null;
+  mosUrgencia: string | null;
+  mosContrato: string | null;
+  mosResponsavel: string | null;
+  mosLocalExec: string | null;
+  mosNrProposta: string | null;
   operadores: PainelPessoa[];
   mecanicos: PainelPessoa[];
   criadoPor: PainelPessoa;
