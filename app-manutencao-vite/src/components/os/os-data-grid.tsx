@@ -178,8 +178,7 @@ export function OsDataGrid({ ordens, isLoading, page, limit, total, onPageChange
             overflow: 'auto',
             flex: 1
           },
-          '& .MuiDataGrid-footerContainer': { 
-            borderColor: 'divider',
+          '& .MuiDataGrid-footerContainer': {
             minHeight: '48px !important',
             maxHeight: '48px !important',
             overflow: 'hidden',

@@ -39,17 +39,12 @@ function CustomServiceToolbar() {
   return (
     <GridToolbarContainer sx={{ p: 1, gap: 1, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'rgba(0,0,0,0.01)' }}>
       <Box sx={{ flex: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-        <GridToolbarQuickFilter 
-          variant="outlined" 
-          size="small" 
+        <GridToolbarQuickFilter
           placeholder="Buscar serviço..."
-          sx={{ 
-            '& .MuiInputBase-root': { borderRadius: 0.5, fontSize: 13, height: 32, width: 250, bgcolor: 'background.paper' } 
-          }} 
         />
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 20, alignSelf: 'center' }} />
-        <GridToolbarFilterButton sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }} />
-        <GridToolbarDensitySelector sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }} />
+        <GridToolbarFilterButton />
+        <GridToolbarDensitySelector />
         <GridToolbarExport slotProps={{ button: { sx: { fontSize: 12, fontWeight: 700, color: 'text.secondary' } } }} />
       </Box>
       <Button 
@@ -70,16 +65,11 @@ function CustomExecutorToolbar() {
   return (
     <GridToolbarContainer sx={{ p: 1, gap: 1, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'rgba(0,0,0,0.01)' }}>
       <Box sx={{ flex: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-        <GridToolbarQuickFilter 
-          variant="outlined" 
-          size="small" 
+        <GridToolbarQuickFilter
           placeholder="Buscar executor..."
-          sx={{ 
-            '& .MuiInputBase-root': { borderRadius: 0.5, fontSize: 13, height: 32, width: 250, bgcolor: 'background.paper' } 
-          }} 
         />
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 20, alignSelf: 'center' }} />
-        <GridToolbarFilterButton sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }} />
+        <GridToolbarFilterButton />
         <GridToolbarExport slotProps={{ button: { sx: { fontSize: 12, fontWeight: 700, color: 'text.secondary' } } }} />
       </Box>
       <Button 
