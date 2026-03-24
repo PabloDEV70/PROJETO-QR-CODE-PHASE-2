@@ -67,8 +67,8 @@ export class ConnectionPoolManager implements OnApplicationShutdown {
       server: config.server,
       database: config.database,
       options: {
-        encrypt: false,
-        trustServerCertificate: true,
+        encrypt: config.encrypt ?? false,
+        trustServerCertificate: config.trustServerCertificate ?? true,
       },
       connectionTimeout: 15000,
       requestTimeout: 30000,

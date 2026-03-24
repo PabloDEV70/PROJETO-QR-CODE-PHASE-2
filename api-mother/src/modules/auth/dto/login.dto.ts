@@ -14,7 +14,7 @@ export class LoginDto {
 
   @ApiProperty({
     description: 'Password for authentication',
-    example: 'xztzu2222',
+    example: 'yourpassword',
   })
   @IsString()
   @IsNotEmpty()

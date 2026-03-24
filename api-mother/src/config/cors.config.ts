@@ -15,12 +15,10 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
   const corsOrigins = configService.get<string>('CORS_ORIGINS');
   const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
 
-  // Se CORS_ORIGINS está definido e não é '*', usar lista de origens
   let origin: CorsOptions['origin'];
   const isProduction = nodeEnv === 'production';
 
   if (corsOrigins && corsOrigins !== '*') {
-    // Parse comma-separated list of origins
     const allowedOrigins = corsOrigins.split(',').map((o) => o.trim());
     origin = (requestOrigin, callback) => {
       if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
@@ -29,10 +27,10 @@ export function getCorsConfig(configService: ConfigService): CorsOptions {
         callback(new Error(`Origin ${requestOrigin} not allowed by CORS`));
       }
     };
+  } else if (isProduction) {
+    // Block open CORS in production when CORS_ORIGINS is not configured
+    origin = false;
   } else {
-    // Desenvolvimento: permitir todas as origens
-    // AVISO: Em produção, configure CORS_ORIGINS com domínios específicos
-    // In production, CORS_ORIGINS should be configured to restrict access.
     origin = true;
   }
 

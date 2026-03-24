@@ -8,6 +8,7 @@ export interface EntradaExcluirRegistro {
   limiteRegistros?: number;
   hardDelete?: boolean;
   dryRun?: boolean;
+  usuario?: string;
 }
 
 @Injectable()
@@ -61,6 +62,7 @@ export class ExcluirRegistroUseCase {
       limiteRegistros: limite,
       dryRun,
       softDelete: !hardDelete,
+      usuario: entrada.usuario,
     });
 
     // 4. Buscar registros que serão afetados (para audit trail e confirmação)

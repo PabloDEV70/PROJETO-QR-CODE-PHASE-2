@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { InvalidarCacheUseCase } from '../../application/use-cases/invalidar-cache';
 import { DictionaryCacheService } from '../../cache/services';
@@ -14,6 +15,7 @@ import { InvalidarCacheDto } from '../dto/invalidar-cache.dto';
 @Controller('dicionario/admin/cache')
 @ApiTags('Dicionário - Admin')
 @ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'))
 export class CacheAdminController {
   constructor(
     private readonly invalidarCacheUseCase: InvalidarCacheUseCase,
@@ -30,12 +32,8 @@ export class CacheAdminController {
   @ApiOperation({ summary: 'Invalidar cache do dicionário' })
   @ApiResponse({ status: 200, description: 'Cache invalidado com sucesso' })
   async invalidarCache(@Body() body: InvalidarCacheDto) {
-    // Nota: Em produção, adicionar guard de autenticação e autorização (admin apenas)
-    // @UseGuards(JwtAuthGuard, RolesGuard)
-    // @Roles('admin')
-
     const resultado = await this.invalidarCacheUseCase.executar({
-      tokenUsuario: body.tokenUsuario || 'mock-token', // Extrair do JWT em produção
+      tokenUsuario: body.tokenUsuario || ''
       tipo: body.tipo,
       nomeTabela: body.nomeTabela,
       nomeCampo: body.nomeCampo,

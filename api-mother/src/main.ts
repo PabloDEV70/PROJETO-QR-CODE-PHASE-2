@@ -71,7 +71,7 @@ async function bootstrap() {
         enableImplicitConversion: true,
       },
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: true,
     }),
   );
 

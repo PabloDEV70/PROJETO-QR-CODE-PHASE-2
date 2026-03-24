@@ -31,8 +31,8 @@ export class TreinaSqlServerService implements OnModuleInit {
         user: config.user,
         password: config.password,
         options: {
-          encrypt: false,
-          trustServerCertificate: true,
+          encrypt: config.encrypt ?? false,
+          trustServerCertificate: config.trustServerCertificate ?? true,
           enableArithAbort: true,
         },
         requestTimeout: 30000,

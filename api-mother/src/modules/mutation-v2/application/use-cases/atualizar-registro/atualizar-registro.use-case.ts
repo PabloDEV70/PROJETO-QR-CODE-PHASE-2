@@ -8,6 +8,7 @@ export interface EntradaAtualizarRegistro {
   dadosNovos: Record<string, unknown>;
   limiteRegistros?: number;
   dryRun?: boolean;
+  usuario?: string;
 }
 
 @Injectable()
@@ -74,6 +75,7 @@ export class AtualizarRegistroUseCase {
       dadosNovos,
       limiteRegistros: limite,
       dryRun,
+      usuario: entrada.usuario,
     });
 
     // 5. Buscar registros que serão afetados (para audit trail)

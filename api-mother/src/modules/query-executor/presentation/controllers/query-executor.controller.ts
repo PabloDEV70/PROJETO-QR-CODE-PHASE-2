@@ -1,6 +1,7 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Logger, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { SkipThrottle } from '@nestjs/throttler';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ExecutarQueryUseCase } from '../../application/use-cases';
 import { QueryRequestDto, QueryResponseDto } from '../dto';
 
@@ -8,6 +9,8 @@ import { QueryRequestDto, QueryResponseDto } from '../dto';
  * Controller para execução de queries SQL SELECT
  */
 @ApiTags('Query Executor')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'))
 @SkipThrottle()
 @Controller('query-executor')
 export class QueryExecutorController {

@@ -124,11 +124,11 @@ export class MonitoringSqlServerService implements OnModuleDestroy {
       server,
       database,
       options: {
-        encrypt: false,
-        trustServerCertificate: true,
+        encrypt: this.configService.get<boolean>('SQLSERVER_ENCRYPT', false),
+        trustServerCertificate: this.configService.get<boolean>('SQLSERVER_TRUST_SERVER_CERTIFICATE', true),
       },
       connectionTimeout: 15000,
-      requestTimeout: 60000, // Longer timeout for DMV queries
+      requestTimeout: 60000,
     });
 
     try {

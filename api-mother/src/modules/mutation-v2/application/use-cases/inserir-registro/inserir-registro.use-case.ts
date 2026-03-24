@@ -7,6 +7,7 @@ export interface EntradaInserirRegistro {
   dados: Record<string, unknown>;
   validarFKs?: boolean;
   dryRun?: boolean;
+  usuario?: string;
 }
 
 @Injectable()
@@ -63,6 +64,7 @@ export class InserirRegistroUseCase {
       nomeTabela,
       dados,
       dryRun,
+      usuario: entrada.usuario,
     });
 
     // 5. Executar inserção

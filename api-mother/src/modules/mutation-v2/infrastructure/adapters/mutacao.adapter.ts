@@ -81,7 +81,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Audit log
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: 'api-mutation', // TODO: extrair do contexto
+        user: operacao.usuario
         ip: 'internal',
         database,
         operation: `INSERT:${operacao.nomeTabela}`,
@@ -106,7 +106,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Audit log de falha
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: 'api-mutation',
+        user: operacao.usuario,
         ip: 'internal',
         database,
         operation: `INSERT:${operacao.nomeTabela}`,
@@ -174,7 +174,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Audit log
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: 'api-mutation',
+        user: operacao.usuario,
         ip: 'internal',
         database,
         operation: `UPDATE:${operacao.nomeTabela}`,
@@ -196,7 +196,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
 
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: 'api-mutation',
+        user: operacao.usuario,
         ip: 'internal',
         database,
         operation: `UPDATE:${operacao.nomeTabela}`,
@@ -274,7 +274,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Audit log
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: 'api-mutation',
+        user: operacao.usuario,
         ip: 'internal',
         database,
         operation: `${usarSoftDelete ? 'SOFT_DELETE' : 'HARD_DELETE'}:${operacao.nomeTabela}`,
@@ -297,7 +297,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
 
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: 'api-mutation',
+        user: operacao.usuario,
         ip: 'internal',
         database,
         operation: `DELETE:${operacao.nomeTabela}`,

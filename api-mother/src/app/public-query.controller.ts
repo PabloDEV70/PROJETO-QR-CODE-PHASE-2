@@ -5,6 +5,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InspectionService } from '../modules/inspection/services/inspection.service';
 import { SkipThrottle } from '@nestjs/throttler';
+import { timingSafeEqual } from 'crypto';
 
 /**
  * Public query endpoint — no JWT required.
@@ -32,8 +33,9 @@ export class PublicQueryController {
     @Body() body: { query: string },
     @Headers('x-api-key') headerKey: string,
   ) {
-    // Validate API key
-    if (!this.apiKey || headerKey !== this.apiKey) {
+    // Validate API key (constant-time comparison to prevent timing attacks)
+    if (!this.apiKey || !headerKey || headerKey.length !== this.apiKey.length ||
+        !timingSafeEqual(Buffer.from(headerKey), Buffer.from(this.apiKey))) {
       throw new ForbiddenException('Invalid or missing X-Api-Key');
     }
 
@@ -42,10 +44,16 @@ export class PublicQueryController {
       throw new BadRequestException('Query is required');
     }
 
-    // SECURITY: Only SELECT allowed
+    // SECURITY: Only SELECT allowed (WITH must resolve to SELECT, block DML)
     const upper = sql.replace(/^--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').trim().toUpperCase();
     if (!upper.startsWith('SELECT') && !upper.startsWith('WITH')) {
       throw new ForbiddenException('Only SELECT queries are allowed on public endpoint');
+    }
+
+    // Block DML keywords anywhere in the query
+    const dmlPattern = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|EXEC|EXECUTE|MERGE)\b/i;
+    if (dmlPattern.test(sql)) {
+      throw new ForbiddenException('DML/DDL operations are not allowed on public endpoint');
     }
 
     try {

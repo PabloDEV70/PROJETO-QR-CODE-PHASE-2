@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MutationEnabledGuard } from '../../../../security/mutation-enabled.guard';
@@ -28,12 +28,13 @@ export class MutationV2Controller {
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
   @ApiResponse({ status: 401, description: 'Não autenticado' })
   @ApiResponse({ status: 403, description: 'Operação não permitida (ambiente ou tabela protegida)' })
-  async inserir(@Body() dto: InsertRequestDto) {
+  async inserir(@Body() dto: InsertRequestDto, @Req() req: any) {
     const resultado = await this.inserirRegistroUseCase.executar({
       nomeTabela: dto.nomeTabela,
       dados: dto.dados,
       validarFKs: dto.validarFKs,
       dryRun: dto.dryRun,
+      usuario: req.user?.username || req.user?.sub || 'unknown',
     });
 
     return {
@@ -59,13 +60,14 @@ export class MutationV2Controller {
   @ApiResponse({ status: 400, description: 'Dados inválidos ou condição não fornecida' })
   @ApiResponse({ status: 401, description: 'Não autenticado' })
   @ApiResponse({ status: 403, description: 'Operação não permitida' })
-  async atualizar(@Body() dto: UpdateRequestDto) {
+  async atualizar(@Body() dto: UpdateRequestDto, @Req() req: any) {
     const resultado = await this.atualizarRegistroUseCase.executar({
       nomeTabela: dto.nomeTabela,
       condicao: dto.condicao,
       dadosNovos: dto.dadosNovos,
       limiteRegistros: dto.limiteRegistros,
       dryRun: dto.dryRun,
+      usuario: req.user?.username || req.user?.sub || 'unknown',
     });
 
     return {
@@ -91,13 +93,14 @@ export class MutationV2Controller {
   @ApiResponse({ status: 400, description: 'Condição não fornecida' })
   @ApiResponse({ status: 401, description: 'Não autenticado' })
   @ApiResponse({ status: 403, description: 'Operação não permitida' })
-  async excluir(@Body() dto: DeleteRequestDto) {
+  async excluir(@Body() dto: DeleteRequestDto, @Req() req: any) {
     const resultado = await this.excluirRegistroUseCase.executar({
       nomeTabela: dto.nomeTabela,
       condicao: dto.condicao,
       limiteRegistros: dto.limiteRegistros,
       hardDelete: dto.hardDelete,
       dryRun: dto.dryRun,
+      usuario: req.user?.username || req.user?.sub || 'unknown',
     });
 
     return {

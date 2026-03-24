@@ -15,6 +15,7 @@ export interface DadosOperacaoMutacao {
   limiteRegistros?: number;
   dryRun?: boolean;
   softDelete?: boolean;
+  usuario?: string;
 }
 
 export class OperacaoMutacao {
@@ -27,6 +28,7 @@ export class OperacaoMutacao {
     public readonly limiteRegistros: number,
     public readonly dryRun: boolean,
     public readonly softDelete: boolean,
+    public readonly usuario: string,
   ) {}
 
   static criar(entrada: DadosOperacaoMutacao): OperacaoMutacao {
@@ -39,6 +41,7 @@ export class OperacaoMutacao {
       entrada.limiteRegistros || (entrada.tipo === 'DELETE' ? 1 : 10),
       entrada.dryRun || false,
       entrada.softDelete !== false, // default true
+      entrada.usuario || 'unknown',
     );
   }
 
