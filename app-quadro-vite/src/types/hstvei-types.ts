@@ -120,9 +120,33 @@ export interface HstVeiEnriched {
   nomeUsuInc: string | null;
   nomeUsuAlt: string | null;
   osStatus: string | null;
+  osStatusGig: string | null;
   osTipo: string | null;
+  osManutencao: string | null;
+  osKm: number | null;
+  osHorimetro: number | null;
+  osLocalManutencao: string | null;
+  osBloqueios: string | null;
+  osDtAbertura: string | null;
   mosCliente: string | null;
   mosSituacao: string | null;
+  mosAtendente: string | null;
+  mosContrato: string | null;
+  mosDtPrevista: string | null;
+  mosDhChamada: string | null;
+  mosDtFechamento: string | null;
+  mosDescricao: string | null;
+  mosEndereco: string | null;
+  mosCidade: string | null;
+  mosUrgencia: string | null;
+  mosImpacto: string | null;
+  mosTempPrevisto: number | null;
+  mosTempGasto: number | null;
+  mosResponsavel: string | null;
+  mosLocalExec: string | null;
+  mosNrProposta: string | null;
+  mosDtInicioServ: string | null;
+  mosDtFinaliza: string | null;
 
   // Pessoas resolvidas (enrichment)
   operadores?: PainelPessoa[];

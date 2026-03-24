@@ -9,7 +9,6 @@ import {
   Schedule, LinkRounded, People, Receipt,
 } from '@mui/icons-material';
 import { useHstVeiDetail, useUpdateHstVei } from '@/hooks/use-hstvei';
-import { VeiculoCombobox } from '@/components/situacoes/veiculo-combobox';
 import { SituacaoSelect } from '@/components/situacoes/situacao-select';
 import { PrioridadeSelect } from '@/components/situacoes/prioridade-select';
 import { ParceiroCombobox } from '@/components/situacoes/parceiro-combobox';
