@@ -280,6 +280,13 @@ function buildKanbanColumns(rows: QuadroRow[], groupBy: KanbanGroupBy): { column
   return { columns: [], grouped };
 }
 
+function fmtDateTime(val: string | null | undefined): string {
+  if (!val) return '-';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return '-';
+  return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
 function KanbanCard({ row }: { row: QuadroRow }) {
   const navigate = useNavigate();
   const priColor = PRI_COLORS[row.prioridadeSigla] ?? '#9e9e9e';
@@ -291,124 +298,98 @@ function KanbanCard({ row }: { row: QuadroRow }) {
       onClick={() => navigate(`/situacao/${row.id}`)}
       elevation={0}
       sx={{
-        borderRadius: '10px',
-        p: 0, mb: 1, overflow: 'hidden',
-        border: '1px solid', borderColor: 'divider',
+        borderRadius: '12px',
+        p: 1.75, mb: 1,
+        bgcolor: 'background.paper',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
         cursor: 'pointer',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         '&:hover': {
-          transform: 'translateY(-1px)',
-          boxShadow: '0 3px 12px rgba(0,0,0,0.1)',
-          borderColor: 'primary.light',
+          transform: 'translateY(-2px)',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
         },
         '&:active': { transform: 'scale(0.98)' },
       }}
     >
-      {/* Top color bar */}
-      <Box sx={{ height: 3, bgcolor: depInfo.color }} />
+      {/* Overdue */}
+      {overdue && (
+        <Box sx={{
+          display: 'flex', alignItems: 'center', gap: 0.5,
+          px: 1, py: 0.3, mb: 1,
+          bgcolor: alpha('#f44336', 0.08), borderRadius: '6px',
+        }}>
+          <Warning sx={{ fontSize: 12, color: '#e53935' }} />
+          <Typography sx={{ fontSize: 10, fontWeight: 700, color: '#e53935', letterSpacing: '0.03em' }}>ATRASADO</Typography>
+        </Box>
+      )}
 
-      <Box sx={{ p: 1.5 }}>
-        {/* Overdue banner */}
-        {overdue && (
-          <Box sx={{
-            display: 'flex', alignItems: 'center', gap: 0.5,
-            px: 1, py: 0.3, mb: 1,
-            bgcolor: 'error.light', borderRadius: '6px',
-          }}>
-            <Warning sx={{ fontSize: 13, color: 'error.main' }} />
-            <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'error.main', letterSpacing: '0.04em' }}>
-              ATRASADO
-            </Typography>
-          </Box>
-        )}
-
-        {/* Row 1: Placa + Tag + Prioridade */}
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-          <PlacaVeiculo placa={row.placa} scale={0.45} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            {row.tag && (
-              <Typography sx={{ fontSize: 13, fontWeight: 800, fontFamily: '"JetBrains Mono", monospace', color: 'text.primary', lineHeight: 1.2 }}>
-                {row.tag}
-              </Typography>
-            )}
-            <Typography sx={{ fontSize: 10, color: 'text.disabled', lineHeight: 1.2 }} noWrap>
-              {row.tipo || row.marcaModelo}
-            </Typography>
-          </Box>
-          <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: alpha(priColor, 0.12), flexShrink: 0 }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 800, color: priColor, lineHeight: 1 }}>
-              {row.prioridadeSigla}
-            </Typography>
-          </Box>
-        </Stack>
-
-        {/* Row 2: Situacao + Departamento */}
-        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
-          <Box sx={{
-            display: 'inline-flex', alignItems: 'center', gap: 0.3,
-            fontSize: 11, fontWeight: 600,
-            color: depInfo.color, bgcolor: depInfo.bgLight,
-            px: 0.75, py: 0.2, borderRadius: '5px',
-          }}>
-            <depInfo.Icon sx={{ fontSize: 12 }} />
-            {row.situacao}
-          </Box>
-          {row.diasAtivo > 0 && (
-            <Typography sx={{
-              fontSize: 10, fontWeight: 600, fontFamily: 'monospace', ml: 'auto',
-              color: row.diasAtivo > 30 ? 'error.main' : row.diasAtivo > 7 ? 'warning.main' : 'text.disabled',
-            }}>
-              {row.diasAtivo}d
+      {/* Placa + Tag */}
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+        <PlacaVeiculo placa={row.placa} scale={0.5} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          {row.tag && (
+            <Typography sx={{ fontSize: 14, fontWeight: 800, fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2 }}>
+              {row.tag}
             </Typography>
           )}
-        </Stack>
+          <Typography sx={{ fontSize: 10.5, color: 'text.disabled' }} noWrap>{row.tipo || row.marcaModelo}</Typography>
+        </Box>
+      </Stack>
 
-        {/* Row 3: Cliente */}
-        {row.cliente && (
-          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
-            <Person sx={{ fontSize: 14, color: 'text.secondary' }} />
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.primary' }} noWrap>
-              {row.cliente}
-            </Typography>
-          </Stack>
-        )}
+      {/* Situacao + Prioridade */}
+      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+        <Box sx={{
+          display: 'inline-flex', alignItems: 'center', gap: 0.4,
+          fontSize: 11, fontWeight: 600, color: depInfo.color,
+          bgcolor: alpha(depInfo.color, 0.08), px: 0.75, py: 0.25, borderRadius: '6px',
+        }}>
+          <depInfo.Icon sx={{ fontSize: 12 }} />
+          {row.situacao}
+        </Box>
+        <Box sx={{ flex: 1 }} />
+        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: priColor }} />
+      </Stack>
 
-        {/* Row 4: Descricao */}
-        {row.descricao && (
-          <Typography sx={{
-            fontSize: 11.5, lineHeight: 1.4, color: 'text.secondary',
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-            overflow: 'hidden', mb: 0.75,
-          }}>
-            {row.descricao}
-          </Typography>
-        )}
+      {/* Cliente */}
+      {row.cliente && (
+        <Typography sx={{ fontSize: 12.5, fontWeight: 600, mb: 0.5 }} noWrap>{row.cliente}</Typography>
+      )}
 
-        {/* Footer */}
-        <Stack direction="row" alignItems="center" spacing={0.5}
-          sx={{ pt: 0.75, borderTop: '1px solid', borderColor: 'divider', color: 'text.disabled' }}>
-          <Schedule sx={{ fontSize: 12 }} />
-          <Typography sx={{ fontSize: 10.5 }}>{fmtDate(row.dtinicio)}</Typography>
+      {/* Descricao */}
+      {row.descricao && (
+        <Typography sx={{
+          fontSize: 11.5, lineHeight: 1.4, color: 'text.secondary',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          overflow: 'hidden', mb: 1,
+        }}>
+          {row.descricao}
+        </Typography>
+      )}
+
+      {/* Datas — grande destaque */}
+      <Box sx={{ bgcolor: (t) => alpha(t.palette.action.hover, 0.5), borderRadius: '8px', px: 1.25, py: 0.75 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography sx={{ fontSize: 9, fontWeight: 600, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Inicio</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>{fmtDateTime(row.dtinicio)}</Typography>
+          </Box>
           {row.dtprevisao && (
-            <>
-              <Box sx={{ width: 1, height: 10, bgcolor: 'divider', mx: 0.25 }} />
-              <Typography sx={{
-                fontSize: 10.5,
-                color: overdue ? 'error.main' : 'inherit',
-                fontWeight: overdue ? 700 : 400,
-              }}>
-                → {fmtDate(row.dtprevisao)}
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography sx={{ fontSize: 9, fontWeight: 600, color: overdue ? '#e53935' : 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Previsao
               </Typography>
-            </>
-          )}
-          <Box sx={{ flex: 1 }} />
-          {row.equipe && (
-            <Typography sx={{ maxWidth: 90, fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {row.equipe}
-            </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, fontFamily: 'monospace', color: overdue ? '#e53935' : 'text.primary' }}>
+                {fmtDateTime(row.dtprevisao)}
+              </Typography>
+            </Box>
           )}
         </Stack>
       </Box>
+
+      {/* Equipe */}
+      {row.equipe && (
+        <Typography sx={{ fontSize: 10.5, color: 'text.disabled', mt: 0.75 }} noWrap>{row.equipe}</Typography>
+      )}
     </Paper>
   );
 }
