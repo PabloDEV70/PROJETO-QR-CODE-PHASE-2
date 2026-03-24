@@ -10,7 +10,7 @@ import {
 import {
   Search, Edit, Warning, ViewColumn, FilterList, FileDownload,
   FiberManualRecord, Add, Person, TableChart, ViewKanban,
-  GridView, Schedule, AddCircleOutline,
+  GridView, AddCircleOutline,
 } from '@mui/icons-material';
 import {
   DataGrid, type GridColDef,
