@@ -10,11 +10,11 @@ import {
   Receipt, Assignment,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
-import { useHstVeiDetail, useUpdateHstVei, useEncerrarHstVei, useTrocarSituacao, useSituacoes } from '@/hooks/use-hstvei';
+import { useHstVeiDetail, useEncerrarHstVei, useTrocarSituacao, useSituacoes } from '@/hooks/use-hstvei';
 import { fetchItensOsComercial, type ItemOsComercial } from '@/api/hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { getPrioridadeInfo } from '@/utils/prioridade-constants';
-import type { AtualizarSituacaoPayload, TrocarSituacaoPayload } from '@/types/hstvei-types';
+import type { TrocarSituacaoPayload } from '@/types/hstvei-types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -35,13 +35,10 @@ export function SituacaoDetailPage() {
   const numId = Number(id);
   const navigate = useNavigate();
   const { data: detail, isLoading } = useHstVeiDetail(numId);
-  const updateMut = useUpdateHstVei();
   const encerrarMut = useEncerrarHstVei();
   const trocarMut = useTrocarSituacao();
   const { data: situacoesList } = useSituacoes();
 
-  const [editing, setEditing] = useState(false);
-  const [editFields, setEditFields] = useState<AtualizarSituacaoPayload>({});
   const [encerrarOpen, setEncerrarOpen] = useState(false);
   const [trocarOpen, setTrocarOpen] = useState(false);
   const [trocarIdsit, setTrocarIdsit] = useState<number | ''>('');
@@ -60,13 +57,6 @@ export function SituacaoDetailPage() {
   const allOps = detail.operadores ?? [];
   const allMecs = detail.mecanicos ?? [];
 
-  function startEdit() {
-    setEditFields({ descricao: detail!.DESCRICAO, obs: detail!.OBS, dtprevisao: detail!.DTPREVISAO });
-    setEditing(true);
-  }
-  function saveEdit() {
-    updateMut.mutate({ id: numId, payload: editFields }, { onSuccess: () => setEditing(false) });
-  }
   function confirmEncerrar() {
     encerrarMut.mutate(numId, { onSuccess: () => { setEncerrarOpen(false); navigate(-1); } });
   }
@@ -99,7 +89,7 @@ export function SituacaoDetailPage() {
         </Stack>
         {!detail.DTFIM && (
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<Edit />} onClick={startEdit} disabled={editing}>Editar</Button>
+            <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/situacao/${numId}/editar`)}>Editar</Button>
             <Button variant="outlined" color="warning" startIcon={<SwapHoriz />} onClick={() => setTrocarOpen(true)}>Trocar Situacao</Button>
             <Button variant="outlined" color="error" startIcon={<Close />} onClick={() => setEncerrarOpen(true)}>Encerrar</Button>
           </Stack>
@@ -147,27 +137,8 @@ export function SituacaoDetailPage() {
             <Field label="Criacao" value={fmtDt(detail.DTCRIACAO)} />
             {detail.DTALTER !== detail.DTCRIACAO && <Field label="Ultima alteracao" value={fmtDt(detail.DTALTER)} />}
 
-            {editing ? (
-              <Box sx={{ mt: 2 }}>
-                <TextField fullWidth size="small" label="Descricao" multiline rows={2} sx={{ mb: 1 }}
-                  value={editFields.descricao ?? ''} onChange={(e) => setEditFields((p) => ({ ...p, descricao: e.target.value }))} />
-                <TextField fullWidth size="small" label="Observacao" multiline rows={2} sx={{ mb: 1 }}
-                  value={editFields.obs ?? ''} onChange={(e) => setEditFields((p) => ({ ...p, obs: e.target.value }))} />
-                <TextField fullWidth size="small" label="Previsao" type="datetime-local" sx={{ mb: 1 }} InputLabelProps={{ shrink: true }}
-                  value={typeof editFields.dtprevisao === 'string' ? editFields.dtprevisao.slice(0, 16) : ''} onChange={(e) => setEditFields((p) => ({ ...p, dtprevisao: e.target.value }))} />
-                <Stack direction="row" spacing={1}>
-                  <Button variant="contained" size="small" onClick={saveEdit} disabled={updateMut.isPending}>
-                    {updateMut.isPending ? <CircularProgress size={16} /> : 'Salvar'}
-                  </Button>
-                  <Button size="small" onClick={() => setEditing(false)}>Cancelar</Button>
-                </Stack>
-              </Box>
-            ) : (
-              <>
-                {detail.DESCRICAO && <Field label="Descricao" value={detail.DESCRICAO} />}
-                {detail.OBS && <Field label="Observacao" value={detail.OBS} />}
-              </>
-            )}
+            {detail.DESCRICAO && <Field label="Descricao" value={detail.DESCRICAO} />}
+            {detail.OBS && <Field label="Observacao" value={detail.OBS} />}
           </Section>
         </Grid>
 

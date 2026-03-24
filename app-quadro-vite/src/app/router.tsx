@@ -49,6 +49,9 @@ const EscalaServicosPage = lazy(() =>
 const EscalaGuindastesPage = lazy(() =>
   import('@/pages/escala-guindastes-page').then((m) => ({ default: m.EscalaGuindastesPage })),
 );
+const SituacaoEditPage = lazy(() =>
+  import('@/pages/situacao-edit-page').then((m) => ({ default: m.SituacaoEditPage })),
+);
 
 function Loading() {
   return (
@@ -145,6 +148,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <SituacaoDetailPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'situacao/:id/editar',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SituacaoEditPage />
           </Suspense>
         ),
       },
