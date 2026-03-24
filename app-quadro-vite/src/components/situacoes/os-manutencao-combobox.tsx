@@ -18,15 +18,39 @@ interface OsManutencaoComboboxProps {
   onChange: (nuos: number | '') => void;
   onParceiroDetected?: (codparc: number, nomeParc: string) => void;
   disabled?: boolean;
+  codveiculo?: number | null;
 }
 
-export function OsManutencaoCombobox({ value: _value, onChange, onParceiroDetected, disabled }: OsManutencaoComboboxProps) {
+export function OsManutencaoCombobox({ value: _value, onChange, onParceiroDetected, disabled, codveiculo }: OsManutencaoComboboxProps) {
   const [options, setOptions] = useState<OsManOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [selected, setSelected] = useState<OsManOption | null>(null);
+  const [preloaded, setPreloaded] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const abortRef = useRef<AbortController>(undefined);
+
+  // Pre-load OS ativas do veiculo quando informado
+  useState(() => {
+    if (!codveiculo || preloaded) return;
+    setPreloaded(true);
+    setLoading(true);
+    apiClient.get<OsManOption[]>(`/veiculos/${codveiculo}/os-manutencao-ativas`)
+      .then(({ data }) => {
+        const mapped = (Array.isArray(data) ? data : []).map((os: any) => ({
+          NUOS: os.NUOS ?? os.nuos,
+          STATUS: os.STATUS ?? os.status ?? '',
+          placa: os.placa ?? os.PLACA ?? null,
+          tagVeiculo: os.tagVeiculo ?? os.AD_TAG ?? null,
+          nomeParc: os.nomeParc ?? null,
+          codparc: os.codparc ?? null,
+          statusLabel: os.statusLabel ?? os.STATUS ?? null,
+        }));
+        if (mapped.length > 0) setOptions(mapped);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  });
 
   const search = useCallback((term: string) => {
     abortRef.current?.abort();

@@ -52,6 +52,9 @@ const EscalaGuindastesPage = lazy(() =>
 const SituacaoEditPage = lazy(() =>
   import('@/pages/situacao-edit-page').then((m) => ({ default: m.SituacaoEditPage })),
 );
+const QuadroKanbanPage = lazy(() =>
+  import('@/pages/quadro-kanban-page').then((m) => ({ default: m.QuadroKanbanPage })),
+);
 
 function Loading() {
   return (
@@ -124,6 +127,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <QuadroPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'kanban',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <QuadroKanbanPage />
           </Suspense>
         ),
       },

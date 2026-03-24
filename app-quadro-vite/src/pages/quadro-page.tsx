@@ -10,7 +10,7 @@ import {
 import {
   Search, Edit, Warning, ViewColumn, FilterList, FileDownload,
   FiberManualRecord, Add, Person, TableChart, ViewKanban,
-  GridView, AddCircleOutline,
+  GridView, AddCircleOutline, DragIndicator,
 } from '@mui/icons-material';
 import {
   DataGrid, type GridColDef,
@@ -21,7 +21,7 @@ import {
 import { ptBR } from '@mui/x-data-grid/locales';
 import {
   DndContext, DragOverlay, useDroppable, useDraggable,
-  PointerSensor, useSensor, useSensors,
+  PointerSensor, TouchSensor, useSensor, useSensors,
   type DragStartEvent, type DragEndEvent,
 } from '@dnd-kit/core';
 import { useHstVeiPainel, useSituacoes, useTrocarSituacao } from '@/hooks/use-hstvei';
@@ -294,32 +294,14 @@ function fmtDateTime(val: string | null | undefined): string {
   return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
-function KanbanCardContent({ row, isDragging }: { row: QuadroRow; isDragging?: boolean }) {
+function KanbanCardContent({ row }: { row: QuadroRow }) {
   const navigate = useNavigate();
   const priColor = PRI_COLORS[row.prioridadeSigla] ?? '#9e9e9e';
   const depInfo = getDepartamentoInfo(row.departamento);
   const overdue = isOverdue(row.dtprevisao);
 
   return (
-    <Paper
-      onClick={isDragging ? undefined : () => navigate(`/situacao/${row.id}`)}
-      elevation={0}
-      sx={{
-        borderRadius: '12px',
-        p: 1.75, mb: 1,
-        bgcolor: 'background.paper',
-        boxShadow: isDragging ? '0 12px 28px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.06)',
-        cursor: isDragging ? 'grabbing' : 'pointer',
-        transition: isDragging ? 'none' : 'transform 0.15s ease, box-shadow 0.15s ease',
-        transform: isDragging ? 'rotate(2deg) scale(1.02)' : undefined,
-        opacity: isDragging ? 0.9 : 1,
-        '&:hover': isDragging ? {} : {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-        },
-        '&:active': isDragging ? {} : { transform: 'scale(0.98)' },
-      }}
-    >
+    <Box onClick={() => navigate(`/situacao/${row.id}`)}>
       {/* Overdue */}
       {overdue && (
         <Box sx={{
@@ -399,42 +381,72 @@ function KanbanCardContent({ row, isDragging }: { row: QuadroRow; isDragging?: b
       {row.equipe && (
         <Typography sx={{ fontSize: 10.5, color: 'text.disabled', mt: 0.75 }} noWrap>{row.equipe}</Typography>
       )}
-    </Paper>
+    </Box>
   );
 }
 
-function DraggableCard({ row }: { row: QuadroRow }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+function DraggableCard({ row, isActiveOverlay }: { row: QuadroRow; isActiveOverlay?: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `card-${row.id}`,
     data: { row },
   });
 
+  const style = transform && !isActiveOverlay
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
+
   return (
-    <Box ref={setNodeRef} {...listeners} {...attributes} sx={{ opacity: isDragging ? 0.3 : 1, touchAction: 'none' }}>
+    <Paper
+      ref={isActiveOverlay ? undefined : setNodeRef}
+      {...(isActiveOverlay ? {} : listeners)}
+      {...(isActiveOverlay ? {} : attributes)}
+      onClick={(e) => {
+        if (isDragging) return;
+        e.stopPropagation();
+      }}
+      style={style}
+      elevation={isActiveOverlay ? 8 : 0}
+      sx={{
+        borderRadius: '12px',
+        p: 1.75, mb: 1,
+        bgcolor: 'background.paper',
+        boxShadow: isActiveOverlay ? '0 12px 28px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.06)',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        opacity: isDragging ? 0.3 : 1,
+        transition: isDragging ? 'none' : 'box-shadow 0.15s ease, border-color 0.15s ease',
+        border: isActiveOverlay ? '2px solid' : '1px solid transparent',
+        borderColor: isActiveOverlay ? 'primary.main' : 'transparent',
+        transform: isActiveOverlay ? 'rotate(2deg) scale(1.02)' : undefined,
+        touchAction: 'none',
+        '&:hover': isDragging ? {} : {
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          borderColor: 'divider',
+        },
+      }}
+    >
       <KanbanCardContent row={row} />
-    </Box>
+    </Paper>
   );
 }
 
 function DroppableColumn({ colKey, children }: { colKey: string; children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({ id: `col-${colKey}` });
+  const { setNodeRef, isOver, active } = useDroppable({ id: `col-${colKey}` });
+  if (isOver) console.log(`[DroppableColumn] isOver=true, colKey=${colKey}, active=`, active?.id);
 
   return (
-    <Box
+    <div
       ref={setNodeRef}
-      sx={{
-        flex: 1, overflowY: 'auto', p: 0.75,
-        transition: 'background-color 0.2s',
-        bgcolor: isOver ? (t) => alpha(t.palette.primary.main, 0.08) : 'transparent',
-        borderRadius: isOver ? '8px' : 0,
-        border: isOver ? '2px dashed' : '2px solid transparent',
-        borderColor: isOver ? 'primary.main' : 'transparent',
-        '&::-webkit-scrollbar': { width: 4 },
-        '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 2 },
+      style={{
+        flex: 1, overflowY: 'auto', padding: 6,
+        backgroundColor: isOver ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+        borderRadius: isOver ? 8 : 0,
+        border: isOver ? '2px dashed #1976d2' : '2px solid transparent',
+        transition: 'background-color 0.2s, border-color 0.2s',
+        minHeight: 100,
       }}
     >
       {children}
-    </Box>
+    </div>
   );
 }
 
@@ -494,22 +506,41 @@ function KanbanView({ rows, groupBy }: { rows: QuadroRow[]; groupBy: KanbanGroup
   const [pendingDrop, setPendingDrop] = useState<{ row: QuadroRow; targetCol: string } | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    console.log('[DnD] handleDragStart', event.active.id, event.active.data.current?.row?.placa);
     setActiveRow(event.active.data.current?.row ?? null);
   }, []);
 
+  const handleDragCancel = useCallback(() => {
+    console.log('[DnD] handleDragCancel');
+    setActiveRow(null);
+  }, []);
+
+  const handleDragMove = useCallback((event: any) => {
+    console.log('[DnD] handleDragMove', event.active.id, 'over:', event.over?.id ?? 'NENHUM');
+  }, []);
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
+    console.log('[DnD] handleDragEnd', { activeId: event.active.id, overId: event.over?.id ?? 'NULL' });
     setActiveRow(null);
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      console.log('[DnD] DROP SEM DESTINO — over is null');
+      return;
+    }
 
     const row = active.data.current?.row as QuadroRow | undefined;
-    if (!row) return;
+    if (!row) {
+      console.log('[DnD] NO ROW DATA');
+      return;
+    }
 
     const targetColKey = (over.id as string).replace('col-', '');
+    console.log('[DnD] targetColKey:', targetColKey);
     const sourceColKey = groupBy === 'etapa'
       ? (ETAPA_MAP[row.situacao] ?? 'outros')
       : groupBy === 'departamento' ? row.departamento
@@ -517,7 +548,11 @@ function KanbanView({ rows, groupBy }: { rows: QuadroRow[]; groupBy: KanbanGroup
       : groupBy === 'prioridade' ? (row.prioridadeSigla || '-')
       : (row.tipo || 'Sem Tipo');
 
-    if (targetColKey === sourceColKey) return;
+    console.log('[DnD] source:', sourceColKey, '→ target:', targetColKey, 'same?', targetColKey === sourceColKey);
+    if (targetColKey === sourceColKey) {
+      console.log('[DnD] MESMA COLUNA — ignorando');
+      return;
+    }
 
     if (groupBy === 'situacao') {
       const targetSit = situacoes.find((s) => s.DESCRICAO === targetColKey);
@@ -538,7 +573,7 @@ function KanbanView({ rows, groupBy }: { rows: QuadroRow[]; groupBy: KanbanGroup
 
   return (
     <>
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel} onDragMove={handleDragMove}>
         <Box sx={{
           flex: 1, display: 'flex', gap: 1.5, overflowX: 'auto', pb: 2,
           alignItems: 'stretch', minHeight: 420,
@@ -610,7 +645,11 @@ function KanbanView({ rows, groupBy }: { rows: QuadroRow[]; groupBy: KanbanGroup
 
         {/* Drag overlay */}
         <DragOverlay dropAnimation={null}>
-          {activeRow ? <KanbanCardContent row={activeRow} isDragging /> : null}
+          {activeRow ? (
+            <Box sx={{ width: 300, pointerEvents: 'none' }}>
+              <DraggableCard row={activeRow} isActiveOverlay />
+            </Box>
+          ) : null}
         </DragOverlay>
       </DndContext>
 

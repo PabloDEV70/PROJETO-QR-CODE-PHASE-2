@@ -47,6 +47,13 @@ export class HstVeiMutationService {
       throw new ValidationError('IDSIT deve ser um número positivo');
     }
 
+    // Encerrar situacoes ativas anteriores — veiculo so pode ter 1 situacao ativa
+    const ativasSql = `SELECT ID FROM AD_HSTVEI WHERE CODVEICULO = ${input.codveiculo} AND DTFIM IS NULL`;
+    const ativas = await this.qe.executeQuery<{ ID: number }>(ativasSql);
+    for (const row of ativas) {
+      await this.encerrar(row.ID, codusu, userToken);
+    }
+
     const dados: Record<string, unknown> = {
       CODVEICULO: input.codveiculo,
       IDSIT: input.idsit,
@@ -127,7 +134,17 @@ export class HstVeiMutationService {
   }
 
   async trocarSituacao(idAtual: number, novaInput: CriarHstVeiInput, codusu: number, userToken?: string) {
-    await this.encerrar(idAtual, codusu, userToken);
+    // Encerrar TODAS as situacoes ativas do veiculo (nao so a atual)
+    // para garantir que veiculo tenha no maximo 1 situacao ativa
+    if (novaInput.codveiculo) {
+      const ativasSql = `SELECT ID FROM AD_HSTVEI WHERE CODVEICULO = ${novaInput.codveiculo} AND DTFIM IS NULL`;
+      const ativas = await this.qe.executeQuery<{ ID: number }>(ativasSql);
+      for (const row of ativas) {
+        await this.encerrar(row.ID, codusu, userToken);
+      }
+    } else {
+      await this.encerrar(idAtual, codusu, userToken);
+    }
     return this.criar(novaInput, codusu, userToken);
   }
 
