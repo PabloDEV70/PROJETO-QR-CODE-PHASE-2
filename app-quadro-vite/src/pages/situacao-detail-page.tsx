@@ -154,7 +154,7 @@ export function SituacaoDetailPage() {
                 <TextField fullWidth size="small" label="Observacao" multiline rows={2} sx={{ mb: 1 }}
                   value={editFields.obs ?? ''} onChange={(e) => setEditFields((p) => ({ ...p, obs: e.target.value }))} />
                 <TextField fullWidth size="small" label="Previsao" type="datetime-local" sx={{ mb: 1 }} InputLabelProps={{ shrink: true }}
-                  value={editFields.dtprevisao ? editFields.dtprevisao.slice(0, 16) : ''} onChange={(e) => setEditFields((p) => ({ ...p, dtprevisao: e.target.value }))} />
+                  value={typeof editFields.dtprevisao === 'string' ? editFields.dtprevisao.slice(0, 16) : ''} onChange={(e) => setEditFields((p) => ({ ...p, dtprevisao: e.target.value }))} />
                 <Stack direction="row" spacing={1}>
                   <Button variant="contained" size="small" onClick={saveEdit} disabled={updateMut.isPending}>
                     {updateMut.isPending ? <CircularProgress size={16} /> : 'Salvar'}
