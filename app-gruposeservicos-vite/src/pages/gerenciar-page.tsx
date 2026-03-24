@@ -8,7 +8,7 @@ import {
   ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
 import {
-  Folder, FolderOpen, Add, Edit, SwapHoriz,
+  Folder, Add, Edit, SwapHoriz,
   ToggleOff, ToggleOn, CheckCircle, Cancel, ViewColumn,
   DeleteOutline, FilterList, FileDownload, Search,
   Cancel as CancelIcon, AccountTree,

@@ -28,7 +28,7 @@ import {
   usePerformanceExecucoes,
   usePerformanceExecutor,
 } from '@/hooks/use-eficiencia';
-import type { ServicoComExecucao, PerfExecucao, PerfExecutor, EficienciaParams } from '@/types/eficiencia-types';
+import type { ServicoComExecucao, PerfExecutor, EficienciaParams } from '@/types/eficiencia-types';
 
 // ── Formatters ──
 
@@ -161,6 +161,7 @@ const StyledSearchField = styled(TextField)<{ ownerState: OwnerState }>(({ theme
 const TOGGLE_SX = { height: 28, '& .MuiToggleButton-root': { textTransform: 'none' as const, fontSize: 11, fontWeight: 600, px: 1.25, py: 0, '&.Mui-selected': { bgcolor: 'rgba(46,125,50,0.12)', color: '#2e7d32', '&:hover': { bgcolor: 'rgba(46,125,50,0.18)' } } } };
 
 interface EfToolbarProps {
+  [key: string]: any;
   servicoNome?: string; servicoCod?: number | null; servicoGrupo?: string | null;
   resumoExecutores?: number; resumoExecucoes?: number; resumoMediaMin?: number; resumoTotalMin?: number;
   viewMode: 'exec' | 'grupo'; onViewChange: (v: 'exec' | 'grupo') => void;
@@ -174,7 +175,7 @@ declare module '@mui/x-data-grid' { interface ToolbarPropsOverrides extends EfTo
 function EficienciaToolbar(props: EfToolbarProps) {
   const {
     servicoNome, servicoCod, servicoGrupo,
-    resumoExecutores, resumoExecucoes, resumoMediaMin, resumoTotalMin,
+    resumoExecutores, resumoExecucoes, resumoMediaMin, resumoTotalMin: _resumoTotalMin,
     viewMode, onViewChange, placas, placaFilter, onPlacaChange,
     dataInicio, dataFim, onDataInicioChange, onDataFimChange,
     hasActiveFilters, onOpenQuartil, selectedCount,

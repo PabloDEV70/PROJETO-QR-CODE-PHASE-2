@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
-  Box, Typography, Stack, Chip, Tooltip, alpha,
+  Box, Typography, Stack, Chip, Tooltip,
 } from '@mui/material';
 import type { PerfExecucao, PerfExecutor } from '@/types/eficiencia-types';
 
