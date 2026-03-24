@@ -1,25 +1,10 @@
 /**
  * Database Credentials Configuration
  *
- * Separates CRUD operations (standard user) from special operations (SA user)
- * using Clean Architecture and environment-based injection.
- *
- * CRUD USER (Operações padrão):
- * - Username: sankhya
- * - Password: 12gig23 (via SQLSERVER_CRUD_PASSWORD env var)
- * - Usado em: SANKHYA_PROD, SANKHYA_TESTE, SANKHYA_TREINA
- * - Permissões: SELECT, INSERT, UPDATE, DELETE, PATCH
- *
- * SA USER (Operações especiais):
- * - Username: sa
- * - Password: (via SQLSERVER_SA_PASSWORD env var)
- * - Usado APENAS em: Triggers, Procedures, System Queries
- * - Ativado por: Feature flag ENABLE_SA_USER ou ENABLE_SA_FOR_[OPERATION]
- * - NUNCA para CRUD normal
+ * All credentials are loaded exclusively from environment variables.
+ * See .env.example for required variables.
  *
  * @see DatabaseConnectionService - Injeta credenciais baseado em contexto
- * @see DATABASE_CREDENTIALS_CRUD - Configuração padrão
- * @see DATABASE_CREDENTIALS_SA - Configuração especial
  */
 
 export interface DatabaseCredentials {
@@ -41,20 +26,10 @@ export interface DatabaseCredentialsConfig {
  * Tipos de usuário para injeção de dependência
  */
 export enum DatabaseUserType {
-  /**
-   * Usuário padrão para operações CRUD
-   * - SELECT, INSERT, UPDATE, DELETE, PATCH
-   * - Username: sankhya
-   * - Todas as operações normais
-   */
+  /** Usuário padrão para operações CRUD */
   CRUD = 'crud',
 
-  /**
-   * Usuário SA para operações especiais
-   * - Triggers, Procedures, System Queries
-   * - Username: sa
-   * - Ativado APENAS se ENABLE_SA_USER=true
-   */
+  /** Usuário SA para operações especiais (requer ENABLE_SA_USER=true) */
   SA = 'sa',
 }
 
@@ -70,10 +45,19 @@ export function getCRUDCredentials(configService: any): DatabaseCredentials {
   const password =
     (configService.get('SQLSERVER_CRUD_PASSWORD') as string) ||
     (configService.get('SQLSERVER_PASSWORD') as string) ||
-    '12gig23';
+    '';
+
+  const username =
+    (configService.get('SQLSERVER_CRUD_USER') as string) ||
+    (configService.get('SQLSERVER_USER') as string) ||
+    '';
+
+  if (!username || !password) {
+    throw new Error('SQLSERVER_CRUD_USER/SQLSERVER_USER and SQLSERVER_CRUD_PASSWORD/SQLSERVER_PASSWORD must be set in environment variables.');
+  }
 
   return {
-    username: 'sankhya',
+    username,
     password,
     server,
     port,
@@ -95,14 +79,16 @@ export function getSACredentials(configService: any): DatabaseCredentials {
   const server = (configService.get('SQLSERVER_SERVER') as string) || 'localhost';
   const port = (configService.get('SQLSERVER_PORT') as number) || 1433;
   const password =
-    (configService.get('SQLSERVER_SA_PASSWORD') as string) || (configService.get('SQLSERVER_PASSWORD') as string) || '';
+    (configService.get('SQLSERVER_SA_PASSWORD') as string) || '';
+  const username =
+    (configService.get('SQLSERVER_SA_USER') as string) || '';
 
-  if (!password) {
-    throw new Error('SQLSERVER_SA_PASSWORD not configured. SA user cannot be used without explicit password.');
+  if (!username || !password) {
+    throw new Error('SQLSERVER_SA_USER and SQLSERVER_SA_PASSWORD must be set in environment variables.');
   }
 
   return {
-    username: 'sa',
+    username,
     password,
     server,
     port,
@@ -159,63 +145,19 @@ export function selectCredentials(userType: DatabaseUserType, configService: any
 
 /**
  * Configuração de credenciais por banco de dados
- *
- * Cada banco usa as mesmas credenciais CRUD
+ * Servers e databases são carregados do .env
  */
 export const DATABASE_CREDENTIALS_BY_DATABASE = {
   PROD: {
-    server: 'prod-sql-server',
-    database: 'SANKHYA_PROD',
+    server: process.env.SQLSERVER_PROD_SERVER || '',
+    database: process.env.SQLSERVER_PROD_DATABASE || '',
   },
   TESTE: {
-    server: 'test-sql-server',
-    database: 'SANKHYA_TESTE',
+    server: process.env.SQLSERVER_TESTE_SERVER || '',
+    database: process.env.SQLSERVER_TESTE_DATABASE || '',
   },
   TREINA: {
-    server: 'training-sql-server',
-    database: 'SANKHYA_TREINA',
+    server: process.env.SQLSERVER_TREINA_SERVER || '',
+    database: process.env.SQLSERVER_TREINA_DATABASE || '',
   },
 } as const;
-
-/**
- * Resumo das credenciais
- */
-export const CREDENTIALS_SUMMARY = `
-╔════════════════════════════════════════════════════════════╗
-║           DATABASE CREDENTIALS CONFIGURATION               ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║  CRUD USER (Padrão - Todas operações normais)             ║
-║  ├─ Username: sankhya                                      ║
-║  ├─ Password: (via SQLSERVER_CRUD_PASSWORD)               ║
-║  ├─ Usado em: SELECT, INSERT, UPDATE, DELETE, PATCH       ║
-║  └─ Bancos: PROD, TESTE, TREINA                           ║
-║                                                            ║
-║  SA USER (Especial - Operações via triggers/procedures)   ║
-║  ├─ Username: sa                                           ║
-║  ├─ Password: (via SQLSERVER_SA_PASSWORD)                 ║
-║  ├─ Ativado por: ENABLE_SA_USER=true                      ║
-║  ├─ Por operação: ENABLE_SA_FOR_TRIGGERS=true             ║
-║  └─ ⚠️  NUNCA para CRUD normal                             ║
-║                                                            ║
-╠════════════════════════════════════════════════════════════╣
-║                   ENVIRONMENT VARIABLES                    ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║  SQLSERVER_SERVER=localhost                               ║
-║  SQLSERVER_PORT=1433                                       ║
-║  SQLSERVER_DATABASE=SANKHYA_TREINA                         ║
-║                                                            ║
-║  # CRUD (padrão)                                          ║
-║  SQLSERVER_CRUD_PASSWORD=12gig23                          ║
-║                                                            ║
-║  # SA (especial)                                          ║
-║  SQLSERVER_SA_PASSWORD=sua-senha-sa                       ║
-║  ENABLE_SA_USER=false (ou true para habilitar)            ║
-║  ENABLE_SA_FOR_TRIGGERS=false                             ║
-║  ENABLE_SA_FOR_PROCEDURES=false                           ║
-║  ENABLE_SA_FOR_VIEWS=false                                ║
-║  ENABLE_SA_FOR_FUNCTIONS=false                            ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`;

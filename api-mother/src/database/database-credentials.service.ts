@@ -49,7 +49,7 @@ export class DatabaseCredentialsService {
    * @returns Credenciais do usuário CRUD
    */
   getCRUDCredentials(): DatabaseCredentials {
-    this.logger.debug('Using CRUD credentials (sankhya user)');
+    this.logger.debug('Using CRUD credentials');
     return getCRUDCredentials(this.configService);
   }
 
@@ -140,8 +140,7 @@ export class DatabaseCredentialsService {
     this.logger.log(`Database Configuration:`);
     this.logger.log(`  Server: ${server}`);
     this.logger.log(`  Database: ${database}`);
-    this.logger.log(`  CRUD User: sankhya (standard)`);
-    this.logger.log(`  SA User: ${saEnabled ? 'ENABLED (⚠️ Special operations only)' : 'DISABLED'}`);
+    this.logger.log(`  SA User: ${saEnabled ? 'ENABLED' : 'DISABLED'}`);
 
     if (saEnabled) {
       const saTriggersEnabled = isSAUserEnabledFor('TRIGGERS', this.configService);
