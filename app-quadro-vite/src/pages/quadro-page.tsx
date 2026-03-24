@@ -292,108 +292,123 @@ function KanbanCard({ row }: { row: QuadroRow }) {
       elevation={0}
       sx={{
         borderRadius: '10px',
-        p: 1.5, mb: 1,
+        p: 0, mb: 1, overflow: 'hidden',
         border: '1px solid', borderColor: 'divider',
         cursor: 'pointer',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
         '&:hover': {
           transform: 'translateY(-1px)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          boxShadow: '0 3px 12px rgba(0,0,0,0.1)',
           borderColor: 'primary.light',
         },
         '&:active': { transform: 'scale(0.98)' },
       }}
     >
-      {/* Overdue banner */}
-      {overdue && (
-        <Box sx={{
-          display: 'flex', alignItems: 'center', gap: 0.5,
-          px: 1, py: 0.3, mb: 1, mx: -0.5, mt: -0.5,
-          bgcolor: 'error.light', borderRadius: '6px',
-        }}>
-          <Warning sx={{ fontSize: 13, color: 'error.main' }} />
-          <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'error.main', letterSpacing: '0.04em' }}>
-            ATRASADO
-          </Typography>
-        </Box>
-      )}
+      {/* Top color bar */}
+      <Box sx={{ height: 3, bgcolor: depInfo.color }} />
 
-      {/* Placa centralizada grande no topo */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-        <PlacaVeiculo placa={row.placa} scale={0.6} />
-      </Box>
-
-      {/* Tag + modelo + prioridade */}
-      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
-        {row.tag && (
-          <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary', fontFamily: '"JetBrains Mono", monospace' }}>
-            {row.tag}
-          </Typography>
-        )}
-        {row.marcaModelo && (
-          <Typography sx={{ fontSize: 10, color: 'text.disabled', flex: 1 }} noWrap>{row.marcaModelo}</Typography>
-        )}
-        <Box sx={{ flex: row.marcaModelo ? undefined : 1 }} />
-        <Box sx={{ px: 0.6, py: 0.15, borderRadius: '4px', bgcolor: alpha(priColor, 0.1) }}>
-          <Typography sx={{ fontSize: 10, fontWeight: 700, color: priColor }}>{row.prioridadeSigla}</Typography>
-        </Box>
-      </Stack>
-
-      {/* Situacao chip */}
-      <Box sx={{
-        display: 'inline-flex', alignItems: 'center', gap: 0.3,
-        mb: 0.75, fontSize: 10.5, fontWeight: 600,
-        color: depInfo.color,
-        bgcolor: depInfo.bgLight,
-        px: 0.75, py: 0.15, borderRadius: '4px',
-      }}>
-        <depInfo.Icon sx={{ fontSize: 11 }} />
-        {row.situacao}
-      </Box>
-
-      {/* Descricao */}
-      {row.descricao && (
-        <Typography sx={{
-          fontSize: 12.5, lineHeight: 1.45, color: 'text.secondary', fontWeight: 400,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden', mb: 1,
-        }}>
-          {row.descricao}
-        </Typography>
-      )}
-
-      {/* Cliente */}
-      {row.cliente && (
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.3, mb: 0.75, fontSize: 10.5, fontWeight: 500, color: 'text.disabled' }}>
-          <Person sx={{ fontSize: 12 }} />
-          <Typography sx={{ fontSize: 10.5, maxWidth: 180 }} noWrap>{row.cliente}</Typography>
-        </Box>
-      )}
-
-      {/* Footer */}
-      <Stack direction="row" alignItems="center" spacing={0.5}
-        sx={{ color: 'text.disabled', pt: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Schedule sx={{ fontSize: 12 }} />
-        <Typography sx={{ fontSize: 10.5 }}>{fmtDate(row.dtinicio)}</Typography>
-        {row.dtprevisao && (
-          <>
-            <Box sx={{ width: 1, height: 10, bgcolor: 'divider', mx: 0.25 }} />
-            <Typography sx={{
-              fontSize: 10.5,
-              color: overdue ? 'error.main' : 'inherit',
-              fontWeight: overdue ? 700 : 400,
-            }}>
-              → {fmtDate(row.dtprevisao)}
+      <Box sx={{ p: 1.5 }}>
+        {/* Overdue banner */}
+        {overdue && (
+          <Box sx={{
+            display: 'flex', alignItems: 'center', gap: 0.5,
+            px: 1, py: 0.3, mb: 1,
+            bgcolor: 'error.light', borderRadius: '6px',
+          }}>
+            <Warning sx={{ fontSize: 13, color: 'error.main' }} />
+            <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'error.main', letterSpacing: '0.04em' }}>
+              ATRASADO
             </Typography>
-          </>
+          </Box>
         )}
-        <Box sx={{ flex: 1 }} />
-        {row.equipe && (
-          <Typography sx={{ maxWidth: 80, fontSize: 10.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {row.equipe}
+
+        {/* Row 1: Placa + Tag + Prioridade */}
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+          <PlacaVeiculo placa={row.placa} scale={0.45} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {row.tag && (
+              <Typography sx={{ fontSize: 13, fontWeight: 800, fontFamily: '"JetBrains Mono", monospace', color: 'text.primary', lineHeight: 1.2 }}>
+                {row.tag}
+              </Typography>
+            )}
+            <Typography sx={{ fontSize: 10, color: 'text.disabled', lineHeight: 1.2 }} noWrap>
+              {row.tipo || row.marcaModelo}
+            </Typography>
+          </Box>
+          <Box sx={{ px: 0.75, py: 0.25, borderRadius: '6px', bgcolor: alpha(priColor, 0.12), flexShrink: 0 }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 800, color: priColor, lineHeight: 1 }}>
+              {row.prioridadeSigla}
+            </Typography>
+          </Box>
+        </Stack>
+
+        {/* Row 2: Situacao + Departamento */}
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 0.3,
+            fontSize: 11, fontWeight: 600,
+            color: depInfo.color, bgcolor: depInfo.bgLight,
+            px: 0.75, py: 0.2, borderRadius: '5px',
+          }}>
+            <depInfo.Icon sx={{ fontSize: 12 }} />
+            {row.situacao}
+          </Box>
+          {row.diasAtivo > 0 && (
+            <Typography sx={{
+              fontSize: 10, fontWeight: 600, fontFamily: 'monospace', ml: 'auto',
+              color: row.diasAtivo > 30 ? 'error.main' : row.diasAtivo > 7 ? 'warning.main' : 'text.disabled',
+            }}>
+              {row.diasAtivo}d
+            </Typography>
+          )}
+        </Stack>
+
+        {/* Row 3: Cliente */}
+        {row.cliente && (
+          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
+            <Person sx={{ fontSize: 14, color: 'text.secondary' }} />
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.primary' }} noWrap>
+              {row.cliente}
+            </Typography>
+          </Stack>
+        )}
+
+        {/* Row 4: Descricao */}
+        {row.descricao && (
+          <Typography sx={{
+            fontSize: 11.5, lineHeight: 1.4, color: 'text.secondary',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+            overflow: 'hidden', mb: 0.75,
+          }}>
+            {row.descricao}
           </Typography>
         )}
-      </Stack>
+
+        {/* Footer */}
+        <Stack direction="row" alignItems="center" spacing={0.5}
+          sx={{ pt: 0.75, borderTop: '1px solid', borderColor: 'divider', color: 'text.disabled' }}>
+          <Schedule sx={{ fontSize: 12 }} />
+          <Typography sx={{ fontSize: 10.5 }}>{fmtDate(row.dtinicio)}</Typography>
+          {row.dtprevisao && (
+            <>
+              <Box sx={{ width: 1, height: 10, bgcolor: 'divider', mx: 0.25 }} />
+              <Typography sx={{
+                fontSize: 10.5,
+                color: overdue ? 'error.main' : 'inherit',
+                fontWeight: overdue ? 700 : 400,
+              }}>
+                → {fmtDate(row.dtprevisao)}
+              </Typography>
+            </>
+          )}
+          <Box sx={{ flex: 1 }} />
+          {row.equipe && (
+            <Typography sx={{ maxWidth: 90, fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {row.equipe}
+            </Typography>
+          )}
+        </Stack>
+      </Box>
     </Paper>
   );
 }
