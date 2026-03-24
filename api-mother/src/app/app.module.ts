@@ -17,7 +17,6 @@ import { MonitoringModule } from '../modules/monitoring/monitoring.module';
 import { CustomTablesModule } from '../modules/custom-tables/custom-tables.module';
 import { DatabaseExplorerModule } from '../modules/database-explorer/database-explorer.module';
 import { MutationV2Module } from '../modules/mutation-v2/mutation-v2.module';
-import { DocsModule } from '../modules/docs/docs.module';
 import { QueryExecutorModule } from '../modules/query-executor/query-executor.module';
 import { ConstructorModule } from '../modules/constructor/constructor.module';
 import { RequestLoggerMiddleware } from '../common/middleware/request-logger.middleware';
@@ -70,7 +69,6 @@ import { MetricsModule } from '../modules/metrics';
     MutationV2Module, // Clean Architecture - Secure INSERT/UPDATE/DELETE
     QueryExecutorModule, // Clean Architecture V3 - Secure SELECT queries
     ConstructorModule, // Constructor - Dynamic screen building
-    DocsModule,
     PermissoesEscritaModule, // M2 - Permissoes de Escrita (CRUD)
     AdminPermissoesModule, // M5 - Admin API de Permissoes
     CachePermissoesModule, // M6 - Cache de Permissoes
