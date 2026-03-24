@@ -10,6 +10,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiResponse, ApiTags, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { SankhyaPermissionService } from '../services/sankhya-permission.service';
 import { StructuredLogger } from '../../../common/logging/structured-logger.service';
@@ -36,10 +37,16 @@ class ValidatePermissionDto {
 @UseGuards(AuthGuard('jwt'))
 @Controller('permissions/debug')
 export class PermissionsDebugController {
+  private readonly adminUserIds: number[];
+
   constructor(
     private readonly permissionService: SankhyaPermissionService,
     private readonly logger: StructuredLogger,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const adminIdsStr = this.configService.get<string>('ADMIN_USER_IDS', '0');
+    this.adminUserIds = adminIdsStr.split(',').map((id) => parseInt(id.trim(), 10)).filter((id) => !isNaN(id));
+  }
 
   /**
    * Verifica se o usuário autenticado é admin
@@ -48,11 +55,7 @@ export class PermissionsDebugController {
   private checkIsAdmin(req: any): void {
     const userId = req.user?.userId || req.user?.sub;
 
-    // Por enquanto: apenas SUP (CODUSU=0) ou CARLOS.AQUINO (292) são admin
-    // TODO: Implementar verificação via TSIUSU.NIVEL ou grupo admin
-    const adminUsers = [0, 292];
-
-    if (!adminUsers.includes(userId)) {
+    if (!this.adminUserIds.includes(userId)) {
       throw new ForbiddenException('Access denied. Only admin users can access permission debug endpoints.');
     }
   }

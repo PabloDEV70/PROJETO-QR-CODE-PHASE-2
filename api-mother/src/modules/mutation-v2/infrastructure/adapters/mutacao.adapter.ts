@@ -81,7 +81,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Audit log
       await this.auditService.logOperation({
         timestamp: new Date().toISOString(),
-        user: operacao.usuario
+        user: operacao.usuario,
         ip: 'internal',
         database,
         operation: `INSERT:${operacao.nomeTabela}`,

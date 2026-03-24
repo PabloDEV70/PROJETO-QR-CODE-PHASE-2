@@ -1,4 +1,5 @@
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Response } from 'express';
 import { GerarDocTabelaUseCase } from '../../application/use-cases/gerar-doc-tabela';
@@ -12,6 +13,7 @@ import { ExportarJSONUseCase } from '../../application/use-cases/exportar-json';
 @Controller('dicionario/export')
 @ApiTags('Dicionário - Export')
 @ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'))
 export class ExportController {
   constructor(
     private readonly gerarDocTabelaUseCase: GerarDocTabelaUseCase,
@@ -36,7 +38,7 @@ export class ExportController {
     @Res() res: Response,
   ) {
     const resultado = await this.gerarDocTabelaUseCase.executar({
-      tokenUsuario: tokenUsuario || 'mock-token',
+      tokenUsuario: tokenUsuario || '',
       nomeTabela,
       formato,
       incluirCampos,
@@ -71,7 +73,7 @@ export class ExportController {
     @Query('tokenUsuario') tokenUsuario: string,
   ) {
     const resultado = await this.exportarJSONUseCase.executar({
-      tokenUsuario: tokenUsuario || 'mock-token',
+      tokenUsuario: tokenUsuario || '',
       tipo,
       nomeTabela,
       nomeCampo,

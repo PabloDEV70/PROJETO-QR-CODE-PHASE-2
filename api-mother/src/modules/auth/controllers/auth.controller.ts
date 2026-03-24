@@ -25,11 +25,11 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  @Throttle({ default: { limit: 50, ttl: 60000 } }) // 50 tentativas por minuto para prevenir brute force
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 tentativas por minuto para prevenir brute force
   @ApiOperation({
     summary: 'User authentication',
     description:
-      'Authenticates user with Sankhya database credentials and returns JWT token. Limited to 50 attempts per minute.',
+      'Authenticates user with Sankhya database credentials and returns JWT token. Limited to 5 attempts per minute.',
   })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({

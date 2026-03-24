@@ -36,8 +36,7 @@ export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
   }
 
   const authHeader = request.headers.authorization;
-  const queryToken = (request.query as Record<string, string>)?.token;
-  if (!authHeader?.startsWith('Bearer ') && !queryToken) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return reply.status(401).send({
       statusCode: 401,
       error: 'Unauthorized',

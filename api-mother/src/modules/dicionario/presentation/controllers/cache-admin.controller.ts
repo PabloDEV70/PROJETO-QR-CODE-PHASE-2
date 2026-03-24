@@ -33,7 +33,7 @@ export class CacheAdminController {
   @ApiResponse({ status: 200, description: 'Cache invalidado com sucesso' })
   async invalidarCache(@Body() body: InvalidarCacheDto) {
     const resultado = await this.invalidarCacheUseCase.executar({
-      tokenUsuario: body.tokenUsuario || ''
+      tokenUsuario: body.tokenUsuario || '',
       tipo: body.tipo,
       nomeTabela: body.nomeTabela,
       nomeCampo: body.nomeCampo,

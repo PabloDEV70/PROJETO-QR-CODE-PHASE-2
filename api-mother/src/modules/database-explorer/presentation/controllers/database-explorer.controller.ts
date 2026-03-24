@@ -5,7 +5,6 @@
  */
 import { Controller, Get, Post, Query, Param, UseGuards, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { SkipThrottle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { StructuredLogger } from '../../../../common/logging/structured-logger.service';
 import {
@@ -35,7 +34,6 @@ import {
 
 @ApiTags('Database Explorer')
 @ApiBearerAuth()
-@SkipThrottle()
 @UseGuards(AuthGuard('jwt'))
 @Controller('database')
 export class DatabaseExplorerController {

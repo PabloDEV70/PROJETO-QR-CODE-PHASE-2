@@ -37,6 +37,10 @@ async function bootstrap() {
           connectSrc: ["'self'"],
         },
       },
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+      },
     }),
   );
 

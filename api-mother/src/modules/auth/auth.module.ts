@@ -19,7 +19,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           const secret = configService.get<string>('JWT_SECRET');
           if (!secret) throw new Error('JWT_SECRET environment variable is required');
           return secret;
-        })()
+        })(),
         signOptions: {
           expiresIn: (configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION') || '1h') as any,
         },

@@ -20,8 +20,6 @@ export async function registerContext(app: FastifyInstance): Promise<void> {
 
     if (auth?.startsWith('Bearer ')) {
       token = auth.slice(7);
-    } else if ((request.query as Record<string, string>)?.token) {
-      token = (request.query as Record<string, string>).token;
     }
 
     if (token) {

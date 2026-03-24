@@ -1,6 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Logger, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ExecutarQueryUseCase } from '../../application/use-cases';
 import { QueryRequestDto, QueryResponseDto } from '../dto';
@@ -11,7 +10,6 @@ import { QueryRequestDto, QueryResponseDto } from '../dto';
 @ApiTags('Query Executor')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@SkipThrottle()
 @Controller('query-executor')
 export class QueryExecutorController {
   private readonly logger = new Logger(QueryExecutorController.name);

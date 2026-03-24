@@ -10,7 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { SkipThrottle } from '@nestjs/throttler';
 import {
   ApiOperation,
   ApiResponse,
@@ -29,7 +28,6 @@ import { TableWritePermissionGuard } from '../../../security/table-write-permiss
 
 @ApiTags('Inspeção do Banco')
 @ApiBearerAuth()
-@SkipThrottle()
 @UseGuards(AuthGuard('jwt'))
 @Controller('inspection')
 export class InspectionController {
