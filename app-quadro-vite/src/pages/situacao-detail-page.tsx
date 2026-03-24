@@ -2,9 +2,13 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, Stack, Chip, Paper, Grid, Dialog,
-  DialogTitle, DialogContent, DialogActions, TextField, CircularProgress,
+  DialogTitle, DialogContent, DialogActions, TextField, CircularProgress, alpha, Divider,
 } from '@mui/material';
-import { ArrowBack, Edit, SwapHoriz, Close } from '@mui/icons-material';
+import {
+  ArrowBack, Edit, SwapHoriz, Close, Storefront, Build,
+  Person, LocationOn, Description as DescIcon, Schedule,
+  Receipt, Assignment,
+} from '@mui/icons-material';
 import { useHstVeiDetail, useUpdateHstVei, useEncerrarHstVei, useTrocarSituacao, useSituacoes } from '@/hooks/use-hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { getPrioridadeInfo } from '@/utils/prioridade-constants';
@@ -99,9 +103,22 @@ export function SituacaoDetailPage() {
         {/* LEFT COLUMN */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Section title="Veiculo">
-            <Typography variant="h6" fontWeight={700}>{detail.placa ?? '-'}</Typography>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+              <Typography variant="h5" fontWeight={800} fontFamily="monospace" letterSpacing={2}>{detail.placa ?? '-'}</Typography>
+              {detail.veiculoTag && (
+                <Chip label={detail.veiculoTag} sx={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 14, height: 28 }} color="primary" />
+              )}
+            </Stack>
             <Typography variant="body2" color="text.secondary">{detail.marcaModelo}</Typography>
-            {detail.veiculoTag && <Chip label={detail.veiculoTag} size="small" sx={{ mt: 0.5 }} />}
+            {(detail.veiculoTipo || detail.veiculoCapacidade) && (
+              <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                {detail.veiculoTipo && <Chip label={detail.veiculoTipo} size="small" variant="outlined" />}
+                {detail.veiculoCapacidade && <Chip label={detail.veiculoCapacidade} size="small" variant="outlined" />}
+              </Stack>
+            )}
+            <Button size="small" sx={{ mt: 1 }} onClick={() => navigate(`/veiculo/${detail.CODVEICULO}`)}>
+              Ver ficha do veiculo
+            </Button>
           </Section>
 
           <Section title="Detalhes da Situacao">
@@ -169,16 +186,137 @@ export function SituacaoDetailPage() {
             )}
           </Section>
 
-          <Section title="OS / Notas / Parceiro">
-            <Field label="NUOS" value={detail.NUOS} />
-            <Field label="NUMOS" value={detail.NUMOS} />
-            <Field label="NUNOTA" value={detail.NUNOTA} />
-            {detail.NUOS && <Field label="OS Status" value={detail.osStatus} />}
-            {detail.NUOS && <Field label="OS Tipo" value={detail.osTipo} />}
-            {detail.NUMOS && <Field label="MOS Cliente" value={detail.mosCliente} />}
-            {detail.NUMOS && <Field label="MOS Situacao" value={detail.mosSituacao} />}
-            <Field label="Parceiro" value={detail.nomeParc} />
-          </Section>
+          {/* Parceiro */}
+          {detail.nomeParc && (
+            <Section title="Parceiro / Cliente">
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <Person sx={{ color: '#c62828' }} />
+                <Typography variant="h6" fontWeight={700}>{detail.nomeParc}</Typography>
+              </Stack>
+              {detail.CODPARC && (
+                <Typography variant="caption" color="text.disabled">CODPARC {detail.CODPARC}</Typography>
+              )}
+            </Section>
+          )}
+
+          {/* OS Comercial */}
+          {detail.NUMOS && (
+            <Paper variant="outlined" sx={{ p: 2, mb: 2, borderColor: alpha('#c62828', 0.2), bgcolor: alpha('#c62828', 0.02) }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                <Storefront sx={{ color: '#c62828' }} />
+                <Typography variant="subtitle2" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', color: '#c62828' }}>
+                  Ordem de Servico Comercial
+                </Typography>
+                <Chip label={`OS ${detail.NUMOS}`} size="small" sx={{ fontFamily: 'monospace', fontWeight: 700, bgcolor: alpha('#c62828', 0.08), color: '#c62828' }} />
+                {detail.mosSituacao && (
+                  <Chip label={detail.mosSituacao === 'A' ? 'Aberta' : detail.mosSituacao === 'F' ? 'Fechada' : detail.mosSituacao === 'P' ? 'Pendente' : detail.mosSituacao}
+                    size="small" sx={{ fontWeight: 600, bgcolor: alpha(detail.mosSituacao === 'A' ? '#2e7d32' : '#546e7a', 0.08), color: detail.mosSituacao === 'A' ? '#2e7d32' : '#546e7a' }} />
+                )}
+              </Stack>
+
+              {detail.mosCliente && <Field label="Cliente" value={detail.mosCliente} />}
+              {detail.mosDescricao && <Field label="Descricao do servico" value={detail.mosDescricao} />}
+
+              {(detail.mosLocalExec || detail.mosEndereco || detail.mosCidade) && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Local de execucao</Typography>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <LocationOn sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography variant="body2">
+                      {[detail.mosLocalExec, detail.mosEndereco, detail.mosCidade].filter(Boolean).join(' · ')}
+                    </Typography>
+                  </Stack>
+                </Box>
+              )}
+
+              <Grid container spacing={2}>
+                {detail.mosResponsavel && (
+                  <Grid size={{ xs: 6 }}><Field label="Responsavel" value={detail.mosResponsavel} /></Grid>
+                )}
+                {detail.mosNrProposta && (
+                  <Grid size={{ xs: 6 }}><Field label="Nro Proposta" value={detail.mosNrProposta} /></Grid>
+                )}
+                {detail.mosContrato && (
+                  <Grid size={{ xs: 6 }}><Field label="Contrato" value={detail.mosContrato} /></Grid>
+                )}
+                {detail.mosUrgencia && (
+                  <Grid size={{ xs: 6 }}><Field label="Urgencia" value={detail.mosUrgencia} /></Grid>
+                )}
+              </Grid>
+
+              {(detail.mosDhChamada || detail.mosDtPrevista) && (
+                <>
+                  <Divider sx={{ my: 1 }} />
+                  <Grid container spacing={2}>
+                    {detail.mosDhChamada && (
+                      <Grid size={{ xs: 6 }}>
+                        <Field label="Data chamada" value={fmtDt(detail.mosDhChamada)} />
+                      </Grid>
+                    )}
+                    {detail.mosDtPrevista && (
+                      <Grid size={{ xs: 6 }}>
+                        <Field label="Previsao OS" value={fmtDt(detail.mosDtPrevista)} color={isOverdue(detail.mosDtPrevista) ? '#f44336' : undefined} />
+                      </Grid>
+                    )}
+                    {detail.mosDtFechamento && (
+                      <Grid size={{ xs: 6 }}>
+                        <Field label="Fechamento" value={fmtDt(detail.mosDtFechamento)} color="green" />
+                      </Grid>
+                    )}
+                    {detail.mosDtInicioServ && (
+                      <Grid size={{ xs: 6 }}>
+                        <Field label="Inicio servico" value={fmtDt(detail.mosDtInicioServ)} />
+                      </Grid>
+                    )}
+                  </Grid>
+                </>
+              )}
+
+              {(detail.mosTempPrevisto || detail.mosTempGasto) && (
+                <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+                  {detail.mosTempPrevisto && (
+                    <Chip icon={<Schedule sx={{ fontSize: 14 }} />} label={`Previsto: ${detail.mosTempPrevisto}h`} size="small" variant="outlined" />
+                  )}
+                  {detail.mosTempGasto && (
+                    <Chip icon={<Schedule sx={{ fontSize: 14 }} />} label={`Gasto: ${detail.mosTempGasto}h`} size="small" variant="outlined" />
+                  )}
+                </Stack>
+              )}
+            </Paper>
+          )}
+
+          {/* OS Manutencao */}
+          {detail.NUOS && (
+            <Paper variant="outlined" sx={{ p: 2, mb: 2, borderColor: alpha('#ff9800', 0.2), bgcolor: alpha('#ff9800', 0.02) }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                <Build sx={{ color: '#ff9800' }} />
+                <Typography variant="subtitle2" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', color: '#e65100' }}>
+                  Ordem de Servico Manutencao
+                </Typography>
+                <Chip label={`OS ${detail.NUOS}`} size="small" sx={{ fontFamily: 'monospace', fontWeight: 700, bgcolor: alpha('#ff9800', 0.08), color: '#e65100' }} />
+              </Stack>
+
+              <Grid container spacing={2}>
+                {detail.osStatus && <Grid size={{ xs: 6 }}><Field label="Status" value={detail.osStatus} /></Grid>}
+                {detail.osTipo && <Grid size={{ xs: 6 }}><Field label="Tipo" value={detail.osTipo} /></Grid>}
+                {detail.osManutencao && <Grid size={{ xs: 6 }}><Field label="Manutencao" value={detail.osManutencao} /></Grid>}
+                {detail.osKm && <Grid size={{ xs: 6 }}><Field label="KM" value={detail.osKm} /></Grid>}
+                {detail.osHorimetro && <Grid size={{ xs: 6 }}><Field label="Horimetro" value={detail.osHorimetro} /></Grid>}
+                {detail.osLocalManutencao && <Grid size={{ xs: 6 }}><Field label="Local" value={detail.osLocalManutencao} /></Grid>}
+                {detail.osDtAbertura && <Grid size={{ xs: 6 }}><Field label="Abertura" value={fmtDt(detail.osDtAbertura)} /></Grid>}
+              </Grid>
+            </Paper>
+          )}
+
+          {/* Nota Fiscal / Requisicao */}
+          {detail.NUNOTA && (
+            <Section title="Nota Fiscal / Requisicao">
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Receipt sx={{ color: '#f9a825' }} />
+                <Typography variant="body1" fontWeight={700} fontFamily="monospace">NUNOTA {detail.NUNOTA}</Typography>
+              </Stack>
+            </Section>
+          )}
         </Grid>
       </Grid>
 
