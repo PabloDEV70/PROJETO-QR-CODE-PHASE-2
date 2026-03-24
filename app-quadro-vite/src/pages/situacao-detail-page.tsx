@@ -9,7 +9,9 @@ import {
   Person, LocationOn, Description as DescIcon, Schedule,
   Receipt, Assignment,
 } from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
 import { useHstVeiDetail, useUpdateHstVei, useEncerrarHstVei, useTrocarSituacao, useSituacoes } from '@/hooks/use-hstvei';
+import { fetchItensOsComercial, type ItemOsComercial } from '@/api/hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { getPrioridadeInfo } from '@/utils/prioridade-constants';
 import type { AtualizarSituacaoPayload, TrocarSituacaoPayload } from '@/types/hstvei-types';
@@ -51,6 +53,12 @@ export function SituacaoDetailPage() {
   const pri = getPrioridadeInfo(detail.IDPRI);
   const allOps = detail.operadores ?? [];
   const allMecs = detail.mecanicos ?? [];
+  const { data: itensOS } = useQuery({
+    queryKey: ['hstvei', 'itens-os-comercial', numId],
+    queryFn: () => fetchItensOsComercial(numId),
+    enabled: !!detail.NUMOS,
+    staleTime: 60_000,
+  });
 
   function startEdit() {
     setEditFields({ descricao: detail!.DESCRICAO, obs: detail!.OBS, dtprevisao: detail!.DTPREVISAO });
@@ -281,6 +289,80 @@ export function SituacaoDetailPage() {
                     <Chip icon={<Schedule sx={{ fontSize: 14 }} />} label={`Gasto: ${detail.mosTempGasto}h`} size="small" variant="outlined" />
                   )}
                 </Stack>
+              )}
+
+              {/* Itens da OS Comercial */}
+              {itensOS && itensOS.length > 0 && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" sx={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1 }}>
+                    Itens da OS ({itensOS.length})
+                  </Typography>
+                  {itensOS.map((item) => (
+                    <Paper key={item.NUMITEM} variant="outlined" sx={{ p: 1.5, mb: 1, borderRadius: 2 }}>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                        <Chip label={`#${item.NUMITEM}`} size="small" sx={{ height: 20, fontSize: 10, fontWeight: 700, fontFamily: 'monospace' }} />
+                        {item.servicoDescricao && (
+                          <Typography variant="body2" fontWeight={600}>{item.servicoDescricao}</Typography>
+                        )}
+                        {item.statusItem && (
+                          <Chip label={item.statusItem} size="small" variant="outlined" sx={{ height: 20, fontSize: 10 }} />
+                        )}
+                      </Stack>
+
+                      <Grid container spacing={1}>
+                        {item.nomeOperador && (
+                          <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="text.secondary">Operador</Typography>
+                            <Typography variant="body2" fontWeight={500}>{item.nomeOperador}</Typography>
+                          </Grid>
+                        )}
+                        {item.placaItem && (
+                          <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="text.secondary">Veiculo</Typography>
+                            <Typography variant="body2" fontWeight={500} fontFamily="monospace">
+                              {item.placaItem} {item.tagItem && `(${item.tagItem})`}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {item.tipoEquipItem && (
+                          <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="text.secondary">Equipamento</Typography>
+                            <Typography variant="body2">{item.tipoEquipItem}</Typography>
+                          </Grid>
+                        )}
+                        {item.dtPrevista && (
+                          <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="text.secondary">Previsto</Typography>
+                            <Typography variant="body2">{fmtDt(item.dtPrevista)}</Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+
+                      <Stack direction="row" spacing={1} sx={{ mt: 0.75, flexWrap: 'wrap' }}>
+                        {item.tempGasto != null && item.tempGasto > 0 && (
+                          <Chip label={`${(item.tempGasto / 60).toFixed(1)}h trabalhadas`} size="small" variant="outlined" sx={{ height: 20, fontSize: 10 }} />
+                        )}
+                        {item.vlrHoraFat != null && item.vlrHoraFat > 0 && (
+                          <Chip label={`R$ ${item.vlrHoraFat}/h`} size="small" variant="outlined" sx={{ height: 20, fontSize: 10 }} />
+                        )}
+                        {item.vlrTotalHoras != null && (
+                          <Chip label={`Total: R$ ${item.vlrTotalHoras.toFixed(2)}`} size="small" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: alpha('#2e7d32', 0.08), color: '#2e7d32' }} />
+                        )}
+                        {item.kmPercorrido != null && (
+                          <Chip label={`${item.kmPercorrido} km`} size="small" variant="outlined" sx={{ height: 20, fontSize: 10 }} />
+                        )}
+                      </Stack>
+
+                      {item.solucao && (
+                        <Box sx={{ mt: 0.75, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                          <Typography variant="caption" color="text.secondary">Solucao</Typography>
+                          <Typography variant="body2" sx={{ fontSize: 12 }}>{item.solucao}</Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  ))}
+                </>
               )}
             </Paper>
           )}

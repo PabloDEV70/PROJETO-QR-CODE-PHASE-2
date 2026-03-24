@@ -202,6 +202,14 @@ export async function hstveiRoutes(app: FastifyInstance) {
     return service.getItensNota(item.NUNOTA);
   });
 
+  app.get('/hstvei/:id/itens-os-comercial', async (request) => {
+    const { id } = idSchema.parse(request.params);
+    const item = await service.getById(id);
+    if (!item) throw new NotFoundError('Situação não encontrada');
+    if (!item.NUMOS) return [];
+    return service.getItensOsComercial(item.NUMOS);
+  });
+
   app.get('/hstvei/veiculo/:codveiculo', async (request) => {
     const { codveiculo } = codveiculoSchema.parse(request.params);
     return service.getAtivasPorVeiculo(codveiculo);

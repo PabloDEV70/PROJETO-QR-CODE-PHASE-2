@@ -8,3 +8,4 @@ export { prioridades } from './prioridades';
 export { cadeiaNotas } from './cadeia-notas';
 export { itensNota } from './itens-nota';
 export { stats } from './stats';
+export { itensOsComercial } from './itens-os-comercial';

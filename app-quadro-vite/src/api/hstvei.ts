@@ -86,6 +86,34 @@ export async function fetchItensNota(id: number): Promise<ItemNota[]> {
   return data;
 }
 
+export interface ItemOsComercial {
+  NUMOS: number;
+  NUMITEM: number;
+  CODSERV: number | null;
+  servicoDescricao: string | null;
+  dtPrevista: string | null;
+  tempPrevisto: number | null;
+  tempGasto: number | null;
+  vlrHoraFat: number | null;
+  kmInicial: number | null;
+  kmFinal: number | null;
+  kmPercorrido: number | null;
+  vlrTotalHoras: number | null;
+  intervalo: number | null;
+  solucao: string | null;
+  statusItem: string | null;
+  nomeOperador: string | null;
+  codVeiculoItem: number | null;
+  placaItem: string | null;
+  tipoEquipItem: string | null;
+  tagItem: string | null;
+}
+
+export async function fetchItensOsComercial(id: number): Promise<ItemOsComercial[]> {
+  const { data } = await apiClient.get<ItemOsComercial[]>(`/hstvei/${id}/itens-os-comercial`);
+  return data;
+}
+
 export interface ListHstVeiParams {
   page?: number;
   limit?: number;

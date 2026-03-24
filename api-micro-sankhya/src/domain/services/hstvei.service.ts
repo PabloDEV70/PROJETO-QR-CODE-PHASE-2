@@ -227,4 +227,9 @@ export class HstVeiService {
     const sql = Q.itensNota.replace(/@nunota/g, nunota.toString());
     return this.qe.executeQuery<ItemNota>(sql);
   }
+
+  async getItensOsComercial(numos: number): Promise<Record<string, unknown>[]> {
+    const sql = Q.itensOsComercial.replace(/@numos/g, numos.toString());
+    return this.qe.executeQuery<Record<string, unknown>>(sql);
+  }
 }
