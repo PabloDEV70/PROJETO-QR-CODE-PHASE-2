@@ -80,29 +80,29 @@ export function OsBentoGrid({ os }: OsBentoGridProps) {
       {/* MASTER FORM BODY */}
       <Grid container spacing={6} sx={{ px: 3, py: 3 }}>
         {/* COLUNA 1: ATIVO */}
-        <Grid xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SectionHeader title="Identificação do Ativo" />
           <Stack spacing={3}>
             <Grid container spacing={2}>
-              <Grid xs={6}><F label="PLACA" value={os.veiculo.placa} readOnly /></Grid>
-              <Grid xs={6}><F label="TAG" value={os.veiculo.tag} readOnly /></Grid>
+              <Grid size={6}><F label="PLACA" value={os.veiculo.placa} readOnly /></Grid>
+              <Grid size={6}><F label="TAG" value={os.veiculo.tag} readOnly /></Grid>
             </Grid>
             <F label="MARCA / MODELO" value={os.veiculo.marca} readOnly />
             <Grid container spacing={2}>
-              <Grid xs={6}><F label="KM ENTRADA" value={os.KM} isNumeric /></Grid>
-              <Grid xs={6}><F label="HORÍMETRO" value={os.HORIMETRO} isNumeric /></Grid>
+              <Grid size={6}><F label="KM ENTRADA" value={os.KM} isNumeric /></Grid>
+              <Grid size={6}><F label="HORÍMETRO" value={os.HORIMETRO} isNumeric /></Grid>
             </Grid>
           </Stack>
         </Grid>
 
         {/* COLUNA 2: OPERAÇÃO */}
-        <Grid xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SectionHeader title="Parâmetros da Operação" />
           <Stack spacing={3}>
             <F select label="TIPO MANUTENÇÃO" value={os.MANUTENCAO || ''} options={manutOpts} />
             <Grid container spacing={2}>
-              <Grid xs={6}><F select label="ORIGEM (INT/EXT)" value={os.TIPO || ''} options={TIPO_OS_OPTIONS} /></Grid>
-              <Grid xs={6}><F select label="STATUS GIG" value={os.AD_STATUSGIG || ''} options={gigOpts} /></Grid>
+              <Grid size={6}><F select label="ORIGEM (INT/EXT)" value={os.TIPO || ''} options={TIPO_OS_OPTIONS} /></Grid>
+              <Grid size={6}><F select label="STATUS GIG" value={os.AD_STATUSGIG || ''} options={gigOpts} /></Grid>
             </Grid>
             <F select label="LOCAL DE ATENDIMENTO" value={os.AD_LOCALMANUTENCAO || ''} options={LOCAL_MANUT_OPTIONS} />
             <F select label="UNIDADE DE NEGÓCIO" value={os.CODEMP ? String(os.CODEMP) : ''} options={empOpts} />
@@ -110,12 +110,12 @@ export function OsBentoGrid({ os }: OsBentoGridProps) {
         </Grid>
 
         {/* COLUNA 3: CRONOGRAMA */}
-        <Grid xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SectionHeader title="Cronograma & Controle" />
           <Stack spacing={3}>
             <Grid container spacing={2}>
-              <Grid xs={6}><DT label="INÍCIO REAL" value={os.DATAINI} readOnly /></Grid>
-              <Grid xs={6}><DT label="FIM REAL" value={os.DATAFIN} readOnly /></Grid>
+              <Grid size={6}><DT label="INÍCIO REAL" value={os.DATAINI} readOnly /></Grid>
+              <Grid size={6}><DT label="FIM REAL" value={os.DATAFIN} readOnly /></Grid>
             </Grid>
             <DT label="PREVISÃO DE ENTREGA" value={os.PREVISAO} highlight />
             <F label="TIPO DE FINALIZAÇÃO" value={os.finalizacaoLabel || os.AD_FINALIZACAO} readOnly />
