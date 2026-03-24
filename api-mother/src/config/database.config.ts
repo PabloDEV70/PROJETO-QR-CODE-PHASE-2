@@ -12,6 +12,8 @@ export interface DatabaseConfig {
   user: string;
   password: string;
   database: string;
+  encrypt?: boolean;
+  trustServerCertificate?: boolean;
 }
 
 export function getDatabaseConfig(configService: ConfigService, key: DatabaseKey): DatabaseConfig {
@@ -32,7 +34,10 @@ export function getDatabaseConfig(configService: ConfigService, key: DatabaseKey
     configService.get<string>(`SQLSERVER_${key}_DATABASE`) ||
     (key === 'PROD' ? configService.get<string>('SQLSERVER_DATABASE') : undefined);
 
-  return { server, user, password, database };
+  const encrypt = configService.get<string>('SQLSERVER_ENCRYPT') === 'true';
+  const trustServerCertificate = configService.get<string>('SQLSERVER_TRUST_SERVER_CERTIFICATE') !== 'false';
+
+  return { server, user, password, database, encrypt, trustServerCertificate };
 }
 
 export function isValidDatabaseKey(value: string): value is DatabaseKey {
