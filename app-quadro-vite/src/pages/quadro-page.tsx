@@ -5,12 +5,12 @@ import {
   Box, Typography, Chip, Stack, TextField, InputAdornment,
   Tooltip, Divider, Badge, Menu, MenuItem, ListItemText,
   ToggleButtonGroup, ToggleButton, alpha, IconButton, Button,
-  Paper,
+  Paper, Dialog, DialogTitle, DialogContent, List, ListItemButton,
 } from '@mui/material';
 import {
   Search, Edit, Warning, ViewColumn, FilterList, FileDownload,
   FiberManualRecord, Add, Person, TableChart, ViewKanban,
-  GridView, AddCircleOutline,
+  GridView, AddCircleOutline, DragIndicator,
 } from '@mui/icons-material';
 import {
   DataGrid, type GridColDef,
@@ -19,10 +19,15 @@ import {
   QuickFilter, QuickFilterControl, QuickFilterTrigger,
 } from '@mui/x-data-grid';
 import { ptBR } from '@mui/x-data-grid/locales';
-import { useHstVeiPainel } from '@/hooks/use-hstvei';
+import {
+  DndContext, DragOverlay, useDroppable, useDraggable,
+  PointerSensor, useSensor, useSensors,
+  type DragStartEvent, type DragEndEvent,
+} from '@dnd-kit/core';
+import { useHstVeiPainel, useSituacoes, useTrocarSituacao } from '@/hooks/use-hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { PlacaVeiculo } from '@/components/shared/placa-veiculo';
-import type { PainelVeiculo } from '@/types/hstvei-types';
+import type { PainelVeiculo, Situacao } from '@/types/hstvei-types';
 
 // ── Helpers ──
 
@@ -59,6 +64,7 @@ function daysDiff(val: string): number {
 
 interface QuadroRow {
   id: number;
+  idsit: number;
   codveiculo: number;
   placa: string;
   tag: string;
@@ -85,6 +91,7 @@ function buildRows(veiculos: PainelVeiculo[]): QuadroRow[] {
       const equipe = [ops, mecs].filter(Boolean).join(' | ');
       rows.push({
         id: s.id,
+        idsit: s.idsit,
         codveiculo: v.codveiculo,
         placa: v.placa ?? '-',
         tag: v.tag ?? '',
@@ -287,7 +294,7 @@ function fmtDateTime(val: string | null | undefined): string {
   return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
-function KanbanCard({ row }: { row: QuadroRow }) {
+function KanbanCardContent({ row, isDragging }: { row: QuadroRow; isDragging?: boolean }) {
   const navigate = useNavigate();
   const priColor = PRI_COLORS[row.prioridadeSigla] ?? '#9e9e9e';
   const depInfo = getDepartamentoInfo(row.departamento);
@@ -295,20 +302,22 @@ function KanbanCard({ row }: { row: QuadroRow }) {
 
   return (
     <Paper
-      onClick={() => navigate(`/situacao/${row.id}`)}
+      onClick={isDragging ? undefined : () => navigate(`/situacao/${row.id}`)}
       elevation={0}
       sx={{
         borderRadius: '12px',
         p: 1.75, mb: 1,
         bgcolor: 'background.paper',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        cursor: 'pointer',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-        '&:hover': {
+        boxShadow: isDragging ? '0 12px 28px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.06)',
+        cursor: isDragging ? 'grabbing' : 'pointer',
+        transition: isDragging ? 'none' : 'transform 0.15s ease, box-shadow 0.15s ease',
+        transform: isDragging ? 'rotate(2deg) scale(1.02)' : undefined,
+        opacity: isDragging ? 0.9 : 1,
+        '&:hover': isDragging ? {} : {
           transform: 'translateY(-2px)',
           boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
         },
-        '&:active': { transform: 'scale(0.98)' },
+        '&:active': isDragging ? {} : { transform: 'scale(0.98)' },
       }}
     >
       {/* Overdue */}
@@ -394,83 +403,226 @@ function KanbanCard({ row }: { row: QuadroRow }) {
   );
 }
 
+function DraggableCard({ row }: { row: QuadroRow }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `card-${row.id}`,
+    data: { row },
+  });
+
+  return (
+    <Box ref={setNodeRef} {...listeners} {...attributes} sx={{ opacity: isDragging ? 0.3 : 1, touchAction: 'none' }}>
+      <KanbanCardContent row={row} />
+    </Box>
+  );
+}
+
+function DroppableColumn({ colKey, children }: { colKey: string; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `col-${colKey}` });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      sx={{
+        flex: 1, overflowY: 'auto', p: 0.75,
+        transition: 'background-color 0.2s',
+        bgcolor: isOver ? (t) => alpha(t.palette.primary.main, 0.08) : 'transparent',
+        borderRadius: isOver ? '8px' : 0,
+        border: isOver ? '2px dashed' : '2px solid transparent',
+        borderColor: isOver ? 'primary.main' : 'transparent',
+        '&::-webkit-scrollbar': { width: 4 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 2 },
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function SituacaoPickerDialog({
+  open, onClose, situacoes, targetColumn, onSelect,
+}: {
+  open: boolean;
+  onClose: () => void;
+  situacoes: Situacao[];
+  targetColumn: string;
+  onSelect: (idsit: number) => void;
+}) {
+  const filtered = situacoes.filter((s) => {
+    const dep = s.departamentoNome ?? '';
+    return dep.toLowerCase().includes(targetColumn.toLowerCase())
+      || s.DESCRICAO.toLowerCase().includes(targetColumn.toLowerCase());
+  });
+  const list = filtered.length > 0 ? filtered : situacoes;
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ fontSize: 14, fontWeight: 700, pb: 1 }}>
+        Mover para: {targetColumn}
+      </DialogTitle>
+      <DialogContent sx={{ p: 0 }}>
+        <List dense>
+          {list.map((s) => {
+            const depInfo = getDepartamentoInfo(s.departamentoNome ?? '');
+            return (
+              <ListItemButton key={s.ID} onClick={() => { onSelect(s.ID); onClose(); }}
+                sx={{ py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: depInfo.color, mr: 1.5, flexShrink: 0 }} />
+                <ListItemText
+                  primary={s.DESCRICAO}
+                  secondary={s.departamentoNome}
+                  slotProps={{
+                    primary: { sx: { fontSize: 13, fontWeight: 600 } },
+                    secondary: { sx: { fontSize: 11, color: depInfo.color } },
+                  }}
+                />
+              </ListItemButton>
+            );
+          })}
+        </List>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function KanbanView({ rows, groupBy }: { rows: QuadroRow[]; groupBy: KanbanGroupBy }) {
   const navigate = useNavigate();
   const { columns, grouped } = useMemo(() => buildKanbanColumns(rows, groupBy), [rows, groupBy]);
+  const { data: situacoes = [] } = useSituacoes();
+  const trocarMutation = useTrocarSituacao();
+  const [activeRow, setActiveRow] = useState<QuadroRow | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pendingDrop, setPendingDrop] = useState<{ row: QuadroRow; targetCol: string } | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveRow(event.active.data.current?.row ?? null);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveRow(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const row = active.data.current?.row as QuadroRow | undefined;
+    if (!row) return;
+
+    const targetColKey = (over.id as string).replace('col-', '');
+    const sourceColKey = groupBy === 'etapa'
+      ? (ETAPA_MAP[row.situacao] ?? 'outros')
+      : groupBy === 'departamento' ? row.departamento
+      : groupBy === 'situacao' ? row.situacao
+      : groupBy === 'prioridade' ? (row.prioridadeSigla || '-')
+      : (row.tipo || 'Sem Tipo');
+
+    if (targetColKey === sourceColKey) return;
+
+    if (groupBy === 'situacao') {
+      const targetSit = situacoes.find((s) => s.DESCRICAO === targetColKey);
+      if (targetSit && targetSit.ID !== row.idsit) {
+        trocarMutation.mutate({ id: row.id, payload: { idsit: targetSit.ID } });
+      }
+    } else {
+      setPendingDrop({ row, targetCol: targetColKey });
+      setPickerOpen(true);
+    }
+  }, [groupBy, situacoes, trocarMutation]);
+
+  const handlePickSituacao = useCallback((idsit: number) => {
+    if (!pendingDrop) return;
+    trocarMutation.mutate({ id: pendingDrop.row.id, payload: { idsit } });
+    setPendingDrop(null);
+  }, [pendingDrop, trocarMutation]);
 
   return (
-    <Box sx={{
-      flex: 1, display: 'flex', gap: 1.5, overflowX: 'auto', pb: 2,
-      alignItems: 'stretch', minHeight: 420,
-      scrollSnapType: 'x mandatory',
-      WebkitOverflowScrolling: 'touch',
-      px: 1, pt: 1,
-      '&::-webkit-scrollbar': { height: 6 },
-      '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 3 },
-    }}>
-      {columns.map((col) => {
-        const items = grouped.get(col.key) ?? [];
-        if (items.length === 0 && col.key === 'outros') return null;
-        return (
-          <Box key={col.key} sx={{
-            minWidth: 290, flex: '0 0 290px',
-            scrollSnapAlign: 'start',
-            display: 'flex', flexDirection: 'column',
-            bgcolor: (t) => t.palette.mode === 'dark' ? alpha(col.color, 0.06) : alpha(col.bg, 0.6),
-            borderRadius: '12px',
-            border: '1px solid',
-            borderColor: (t) => t.palette.mode === 'dark' ? alpha(col.color, 0.15) : alpha(col.color, 0.12),
-            '@media (min-width: 600px)': { minWidth: 310, flex: '0 0 310px' },
-          }}>
-            {/* Column header */}
-            <Box sx={{
-              display: 'flex', alignItems: 'center', gap: 1,
-              px: 1.5, py: 1, borderBottom: '1px solid', borderColor: alpha(col.color, 0.15),
-            }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0 }} />
-              <Typography sx={{
-                fontSize: 12, fontWeight: 700, color: col.color,
-                letterSpacing: '0.04em', flex: 1, textTransform: 'uppercase',
+    <>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <Box sx={{
+          flex: 1, display: 'flex', gap: 1.5, overflowX: 'auto', pb: 2,
+          alignItems: 'stretch', minHeight: 420,
+          scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
+          px: 1, pt: 1,
+          '&::-webkit-scrollbar': { height: 6 },
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 3 },
+        }}>
+          {columns.map((col) => {
+            const items = grouped.get(col.key) ?? [];
+            if (items.length === 0 && col.key === 'outros') return null;
+            return (
+              <Box key={col.key} sx={{
+                minWidth: 290, flex: '0 0 290px',
+                scrollSnapAlign: 'start',
+                display: 'flex', flexDirection: 'column',
+                bgcolor: (t) => t.palette.mode === 'dark' ? alpha(col.color, 0.06) : alpha(col.bg, 0.6),
+                borderRadius: '12px',
+                border: '1px solid',
+                borderColor: (t) => t.palette.mode === 'dark' ? alpha(col.color, 0.15) : alpha(col.color, 0.12),
+                '@media (min-width: 600px)': { minWidth: 310, flex: '0 0 310px' },
               }}>
-                {col.label}
-              </Typography>
-              <Chip label={items.length} size="small" sx={{
-                height: 22, minWidth: 28, fontWeight: 800, fontSize: 12,
-                bgcolor: alpha(col.color, 0.12), color: col.color, borderRadius: '6px',
-              }} />
-              <Tooltip title={`Nova situacao em ${col.label}`}>
-                <IconButton size="small" onClick={() => navigate('/nova-situacao')}
-                  sx={{ color: col.color, p: 0.25 }}>
-                  <AddCircleOutline sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Tooltip>
-            </Box>
-
-            {/* Cards */}
-            <Box sx={{
-              flex: 1, overflowY: 'auto', p: 0.75,
-              '&::-webkit-scrollbar': { width: 4 },
-              '&::-webkit-scrollbar-thumb': { bgcolor: alpha(col.color, 0.15), borderRadius: 2 },
-            }}>
-              {items.length === 0 ? (
+                {/* Column header */}
                 <Box sx={{
-                  py: 4, textAlign: 'center',
-                  border: '1px dashed', borderColor: alpha(col.color, 0.2),
-                  borderRadius: '10px', bgcolor: alpha(col.color, 0.04),
+                  display: 'flex', alignItems: 'center', gap: 1,
+                  px: 1.5, py: 1, borderBottom: '1px solid', borderColor: alpha(col.color, 0.15),
                 }}>
-                  <AddCircleOutline sx={{ fontSize: 28, color: alpha(col.color, 0.25), mb: 0.5 }} />
-                  <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 500 }}>
-                    Nenhum
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0 }} />
+                  <Typography sx={{
+                    fontSize: 12, fontWeight: 700, color: col.color,
+                    letterSpacing: '0.04em', flex: 1, textTransform: 'uppercase',
+                  }}>
+                    {col.label}
                   </Typography>
+                  <Chip label={items.length} size="small" sx={{
+                    height: 22, minWidth: 28, fontWeight: 800, fontSize: 12,
+                    bgcolor: alpha(col.color, 0.12), color: col.color, borderRadius: '6px',
+                  }} />
+                  <Tooltip title={`Nova situacao em ${col.label}`}>
+                    <IconButton size="small" onClick={() => navigate('/nova-situacao')}
+                      sx={{ color: col.color, p: 0.25 }}>
+                      <AddCircleOutline sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
-              ) : items.map((row) => (
-                <KanbanCard key={row.id} row={row} />
-              ))}
-            </Box>
-          </Box>
-        );
-      })}
-    </Box>
+
+                {/* Droppable area with cards */}
+                <DroppableColumn colKey={col.key}>
+                  {items.length === 0 ? (
+                    <Box sx={{
+                      py: 4, textAlign: 'center',
+                      border: '1px dashed', borderColor: alpha(col.color, 0.2),
+                      borderRadius: '10px', bgcolor: alpha(col.color, 0.04),
+                    }}>
+                      <AddCircleOutline sx={{ fontSize: 28, color: alpha(col.color, 0.25), mb: 0.5 }} />
+                      <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 500 }}>
+                        Arraste aqui
+                      </Typography>
+                    </Box>
+                  ) : items.map((row) => (
+                    <DraggableCard key={row.id} row={row} />
+                  ))}
+                </DroppableColumn>
+              </Box>
+            );
+          })}
+        </Box>
+
+        {/* Drag overlay */}
+        <DragOverlay dropAnimation={null}>
+          {activeRow ? <KanbanCardContent row={activeRow} isDragging /> : null}
+        </DragOverlay>
+      </DndContext>
+
+      {/* Picker dialog for non-situacao groupings */}
+      <SituacaoPickerDialog
+        open={pickerOpen}
+        onClose={() => { setPickerOpen(false); setPendingDrop(null); }}
+        situacoes={situacoes}
+        targetColumn={pendingDrop?.targetCol ?? ''}
+        onSelect={handlePickSituacao}
+      />
+    </>
   );
 }
 
