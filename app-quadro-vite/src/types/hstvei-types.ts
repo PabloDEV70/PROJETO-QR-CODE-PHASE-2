@@ -111,6 +111,10 @@ export interface HstVeiEnriched {
   placa: string | null;
   marcaModelo: string | null;
   veiculoTag: string | null;
+  veiculoTipo: string | null;
+  veiculoCapacidade: string | null;
+  veiculoFabricante: string | null;
+  veiculoAtivo: string | null;
   situacaoDescricao: string;
   situacaoCoddep: number;
   departamentoNome: string | null;
