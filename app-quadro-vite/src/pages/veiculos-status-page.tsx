@@ -20,6 +20,7 @@ import {
 } from '@mui/x-data-grid';
 import { ptBR } from '@mui/x-data-grid/locales';
 import { useHstVeiPainel, useCreateHstVei, useSituacoes } from '@/hooks/use-hstvei';
+import { VeiculoTimeline } from '@/components/situacoes/veiculo-timeline';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { SituacaoSelect } from '@/components/situacoes/situacao-select';
 import { PrioridadeSelect } from '@/components/situacoes/prioridade-select';
@@ -742,6 +743,11 @@ function VeiculoDetail({ v, isFormView, onOpenForm, onCloseForm }: {
         localeText={LOCALE}
         sx={gridSx}
       />
+      {/* Timeline de movimentacoes */}
+      <Box sx={{ px: 1, py: 2, borderTop: '1px solid', borderColor: 'divider', maxHeight: 300, overflowY: 'auto' }}>
+        <VeiculoTimeline codveiculo={v.codveiculo} compact maxItems={10} />
+      </Box>
+
       {previewSit && (
         <PainelPreviewDialog
           open={!!previewSit}

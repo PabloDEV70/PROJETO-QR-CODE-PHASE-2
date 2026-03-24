@@ -10,6 +10,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { useHstVeiDetail, useEncerrarHstVei, useTrocarSituacao, useSituacoes } from '@/hooks/use-hstvei';
+import { VeiculoTimeline } from '@/components/situacoes/veiculo-timeline';
 import { fetchItensOsComercial } from '@/api/hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { getPrioridadeInfo } from '@/utils/prioridade-constants';
@@ -371,6 +372,13 @@ export function SituacaoDetailPage() {
           )}
         </Grid>
       </Grid>
+
+      {/* Timeline de Movimentacoes */}
+      {detail.CODVEICULO && (
+        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+          <VeiculoTimeline codveiculo={detail.CODVEICULO} maxItems={20} />
+        </Paper>
+      )}
 
       {/* Encerrar Dialog */}
       <Dialog open={encerrarOpen} onClose={() => setEncerrarOpen(false)} maxWidth="xs" fullWidth>
