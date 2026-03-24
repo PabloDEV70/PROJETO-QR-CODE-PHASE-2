@@ -6,12 +6,11 @@ import {
 } from '@mui/material';
 import {
   ArrowBack, Edit, SwapHoriz, Close, Storefront, Build,
-  Person, LocationOn, Description as DescIcon, Schedule,
-  Receipt, Assignment,
+  Person, LocationOn, Schedule, Receipt,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { useHstVeiDetail, useEncerrarHstVei, useTrocarSituacao, useSituacoes } from '@/hooks/use-hstvei';
-import { fetchItensOsComercial, type ItemOsComercial } from '@/api/hstvei';
+import { fetchItensOsComercial } from '@/api/hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import { getPrioridadeInfo } from '@/utils/prioridade-constants';
 import type { TrocarSituacaoPayload } from '@/types/hstvei-types';
