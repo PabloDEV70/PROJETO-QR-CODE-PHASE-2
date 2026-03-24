@@ -15,6 +15,11 @@ const PUBLIC_PATTERNS = [
   /^\/armarios\/publico\//,
 ];
 
+const QUERY_TOKEN_PATTERNS = [
+  /^\/funcionarios\/\d+\/foto/,
+  /^\/funcionarios\/foto\/\d+\/\d+/,
+];
+
 export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
   // Skip CORS preflight requests — handled by @fastify/cors
   if (request.method === 'OPTIONS') {
@@ -36,6 +41,15 @@ export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
   }
 
   const authHeader = request.headers.authorization;
+
+  if (!authHeader?.startsWith('Bearer ') && QUERY_TOKEN_PATTERNS.some((re) => re.test(url))) {
+    const queryToken = (request.query as Record<string, string>)?.token;
+    if (queryToken) {
+      request.headers.authorization = `Bearer ${queryToken}`;
+      return;
+    }
+  }
+
   if (!authHeader?.startsWith('Bearer ')) {
     return reply.status(401).send({
       statusCode: 401,
