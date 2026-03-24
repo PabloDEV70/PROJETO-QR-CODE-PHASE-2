@@ -45,6 +45,12 @@ export function SituacaoDetailPage() {
   const [encerrarOpen, setEncerrarOpen] = useState(false);
   const [trocarOpen, setTrocarOpen] = useState(false);
   const [trocarIdsit, setTrocarIdsit] = useState<number | ''>('');
+  const { data: itensOS } = useQuery({
+    queryKey: ['hstvei', 'itens-os-comercial', numId],
+    queryFn: () => fetchItensOsComercial(numId),
+    enabled: !!detail?.NUMOS,
+    staleTime: 60_000,
+  });
 
   if (isLoading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
   if (!detail) return <Typography sx={{ p: 4 }}>Situacao #{id} nao encontrada.</Typography>;
@@ -53,12 +59,6 @@ export function SituacaoDetailPage() {
   const pri = getPrioridadeInfo(detail.IDPRI);
   const allOps = detail.operadores ?? [];
   const allMecs = detail.mecanicos ?? [];
-  const { data: itensOS } = useQuery({
-    queryKey: ['hstvei', 'itens-os-comercial', numId],
-    queryFn: () => fetchItensOsComercial(numId),
-    enabled: !!detail.NUMOS,
-    staleTime: 60_000,
-  });
 
   function startEdit() {
     setEditFields({ descricao: detail!.DESCRICAO, obs: detail!.OBS, dtprevisao: detail!.DTPREVISAO });
