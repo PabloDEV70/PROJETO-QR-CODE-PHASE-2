@@ -14,23 +14,21 @@ export class ComprasService {
   }
 
   async getRequisicoesPendentes(tipo: 'compras' | 'manutencao') {
-    let cabs: Record<string, unknown>[];
-
     if (tipo === 'manutencao') {
-      cabs = await this.qe.executeQuery<Record<string, unknown>>(Q.requisicoesPendentesManutencao);
-    } else {
-      // API Mother doesn't support IN() — query each CODTIPOPER separately
-      const results: Record<string, unknown>[] = [];
-      for (const cod of [502, 504, 506, 507]) {
-        const sql = Q.requisicoesPendentesCompras.replace('PLACEHOLDER_TIPOPER', String(cod));
-        const rows = await this.qe.executeQuery<Record<string, unknown>>(sql);
-        results.push(...rows);
-      }
-      cabs = results;
+      // SQL ja traz PRIORIDADE, CONTROLE_DIAS, PRAZO, etc
+      return this.qe.executeQuery<Record<string, unknown>>(Q.requisicoesPendentesManutencao);
     }
 
-    // Map prioridade label in JS
-    return cabs.map((r) => ({
+    // Compras — query each CODTIPOPER separately (API Mother doesn't support IN())
+    const results: Record<string, unknown>[] = [];
+    for (const cod of [502, 504, 506, 507]) {
+      const sql = Q.requisicoesPendentesCompras.replace('PLACEHOLDER_TIPOPER', String(cod));
+      const rows = await this.qe.executeQuery<Record<string, unknown>>(sql);
+      results.push(...rows);
+    }
+
+    // Map prioridade label in JS for compras (simpler query)
+    return results.map((r) => ({
       ...r,
       PRIORIDADE: PRIORIDADE_MAP[Number(r.AD_PRIORIDADE)] ?? '',
     })).sort((a, b) =>

@@ -18,6 +18,10 @@ export interface RequisicaoItem {
   CODTIPOPER: number | null;
   CODPROD: number | null;
   CODVEICULO: number | null;
+  VEICULOTAG: string | null;
+  DIAS_LIMITE: number | null;
+  DH_LIMITE_CALC: string | null;
+  PRAZO: string | null;
 }
 
 export interface CotacaoItem {
