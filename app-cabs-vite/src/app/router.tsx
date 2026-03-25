@@ -42,7 +42,7 @@ export const router = createBrowserRouter([
         element: <Suspense fallback={<Loading />}><EmTempoRealPage /></Suspense>,
       },
       {
-        path: 'em-tempo-real/:nunota',
+        path: 'cab/:nunota',
         element: <Suspense fallback={<Loading />}><EmTempoRealDetailPage /></Suspense>,
       },
       {

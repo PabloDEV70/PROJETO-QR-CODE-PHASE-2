@@ -108,7 +108,7 @@ export function NotaDetalheDrawer({ open, onClose, nunota }: NotaDetalheDrawerPr
             startIcon={<OpenInNew />}
             onClick={() => {
               onClose();
-              navigate(`/em-tempo-real/${nunota}`);
+              navigate(`/cab/${nunota}`);
             }}
           >
             Abrir pagina completa

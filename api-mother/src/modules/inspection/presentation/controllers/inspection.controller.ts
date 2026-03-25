@@ -207,7 +207,6 @@ export class InspectionController {
   }
 
   @Post('query')
-  @UseGuards(DatabaseWriteGuard)
   @ApiOperation({
     summary: 'Executar query SQL',
     description: 'Executa uma query SQL de leitura (apenas SELECT) no banco de dados',

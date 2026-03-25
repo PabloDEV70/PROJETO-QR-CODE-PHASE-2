@@ -25,7 +25,7 @@ export const pagesConfig: PageConfig[] = [
     keywords: ['top', 'tipo operacao', 'tabela', 'grid', 'datagrid'],
   },
   {
-    path: '/em-tempo-real/:nunota', label: 'Detalhe da Nota', icon: Receipt,
+    path: '/cab/:nunota', label: 'Detalhe da Nota', icon: Receipt,
     description: 'Cabecalho, itens, TOP e variacoes de uma nota',
     group: 'Principal',
     parent: '/em-tempo-real',
