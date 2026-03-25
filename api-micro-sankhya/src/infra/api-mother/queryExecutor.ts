@@ -69,6 +69,9 @@ export class QueryExecutor {
 
     const t0 = Date.now();
     const axiosConfig = options?.timeout ? { timeout: options.timeout } : undefined;
+    if (label.includes('TGFCAB') || label.includes('TGFTOP')) {
+      logger.info('[QueryExecutor] DEBUG sending query to mother: length=%d first100=%s', cleanSql.length, cleanSql.substring(0,100));
+    }
     const promise = apiMotherClient
       .post('/inspection/query', { query: cleanSql }, axiosConfig)
       .then((response) => {
