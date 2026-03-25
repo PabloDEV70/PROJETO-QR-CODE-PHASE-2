@@ -43,8 +43,17 @@ apiMotherClient.interceptors.request.use(async (config) => {
   const userToken = getUserToken();
   if (userToken) {
     config.headers.Authorization = `Bearer ${userToken}`;
+    // Check if JWT is expired (basic decode without verification)
+    try {
+      const payload = JSON.parse(Buffer.from(userToken.split('.')[1], 'base64').toString());
+      const exp = payload.exp;
+      if (exp && exp * 1000 < Date.now()) {
+        logger.error('[ApiMotherClient] TOKEN EXPIRADO! exp=%s now=%s user=%s — request vai falhar com 401',
+          new Date(exp * 1000).toISOString(), new Date().toISOString(), payload.username || payload.sub);
+      }
+    } catch { /* ignore decode errors */ }
   } else {
-    logger.warn('[ApiMotherClient] No user token — request will likely fail with 401');
+    logger.error('[ApiMotherClient] SEM TOKEN! Nenhum user token no contexto — request vai falhar com 401. URL=%s', config.url);
   }
 
   const database = getDatabase();
@@ -118,8 +127,15 @@ apiMotherClient.interceptors.response.use(
       logger.error('[ApiMother] 429 on %s — max retries exhausted', url);
     }
 
+    const respBody = error.response?.data ? JSON.stringify(error.response.data).substring(0, 300) : 'no body';
     devLog(`${clock()}  ${D}├─${R} ${RED}✗${R} ${D}API Mother${R} ${RED}${status}${R} ${CYAN}${method}${R} ${url} ${msText(ms < 0 ? 0 : ms)}`);
-    logger.error('[ApiMother] FAIL %s %s | %dms | status=%s | %s', method, url, ms, status, error.message);
+    if (status === 400) {
+      logger.error('[ApiMother] VALIDATION FAIL %s %s | %dms | body=%s', method, url, ms, respBody);
+    } else if (status === 401) {
+      logger.error('[ApiMother] AUTH FAIL (token expirado ou invalido) %s %s | %dms', method, url, ms);
+    } else {
+      logger.error('[ApiMother] FAIL %s %s | %dms | status=%s | %s', method, url, ms, status, error.message);
+    }
     return Promise.reject(error);
   },
 );
