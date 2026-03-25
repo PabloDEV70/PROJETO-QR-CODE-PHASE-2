@@ -1,21 +1,19 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { styled } from '@mui/material/styles';
 import {
-  Box, Typography, Stack, Chip, TextField, InputAdornment,
-  alpha, ToggleButtonGroup, ToggleButton, MenuItem,
+  Box, Typography, Chip, TextField, InputAdornment,
+  alpha, ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
 import {
-  Search, FiberManualRecord, ViewColumn, FilterList, FileDownload,
+  Search, ViewColumn, FilterList, FileDownload,
 } from '@mui/icons-material';
 import {
   DataGrid, type GridColDef,
   Toolbar, ToolbarButton, ColumnsPanelTrigger, FilterPanelTrigger,
-  ExportCsv, ExportPrint,
-  QuickFilter, QuickFilterControl, QuickFilterTrigger,
+  ExportCsv,
 } from '@mui/x-data-grid';
 import { ptBR } from '@mui/x-data-grid/locales';
-import { useHstVeiList, useSituacoes } from '@/hooks/use-hstvei';
+import { useHstVeiList } from '@/hooks/use-hstvei';
 import { getDepartamentoInfo } from '@/utils/departamento-constants';
 import type { ListHstVeiParams } from '@/api/hstvei';
 import type { HstVeiEnriched } from '@/types/hstvei-types';
@@ -36,20 +34,6 @@ function fmtDuracao(min: number | null): string {
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
 }
-
-type OwnerState = { expanded: boolean };
-const StyledQuickFilter = styled(QuickFilter)({ display: 'grid', alignItems: 'center' });
-const StyledSearchTrigger = styled(ToolbarButton)<{ ownerState: OwnerState }>(({ theme, ownerState }) => ({
-  gridArea: '1 / 1', width: 'min-content', height: 'min-content', zIndex: 1,
-  opacity: ownerState.expanded ? 0 : 1, pointerEvents: ownerState.expanded ? 'none' : 'auto',
-  transition: theme.transitions.create(['opacity']),
-}));
-const StyledSearchField = styled(TextField)<{ ownerState: OwnerState }>(({ theme, ownerState }) => ({
-  gridArea: '1 / 1', overflowX: 'clip',
-  width: ownerState.expanded ? 220 : 'var(--trigger-width)',
-  opacity: ownerState.expanded ? 1 : 0,
-  transition: theme.transitions.create(['width', 'opacity']),
-}));
 
 const LOCALE = { ...ptBR.components.MuiDataGrid.defaultProps.localeText, noRowsLabel: 'Nenhum registro encontrado' };
 
