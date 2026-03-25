@@ -5,9 +5,9 @@ const fontFamily = '"Inter", "Roboto", "Helvetica", "Arial", sans-serif';
 export const lightTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#1565c0', light: '#42a5f5', dark: '#0d47a1' },
+    primary: { main: '#2e7d32', light: '#4caf50', dark: '#1b5e20' },
     secondary: { main: '#546e7a', light: '#78909c', dark: '#37474f' },
-    background: { default: '#f5f7fa', paper: '#ffffff' },
+    background: { default: '#f5f7f5', paper: '#ffffff' },
     success: { main: '#2e7d32', light: '#e8f5e9' },
     warning: { main: '#ed6c02', light: '#fff3e0' },
     error: { main: '#d32f2f', light: '#ffebee' },

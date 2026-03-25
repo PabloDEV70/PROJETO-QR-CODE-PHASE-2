@@ -1,262 +1,233 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Box, Typography, Stack, Paper, Chip, alpha, CircularProgress,
-  TextField, InputAdornment, Collapse, IconButton, Tooltip, Divider,
+  Box,
+  Typography,
+  Paper,
+  List,
 } from '@mui/material';
-import {
-  Search, Warehouse, ExpandMore, ExpandLess, Inventory,
-  FolderOpen, Folder, Person,
-} from '@mui/icons-material';
-import { useArvoreLocais, useEstoquePorLocal, useProdutoDetalhes } from '@/hooks/use-locais';
-import { getProdutoImagemUrl } from '@/api/locais';
-import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
-import type { ArvoreLocal, EstoqueItem } from '@/types/locais-types';
+import { useLocaisArvore } from '@/hooks/use-locais';
+import { LocalItemComponent } from '@/components/locais/local-item';
+import { EstoquePanel } from '@/components/locais/estoque-panel';
+import { ErrorDetail } from '@/components/locais/error-detail';
+import { loadLocaisPrefs, saveLocaisPrefs } from '@/utils/locais-prefs-storage';
+import type { ArvoreLocal } from '@/types/local-produto';
+import type { ViewMode, SortOption } from '@/components/locais/estoque-toolbar';
 
-function TreeNode({ node, level, selectedLocal, onSelect, expandedSet, toggleExpand, search }: {
-  node: ArvoreLocal; level: number; selectedLocal: number | null;
-  onSelect: (codLocal: number) => void;
-  expandedSet: Set<number>; toggleExpand: (codLocal: number) => void;
-  search: string;
-}) {
-  const hasChildren = node.children && node.children.length > 0;
-  const isExpanded = expandedSet.has(node.CODLOCAL);
-  const isSelected = selectedLocal === node.CODLOCAL;
-  const matchesSearch = !search || node.DESCRLOCAL.toLowerCase().includes(search.toLowerCase());
-
-  if (!matchesSearch && !hasChildren) return null;
-
-  return (
-    <Box>
-      <Box
-        onClick={() => onSelect(node.CODLOCAL)}
-        sx={{
-          display: 'flex', alignItems: 'center', gap: 1,
-          pl: level * 2 + 1, pr: 1, py: 0.75,
-          cursor: 'pointer', borderRadius: 1,
-          bgcolor: isSelected ? 'primary.main' : 'transparent',
-          color: isSelected ? '#fff' : 'text.primary',
-          '&:hover': isSelected ? {} : { bgcolor: 'action.hover' },
-          transition: 'all 0.1s',
-        }}
-      >
-        {hasChildren ? (
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleExpand(node.CODLOCAL); }}
-            sx={{ p: 0.25, color: isSelected ? '#fff' : 'text.secondary' }}>
-            {isExpanded ? <ExpandLess sx={{ fontSize: 18 }} /> : <ExpandMore sx={{ fontSize: 18 }} />}
-          </IconButton>
-        ) : (
-          <Box sx={{ width: 26 }} />
-        )}
-        {hasChildren
-          ? (isExpanded ? <FolderOpen sx={{ fontSize: 18, color: isSelected ? '#fff' : '#1565c0' }} /> : <Folder sx={{ fontSize: 18, color: isSelected ? '#fff' : '#1565c0' }} />)
-          : <Warehouse sx={{ fontSize: 16, color: isSelected ? '#fff' : 'text.disabled' }} />
-        }
-        <Typography sx={{ fontSize: 12, fontWeight: isSelected ? 700 : 500, flex: 1 }} noWrap>
-          {node.DESCRLOCAL}
-        </Typography>
-        {node.totalProdutosEstoque > 0 && (
-          <Chip label={node.totalProdutosEstoque} size="small" sx={{
-            height: 20, fontSize: 10, fontWeight: 700,
-            bgcolor: isSelected ? 'rgba(255,255,255,0.2)' : alpha('#1565c0', 0.1),
-            color: isSelected ? '#fff' : '#1565c0',
-          }} />
-        )}
-      </Box>
-      {hasChildren && isExpanded && (
-        <Collapse in={isExpanded}>
-          {node.children.map((child) => (
-            <TreeNode key={child.CODLOCAL} node={child} level={level + 1}
-              selectedLocal={selectedLocal} onSelect={onSelect}
-              expandedSet={expandedSet} toggleExpand={toggleExpand} search={search} />
-          ))}
-        </Collapse>
-      )}
-    </Box>
-  );
+interface BreadcrumbItem {
+  codLocal: number;
+  descrLocal: string;
+  grau: number;
 }
 
-function EstoqueGrid({ codLocal }: { codLocal: number }) {
-  const { data: estoque, isLoading } = useEstoquePorLocal(codLocal);
-  const [search, setSearch] = useState('');
-  const [selectedProd, setSelectedProd] = useState<number | null>(null);
-
-  const filtered = useMemo(() => {
-    if (!estoque) return [];
-    if (!search) return estoque;
-    const q = search.toLowerCase();
-    return estoque.filter((e) => e.DESCRPROD.toLowerCase().includes(q) || String(e.CODPROD).includes(q));
-  }, [estoque, search]);
-
-  if (isLoading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress size={24} /></Box>;
-  if (!estoque?.length) return <Typography sx={{ p: 3, color: 'text.disabled', fontSize: 13 }}>Nenhum produto neste local</Typography>;
-
-  return (
-    <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
-      {/* Lista de produtos */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Box sx={{ px: 2, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <TextField
-            value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar produto..." size="small" fullWidth
-            sx={{ '& .MuiInputBase-root': { height: 32, fontSize: 12 } }}
-            slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search sx={{ fontSize: 16 }} /></InputAdornment> } }}
-          />
-        </Box>
-        <Box sx={{ flex: 1, overflowY: 'auto', p: 1 }}>
-          {filtered.map((item) => (
-            <Paper key={`${item.CODPROD}-${item.CONTROLE}`}
-              onClick={() => setSelectedProd(item.CODPROD)}
-              variant="outlined"
-              sx={{
-                p: 1.5, mb: 0.75, borderRadius: 1.5, cursor: 'pointer',
-                border: selectedProd === item.CODPROD ? '2px solid' : '1px solid',
-                borderColor: selectedProd === item.CODPROD ? 'primary.main' : 'divider',
-                '&:hover': { borderColor: 'primary.light' },
-              }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Box
-                  component="img"
-                  src={getProdutoImagemUrl(item.CODPROD)}
-                  onError={(e: any) => { e.target.style.display = 'none'; }}
-                  sx={{ width: 40, height: 40, borderRadius: 1, objectFit: 'cover', bgcolor: 'action.hover' }}
-                />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 600 }} noWrap>{item.DESCRPROD}</Typography>
-                  <Stack direction="row" spacing={1} sx={{ mt: 0.25 }}>
-                    <Typography sx={{ fontSize: 10, color: 'text.disabled' }}>Cod: {item.CODPROD}</Typography>
-                    {item.DESCRGRUPOPROD && (
-                      <Chip label={item.DESCRGRUPOPROD} size="small" sx={{ height: 16, fontSize: 9 }} />
-                    )}
-                  </Stack>
-                </Box>
-                <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 800, fontFamily: 'monospace', color: item.ESTOQUE > item.ESTMIN ? '#2e7d32' : '#e53935' }}>
-                    {item.ESTOQUE}
-                  </Typography>
-                  <Typography sx={{ fontSize: 9, color: 'text.disabled' }}>estoque</Typography>
-                </Box>
-                {item.RESERVADO > 0 && (
-                  <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, fontFamily: 'monospace', color: '#ed6c02' }}>
-                      {item.RESERVADO}
-                    </Typography>
-                    <Typography sx={{ fontSize: 9, color: 'text.disabled' }}>reserv.</Typography>
-                  </Box>
-                )}
-              </Stack>
-            </Paper>
-          ))}
-        </Box>
-      </Box>
-
-      {/* Detalhe do produto selecionado */}
-      {selectedProd && <ProdutoDetalhePanel codProd={selectedProd} onClose={() => setSelectedProd(null)} />}
-    </Box>
-  );
+function findAncestors(
+  tree: ArvoreLocal[],
+  codLocal: number,
+): BreadcrumbItem[] {
+  for (const node of tree) {
+    if (node.codLocal === codLocal) {
+      return [{ codLocal: node.codLocal, descrLocal: node.descrLocal, grau: node.grau }];
+    }
+    const sub = findAncestors(node.children, codLocal);
+    if (sub.length > 0) {
+      return [
+        { codLocal: node.codLocal, descrLocal: node.descrLocal, grau: node.grau },
+        ...sub,
+      ];
+    }
+  }
+  return [];
 }
 
-function ProdutoDetalhePanel({ codProd, onClose }: { codProd: number; onClose: () => void }) {
-  const { data, isLoading } = useProdutoDetalhes(codProd);
+const VALID_VIEWS: ViewMode[] = ['grid', 'list', 'table'];
+const VALID_SORTS: SortOption[] = [
+  'nome-asc', 'nome-desc', 'estoque-asc', 'estoque-desc', 'codigo',
+];
 
-  return (
-    <Box sx={{ width: 320, flexShrink: 0, borderLeft: '1px solid', borderColor: 'divider', overflowY: 'auto', p: 2 }}>
-      {isLoading && <CircularProgress size={20} />}
-      {data && (
-        <>
-          <Box
-            component="img"
-            src={getProdutoImagemUrl(codProd)}
-            onError={(e: any) => { e.target.style.display = 'none'; }}
-            sx={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 2, bgcolor: 'action.hover', mb: 2 }}
-          />
-          <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 1 }}>{data.DESCRPROD}</Typography>
-          {data.COMPLDESC && <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 1.5 }}>{data.COMPLDESC}</Typography>}
-          <Divider sx={{ mb: 1.5 }} />
-          <Stack spacing={1}>
-            <Field label="Codigo" value={data.CODPROD} />
-            <Field label="Grupo" value={data.DESCRGRUPOPROD} />
-            <Field label="Marca" value={data.MARCA} />
-            <Field label="Referencia" value={data.REFERENCIA} />
-            <Field label="Unidade" value={data.CODVOL} />
-            <Field label="NCM" value={data.NCM} />
-            <Field label="Localizacao" value={data.LOCALIZACAO} />
-            <Field label="Uso" value={data.USOPROD === 'S' ? 'Servico' : data.USOPROD === 'P' ? 'Produto' : data.USOPROD} />
-            {data.PESOBRUTO && <Field label="Peso Bruto" value={`${data.PESOBRUTO} kg`} />}
-            <Field label="Ativo" value={data.ATIVO === 'S' ? 'Sim' : 'Nao'} />
-          </Stack>
-        </>
-      )}
-    </Box>
-  );
+const DEFAULTS: { view: ViewMode; sort: SortOption; hideDesativ: boolean } = {
+  view: 'table',
+  sort: 'nome-asc',
+  hideDesativ: true,
+};
+
+function resolveView(params: URLSearchParams, saved: string | undefined): ViewMode {
+  const p = params.get('view');
+  if (p && VALID_VIEWS.includes(p as ViewMode)) return p as ViewMode;
+  if (saved && VALID_VIEWS.includes(saved as ViewMode)) return saved as ViewMode;
+  return DEFAULTS.view;
 }
 
-function Field({ label, value }: { label: string; value: unknown }) {
-  if (!value) return null;
-  return (
-    <Box>
-      <Typography sx={{ fontSize: 10, color: 'text.disabled', textTransform: 'uppercase' }}>{label}</Typography>
-      <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{String(value)}</Typography>
-    </Box>
-  );
+function resolveSort(params: URLSearchParams, saved: string | undefined): SortOption {
+  const p = params.get('sort');
+  if (p && VALID_SORTS.includes(p as SortOption)) return p as SortOption;
+  if (saved && VALID_SORTS.includes(saved as SortOption)) return saved as SortOption;
+  return DEFAULTS.sort;
+}
+
+function resolveHideDesativ(params: URLSearchParams, saved: string | undefined): boolean {
+  if (params.has('hideDesativ')) return params.get('hideDesativ') !== '0';
+  if (saved !== undefined) return saved !== '0';
+  return DEFAULTS.hideDesativ;
 }
 
 export function LocaisPage() {
-  const [sp, setSp] = useSearchParams();
-  const selectedLocal = sp.get('local') ? Number(sp.get('local')) : null;
-  const { data: arvore, isLoading } = useArvoreLocais();
-  const [treeSearch, setTreeSearch] = useState('');
-  const [expandedSet, setExpandedSet] = useState<Set<number>>(new Set());
+  const { data: arvore, isLoading, error } = useLocaisArvore();
+  const [params, setParams] = useSearchParams();
+  const prefsRef = useRef(loadLocaisPrefs());
 
-  const toggleExpand = (codLocal: number) => {
-    setExpandedSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(codLocal)) next.delete(codLocal); else next.add(codLocal);
-      return next;
-    });
-  };
+  const selectedLocal = params.get('local')
+    ? Number(params.get('local'))
+    : null;
 
-  const selectLocal = (codLocal: number) => {
-    setSp((prev) => { const n = new URLSearchParams(prev); n.set('local', String(codLocal)); return n; }, { replace: true });
-  };
+  const viewMode = resolveView(params, prefsRef.current.view);
+  const sortBy = resolveSort(params, prefsRef.current.sort);
+  const searchTerm = params.get('search') || '';
+  const hideDesativados = resolveHideDesativ(params, prefsRef.current.hideDesativ);
 
-  if (isLoading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+  const selectedProduto = params.get('produto')
+    ? Number(params.get('produto'))
+    : null;
+
+  const breadcrumb = useMemo(() => {
+    if (!arvore || selectedLocal === null) return [];
+    return findAncestors(arvore, selectedLocal);
+  }, [arvore, selectedLocal]);
+
+  const expandedPath = useMemo(() => {
+    return new Set(breadcrumb.map((b) => b.codLocal));
+  }, [breadcrumb]);
+
+  const updateParam = useCallback(
+    (key: string, value: string | null) => {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value === null || value === '') {
+            next.delete(key);
+          } else {
+            next.set(key, value);
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setParams],
+  );
+
+  const handleSelect = useCallback((codLocal: number) => {
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (Number(next.get('local')) === codLocal) {
+          next.delete('local');
+        } else {
+          next.set('local', String(codLocal));
+        }
+        next.delete('produto');
+        next.delete('search');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [setParams]);
+
+  const handleViewChange = useCallback(
+    (mode: ViewMode) => {
+      saveLocaisPrefs({ view: mode });
+      prefsRef.current = { ...prefsRef.current, view: mode };
+      updateParam('view', mode === DEFAULTS.view ? null : mode);
+    },
+    [updateParam],
+  );
+
+  const handleSortChange = useCallback(
+    (sort: SortOption) => {
+      saveLocaisPrefs({ sort });
+      prefsRef.current = { ...prefsRef.current, sort };
+      updateParam('sort', sort === DEFAULTS.sort ? null : sort);
+    },
+    [updateParam],
+  );
+
+  const handleSearchChange = useCallback(
+    (term: string) => updateParam('search', term || null),
+    [updateParam],
+  );
+
+  const handleSelectProduto = useCallback(
+    (codProd: number | null) => updateParam('produto', codProd ? String(codProd) : null),
+    [updateParam],
+  );
+
+  const handleHideDesativadosChange = useCallback(
+    (hide: boolean) => {
+      const val = hide ? undefined : '0';
+      saveLocaisPrefs({ hideDesativ: val ?? '1' });
+      prefsRef.current = { ...prefsRef.current, hideDesativ: val };
+      updateParam('hideDesativ', hide ? null : '0');
+    },
+    [updateParam],
+  );
+
+  const selectedNode = useMemo(() => {
+    if (!arvore || selectedLocal === null) return null;
+    const find = (nodes: ArvoreLocal[]): ArvoreLocal | null => {
+      for (const n of nodes) {
+        if (n.codLocal === selectedLocal) return n;
+        const sub = find(n.children);
+        if (sub) return sub;
+      }
+      return null;
+    };
+    return find(arvore);
+  }, [arvore, selectedLocal]);
 
   return (
-    <Box sx={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-      {/* Sidebar — arvore de locais */}
-      <Box sx={{ width: 300, flexShrink: 0, borderRight: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <TextField
-            value={treeSearch} onChange={(e) => setTreeSearch(e.target.value)}
-            placeholder="Filtrar locais..." size="small" fullWidth
-            sx={{ '& .MuiInputBase-root': { height: 30, fontSize: 12 } }}
-            slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search sx={{ fontSize: 14 }} /></InputAdornment> } }}
-          />
-        </Box>
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
-          {(arvore ?? []).map((node) => (
-            <TreeNode key={node.CODLOCAL} node={node} level={0}
-              selectedLocal={selectedLocal} onSelect={selectLocal}
-              expandedSet={expandedSet} toggleExpand={toggleExpand} search={treeSearch} />
-          ))}
-        </Box>
-      </Box>
-
-      {/* Main — estoque do local selecionado */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        {selectedLocal ? (
-          <EstoqueGrid codLocal={selectedLocal} />
-        ) : (
-          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Stack alignItems="center" spacing={1}>
-              <Warehouse sx={{ fontSize: 48, color: 'text.disabled' }} />
-              <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>Selecione um local para ver o estoque</Typography>
-            </Stack>
-          </Box>
+    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', gap: 2 }}>
+      <Paper sx={{ width: 400, flexShrink: 0, overflow: 'auto', p: 2 }}>
+        <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>
+          Locais
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Selecione um local para ver o estoque real (TGFEST)
+        </Typography>
+        {isLoading && <Typography>Carregando...</Typography>}
+        {error && (
+          <ErrorDetail error={error} context="Carregar árvore de locais" />
         )}
-      </Box>
+        {arvore && arvore.length > 0 && (
+          <List dense>
+            {arvore.map((node) => (
+              <LocalItemComponent
+                key={node.codLocal}
+                node={node}
+                selectedLocal={selectedLocal}
+                expandedPath={expandedPath}
+                onSelect={handleSelect}
+              />
+            ))}
+          </List>
+        )}
+      </Paper>
+      <Paper sx={{ flex: 1, overflow: 'auto', p: 2, display: 'flex', flexDirection: 'column' }}>
+        <EstoquePanel
+          codLocal={selectedLocal}
+          node={selectedNode}
+          breadcrumb={breadcrumb}
+          onNavigate={handleSelect}
+          viewMode={viewMode}
+          onViewChange={handleViewChange}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          sortBy={sortBy}
+          onSortChange={handleSortChange}
+          selectedProduto={selectedProduto}
+          onSelectProduto={handleSelectProduto}
+          hideDesativados={hideDesativados}
+          onHideDesativadosChange={handleHideDesativadosChange}
+        />
+      </Paper>
     </Box>
   );
 }

@@ -1,14 +1,14 @@
 export interface LocalItem {
-  CODLOCAL: number;
-  DESCRLOCAL: string;
-  CODLOCALPAI: number | null;
-  GRAU: number;
-  ATIVO: string;
-  ANALITICO: string;
+  codLocal: number;
+  descrLocal: string;
+  codLocalPai: number | null;
+  grau: number;
+  ativo?: string;
+  analitico: string;
   totalProdutosEstoque: number;
-  CODUSU?: number | null;
-  USU_CODPARC?: number | null;
-  NOMEUSU?: string | null;
+  codUsuario?: number | null;
+  codparcUsuario?: number | null;
+  nomeUsuario?: string | null;
 }
 
 export interface ArvoreLocal extends LocalItem {
@@ -16,19 +16,19 @@ export interface ArvoreLocal extends LocalItem {
 }
 
 export interface EstoqueItem {
-  CODPROD: number;
-  DESCRPROD: string;
-  CONTROLE: string;
-  ESTOQUE: number;
-  RESERVADO: number;
-  ESTMIN: number;
-  ESTMAX: number;
-  CODGRUPOPROD?: number;
-  DESCRGRUPOPROD?: string;
-  PRODATIVO?: string;
-  COMPLDESC?: string;
-  LOCALIZACAO?: string;
-  USOPROD?: string;
+  codProd: number;
+  descrProd: string;
+  controle: string;
+  estoque: number;
+  reservado: number;
+  estMin: number;
+  estMax: number;
+  codGrupoProd?: number;
+  descrGrupoProd?: string;
+  prodAtivo?: string;
+  complDesc?: string;
+  localizacao?: string;
+  usoProd?: string;
 }
 
 export interface ProdutoBusca {
@@ -62,6 +62,9 @@ export interface ProdutoDetalhes {
   USOPROD?: string;
   NCM?: string;
   anexos?: unknown[];
+  estoqueTotal?: number;
+  estoqueReservado?: number;
+  qtdLocais?: number;
 }
 
 export interface ProdutoEstoque {
@@ -83,10 +86,8 @@ export interface GrupoProduto {
 }
 
 export interface VeiculoProduto {
-  CODVEICULO: number;
   PLACA: string;
-  MARCAMODELO: string;
-  AD_TAG?: string;
-  AD_TIPOEQPTO?: string;
-  ATIVO: string;
+  MODELO?: string;
+  qtdOS?: number;
+  ultimaOS?: string;
 }
