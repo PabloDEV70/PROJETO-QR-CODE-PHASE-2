@@ -24,18 +24,29 @@ async function bootstrap() {
   const structuredLogger = app.get(StructuredLogger);
   const configService = app.get(ConfigService);
 
-  // Apply helmet for security headers with relaxed CSP for Swagger
+  const isProduction = configService.get('NODE_ENV') === 'production';
+
   app.use(
     helmet({
       contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://static.cloudflareinsights.com'],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:', 'https://swagger.io'],
-          fontSrc: ["'self'"],
-          connectSrc: ["'self'"],
-        },
+        directives: isProduction
+          ? {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'"],
+              imgSrc: ["'self'"],
+              connectSrc: ["'self'"],
+              frameSrc: ["'none'"],
+              objectSrc: ["'none'"],
+            }
+          : {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:', 'https://swagger.io'],
+              fontSrc: ["'self'"],
+              connectSrc: ["'self'"],
+            },
       },
       hsts: {
         maxAge: 31536000,
@@ -60,10 +71,12 @@ async function bootstrap() {
     prefix: '/',
   });
 
-  // Serve Swagger UI static assets from bundled location
-  app.useStaticAssets(join(__dirname, 'swagger-ui'), {
-    prefix: '/api',
-  });
+  // Serve Swagger UI static assets — somente em desenvolvimento
+  if (!isProduction) {
+    app.useStaticAssets(join(__dirname, 'swagger-ui'), {
+      prefix: '/api',
+    });
+  }
 
   // CORS configuration (centralizada em src/config/cors.config.ts)
   app.enableCors(getCorsConfig(configService));
@@ -79,6 +92,8 @@ async function bootstrap() {
     }),
   );
 
+  // Swagger/OpenAPI — desabilitado em producao
+  if (!isProduction) {
   const config = new DocumentBuilder()
     .setTitle('DBMS Sankhya API')
     .setDescription(
@@ -183,6 +198,7 @@ A maioria dos endpoints requer autenticação via JWT Bearer Token.
       },
     },
   });
+  } // fim do bloco !isProduction (Swagger)
 
   const port = configService.get<number>('PORT') || 3027;
   await app.listen(port, '0.0.0.0');

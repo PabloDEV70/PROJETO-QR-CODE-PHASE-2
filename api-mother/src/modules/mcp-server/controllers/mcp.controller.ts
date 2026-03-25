@@ -69,6 +69,9 @@ export class McpController {
   })
   @ApiResponse({ status: 200, description: 'Lista de ferramentas retornada com sucesso' })
   getTools() {
+    if (process.env.NODE_ENV === 'production') {
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
     return {
       tools: this.mcpServer.getToolDefinitions(),
       version: '1.0.0',

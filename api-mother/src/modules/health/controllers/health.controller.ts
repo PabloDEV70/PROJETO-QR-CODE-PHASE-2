@@ -44,15 +44,19 @@ export class HealthController {
       () => this.latencySla.isHealthy('latency_sla'),
     ]);
 
-    // Read database from X-Database header
-    const database = req.get('X-Database')?.toUpperCase() || 'PROD';
+    const isProduction = process.env.NODE_ENV === 'production';
 
+    if (isProduction) {
+      return { status: health.status };
+    }
+
+    const database = req.get('X-Database')?.toUpperCase() || 'PROD';
     return {
       ...health,
       version: APP_VERSION,
       uptime: process.uptime(),
       startedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
-      database: database,
+      database,
     };
   }
 

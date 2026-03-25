@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingModule } from '../common/logging/logging.module';
 import { CorrelationIdMiddleware } from '../common/middleware/correlation-id.middleware';
+import { NetworkGuardMiddleware } from '../common/middleware/network-guard.middleware';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'; // Import ThrottlerModule and ThrottlerGuard
 import { AppController } from './app.controller';
 import { PublicQueryController } from './public-query.controller';
@@ -50,7 +51,8 @@ import { MetricsModule } from '../modules/metrics';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const throttleEnabled = config.get<string>('THROTTLE_ENABLED', 'true') === 'true';
+        const isProduction = config.get<string>('NODE_ENV') === 'production';
+        const throttleEnabled = isProduction ? true : config.get<string>('THROTTLE_ENABLED', 'true') === 'true';
         const ttl = parseInt(config.get<string>('THROTTLE_TTL', '60000'), 10);
         const limit = parseInt(config.get<string>('THROTTLE_LIMIT', '100'), 10);
 
@@ -109,6 +111,6 @@ import { MetricsModule } from '../modules/metrics';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationIdMiddleware, DatabaseContextMiddleware, RequestLoggerMiddleware).forRoutes('*');
+    consumer.apply(NetworkGuardMiddleware, CorrelationIdMiddleware, DatabaseContextMiddleware, RequestLoggerMiddleware).forRoutes('*');
   }
 }

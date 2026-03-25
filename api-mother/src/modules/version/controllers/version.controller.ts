@@ -22,8 +22,11 @@ export class VersionController {
   @Get()
   @ApiOperation({ summary: 'Get API version and build info' })
   getVersion() {
-    const buildInfo = this.getBuildInfo();
+    if (process.env.NODE_ENV === 'production') {
+      return { version: packageJson.version || '0.0.0' };
+    }
 
+    const buildInfo = this.getBuildInfo();
     return {
       version: packageJson.version || '0.0.0',
       name: packageJson.name || 'api',
