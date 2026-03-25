@@ -1,6 +1,7 @@
 import {
   Dashboard, ViewQuilt, ListAlt, PersonAdd, History, People, Settings,
   DirectionsCar, AccountTree, FlightTakeoff, Assignment, PrecisionManufacturing,
+  ViewKanban, Schema,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -88,9 +89,21 @@ export const pagesConfig: PageConfig[] = [
     keywords: ['escala', 'guindaste', 'guindauto', 'saida', 'chegada', 'aeroporto', 'fullscreen'],
   },
   {
+    path: '/kanban', label: 'Kanban', icon: ViewKanban,
+    description: 'Kanban departamental com drag-and-drop',
+    group: 'Principal',
+    keywords: ['kanban', 'drag', 'arrastar', 'departamento', 'mover', 'situacao'],
+  },
+  {
     path: '/fluxo', label: 'Fluxo da Frota', icon: AccountTree,
-    description: 'Diagrama BPMN do ciclo de vida do veiculo na frota',
+    description: 'Diagrama do ciclo de vida do veiculo na frota',
     group: 'Ajuda',
-    keywords: ['fluxo', 'bpmn', 'processo', 'ciclo', 'diagrama', 'mermaid'],
+    keywords: ['fluxo', 'processo', 'ciclo', 'diagrama', 'mermaid'],
+  },
+  {
+    path: '/bpmn', label: 'Processos BPMN', icon: Schema,
+    description: 'Todos os processos operacionais mapeados em BPMN',
+    group: 'Ajuda',
+    keywords: ['bpmn', 'processo', 'manutencao', 'comercial', 'seguranca', 'compras', 'chamados'],
   },
 ];
