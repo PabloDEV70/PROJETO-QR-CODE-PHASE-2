@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
-  Box, Typography, Stack, IconButton, Tooltip, Paper, alpha,
-  ToggleButtonGroup, ToggleButton, Chip, Divider,
+  Box, Typography, Stack, IconButton, Tooltip, Paper, alpha, Divider,
 } from '@mui/material';
 import {
   ZoomIn, ZoomOut, CenterFocusStrong, Fullscreen, FullscreenExit,
   LocalShipping, Build, Storefront, Security, CalendarMonth,
-  PrecisionManufacturing, Engineering, Inventory,
+  Engineering, Inventory,
 } from '@mui/icons-material';
 import mermaid from 'mermaid';
 

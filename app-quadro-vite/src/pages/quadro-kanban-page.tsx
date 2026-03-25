@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import {
   Box, Typography, Paper, Chip, alpha, Stack, TextField, Button,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  List, ListItemButton, ListItemText, Divider, CircularProgress,
+  Divider, CircularProgress,
   InputAdornment, Autocomplete, Checkbox,
 } from '@mui/material';
 import { Search, CheckBoxOutlineBlank, CheckBox as CheckBoxIcon } from '@mui/icons-material';
@@ -27,7 +27,7 @@ import { ParceiroCombobox } from '@/components/situacoes/parceiro-combobox';
 import { OsManutencaoCombobox } from '@/components/situacoes/os-manutencao-combobox';
 import { OsComercialCombobox } from '@/components/situacoes/os-comercial-combobox';
 import { EquipeSelect } from '@/components/situacoes/equipe-select';
-import type { PainelVeiculo, Situacao, TrocarSituacaoPayload } from '@/types/hstvei-types';
+import type { PainelVeiculo, TrocarSituacaoPayload } from '@/types/hstvei-types';
 
 // ── Data ──
 
