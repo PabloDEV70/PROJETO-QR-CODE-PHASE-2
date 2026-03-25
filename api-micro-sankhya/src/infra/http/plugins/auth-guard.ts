@@ -20,6 +20,10 @@ const QUERY_TOKEN_PATTERNS = [
   /^\/funcionarios\/foto\/\d+\/\d+/,
 ];
 
+const PUBLIC_IMAGE_PATTERNS = [
+  /^\/produtos\/\d+\/imagem/,
+];
+
 export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
   // Skip CORS preflight requests — handled by @fastify/cors
   if (request.method === 'OPTIONS') {
@@ -37,6 +41,10 @@ export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
   }
 
   if (PUBLIC_PATTERNS.some((re) => re.test(url))) {
+    return;
+  }
+
+  if (PUBLIC_IMAGE_PATTERNS.some((re) => re.test(url))) {
     return;
   }
 
