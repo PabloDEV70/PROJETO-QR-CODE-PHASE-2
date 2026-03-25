@@ -13,6 +13,9 @@ const EmTempoRealPage = lazy(() =>
 const EmTempoRealDetailPage = lazy(() =>
   import('@/pages/em-tempo-real-detail-page').then((m) => ({ default: m.EmTempoRealDetailPage })),
 );
+const CabsPorTopPage = lazy(() =>
+  import('@/pages/cabs-por-top-page').then((m) => ({ default: m.CabsPorTopPage })),
+);
 
 function Loading() {
   return (
@@ -41,6 +44,10 @@ export const router = createBrowserRouter([
       {
         path: 'em-tempo-real/:nunota',
         element: <Suspense fallback={<Loading />}><EmTempoRealDetailPage /></Suspense>,
+      },
+      {
+        path: 'por-top',
+        element: <Suspense fallback={<Loading />}><CabsPorTopPage /></Suspense>,
       },
     ],
   },
