@@ -55,6 +55,9 @@ const SituacaoEditPage = lazy(() =>
 const QuadroKanbanPage = lazy(() =>
   import('@/pages/quadro-kanban-page').then((m) => ({ default: m.QuadroKanbanPage })),
 );
+const BpmnPage = lazy(() =>
+  import('@/pages/bpmn-page').then((m) => ({ default: m.BpmnPage })),
+);
 
 function Loading() {
   return (
@@ -135,6 +138,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <QuadroKanbanPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'bpmn',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <BpmnPage />
           </Suspense>
         ),
       },
