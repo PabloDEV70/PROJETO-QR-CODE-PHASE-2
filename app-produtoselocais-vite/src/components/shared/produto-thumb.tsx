@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Skeleton } from '@mui/material';
 import { Inventory2 } from '@mui/icons-material';
 import { getApiBaseUrl } from '@/api/client';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface ProdutoThumbProps {
   codProd: number;
@@ -10,7 +11,9 @@ interface ProdutoThumbProps {
 
 export function ProdutoThumb({ codProd, size = 52 }: ProdutoThumbProps) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
-  const src = `${getApiBaseUrl()}/produtos/${codProd}/imagem`;
+  const token = useAuthStore((s) => s.user?.token);
+  const base = `${getApiBaseUrl()}/produtos/${codProd}/imagem`;
+  const src = token ? `${base}?token=${token}` : base;
 
   if (status === 'error') {
     return (

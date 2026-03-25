@@ -1,10 +1,17 @@
 import { Box, Typography, Paper, Stack, Chip, CircularProgress, alpha } from '@mui/material';
 import { Inventory, Warehouse, Category } from '@mui/icons-material';
-import { useArvoreLocais, useGruposProduto } from '@/hooks/use-locais';
+import { useLocaisArvore } from '@/hooks/use-locais';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/api/client';
+interface GrupoResponse { CODGRUPOPROD: number; nome: string; qtd: number; }
 
 export function DashboardPage() {
-  const { data: arvore, isLoading: loadingArvore } = useArvoreLocais();
-  const { data: grupos, isLoading: loadingGrupos } = useGruposProduto();
+  const { data: arvore, isLoading: loadingArvore } = useLocaisArvore();
+  const { data: grupos, isLoading: loadingGrupos } = useQuery({
+    queryKey: ['produtos', 'grupos'],
+    queryFn: async () => { const { data } = await apiClient.get<GrupoResponse[]>('/produtos/grupos'); return data; },
+    staleTime: 5 * 60_000,
+  });
 
   const totalLocais = arvore?.length ?? 0;
   const totalProdutos = arvore?.reduce((acc, l) => acc + (l.totalProdutosEstoque ?? 0), 0) ?? 0;
@@ -41,7 +48,7 @@ export function DashboardPage() {
           <Typography sx={{ fontSize: 14, fontWeight: 700, mb: 2 }}>Grupos de Produtos</Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {grupos.map((g) => (
-              <Chip key={g.CODGRUPOPROD} label={`${g.NOME} (${g.QTD})`} size="small" sx={{ fontWeight: 600, fontSize: 11 }} />
+              <Chip key={g.CODGRUPOPROD} label={`${g.nome} (${g.qtd})`} size="small" sx={{ fontWeight: 600, fontSize: 11 }} />
             ))}
           </Box>
         </Paper>

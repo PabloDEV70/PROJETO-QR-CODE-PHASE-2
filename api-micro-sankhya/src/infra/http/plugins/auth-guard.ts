@@ -18,9 +18,6 @@ const PUBLIC_PATTERNS = [
 const QUERY_TOKEN_PATTERNS = [
   /^\/funcionarios\/\d+\/foto/,
   /^\/funcionarios\/foto\/\d+\/\d+/,
-];
-
-const PUBLIC_IMAGE_PATTERNS = [
   /^\/produtos\/\d+\/imagem/,
 ];
 
@@ -41,10 +38,6 @@ export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
   }
 
   if (PUBLIC_PATTERNS.some((re) => re.test(url))) {
-    return;
-  }
-
-  if (PUBLIC_IMAGE_PATTERNS.some((re) => re.test(url))) {
     return;
   }
 

@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, getApiBaseUrl } from './client';
 import type {
   ArvoreLocal,
   EstoqueLocal,
@@ -36,4 +36,8 @@ export async function getVeiculosPorProduto(
     `/produtos/${codProd}/veiculos`,
   );
   return data;
+}
+
+export function getProdutoImagemUrl(codProd: number): string {
+  return `${getApiBaseUrl()}/produtos/${codProd}/imagem`;
 }

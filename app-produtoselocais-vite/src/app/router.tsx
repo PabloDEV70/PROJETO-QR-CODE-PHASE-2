@@ -13,9 +13,6 @@ const DashboardPage = lazy(() =>
 const LocaisPage = lazy(() =>
   import('@/pages/locais-page').then((m) => ({ default: m.LocaisPage })),
 );
-const ProdutosPage = lazy(() =>
-  import('@/pages/produtos-page').then((m) => ({ default: m.ProdutosPage })),
-);
 
 function Loading() {
   return (
@@ -55,7 +52,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'produtos',
-        element: <Suspense fallback={<Loading />}><ProdutosPage /></Suspense>,
+        element: <Navigate to="/locais" replace />,
       },
     ],
   },

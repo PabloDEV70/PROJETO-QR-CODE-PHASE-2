@@ -8,6 +8,7 @@ import { FuncionarioPerfilSuperService } from '../../../domain/services/funciona
 import { FuncionariosFiltrosService } from '../../../domain/services/funcionarios-filtros.service';
 import { FuncionarioCardService } from '../../../domain/services/funcionario-card.service';
 import { NotFoundError } from '../../../domain/errors';
+import { enterUserToken } from '../../api-mother/database-context';
 
 const codparcSchema = z.object({
   codparc: z.coerce.number(),
@@ -122,6 +123,8 @@ export async function funcionariosRoutes(app: FastifyInstance) {
   const FOTO_TTL = 5 * 60 * 1000; // 5min
 
   app.get('/funcionarios/:codparc/foto', async (request, reply) => {
+    const auth = request.headers.authorization;
+    if (auth?.startsWith('Bearer ')) enterUserToken(auth.slice(7));
     const { codparc } = codparcSchema.parse(request.params);
 
     const cached = fotoCache.get(codparc);

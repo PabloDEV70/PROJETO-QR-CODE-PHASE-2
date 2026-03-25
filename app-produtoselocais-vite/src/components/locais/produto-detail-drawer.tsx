@@ -34,6 +34,7 @@ import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import { VeiculosProdutoList } from '@/components/locais/veiculos-produto-list';
 import type { EstoqueLocal, TsiAnexo, ArvoreLocal } from '@/types/local-produto';
 import { getApiBaseUrl } from '@/api/client';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface ProdutoDetailDrawerProps {
   open: boolean;
@@ -99,7 +100,9 @@ function ProdutoImage({ codProd, temImagem }: {
   temImagem: boolean;
 }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
-  const src = `${getApiBaseUrl()}/produtos/${codProd}/imagem`;
+  const token = useAuthStore((s) => s.user?.token);
+  const base = `${getApiBaseUrl()}/produtos/${codProd}/imagem`;
+  const src = token ? `${base}?token=${token}` : base;
 
   if (!temImagem) {
     return (

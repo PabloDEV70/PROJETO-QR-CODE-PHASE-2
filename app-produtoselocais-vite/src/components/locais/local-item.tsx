@@ -1,21 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
+import { Box, Typography, Collapse, alpha, Tooltip } from '@mui/material';
 import {
-  Box,
-  Typography,
-  List,
-  ListItemButton,
-  Collapse,
-  Chip,
-} from '@mui/material';
-import {
-  ExpandLess,
-  ExpandMore,
-  Inventory,
-  Folder,
-  FolderOpen,
-  Person,
+  KeyboardArrowDown, KeyboardArrowRight,
+  Inventory2, FolderOpen, Folder, Person,
 } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
 import type { ArvoreLocal } from '@/types/local-produto';
 
 interface LocalItemProps {
@@ -23,44 +11,17 @@ interface LocalItemProps {
   selectedLocal: number | null;
   expandedPath: Set<number>;
   onSelect: (codLocal: number) => void;
+  level?: number;
 }
 
 function sumEstoque(node: ArvoreLocal): number {
   let total = node.totalProdutosEstoque;
-  for (const child of node.children) {
-    total += sumEstoque(child);
-  }
+  for (const child of node.children) total += sumEstoque(child);
   return total;
 }
 
-function formatLevel(codLocal: number, grau: number): string {
-  const code = codLocal.toString().padStart(6, '0');
-  if (grau === 1) return `${code.slice(0,2)}.${code.slice(2)}`;
-  if (grau === 2) return `${code.slice(0,2)}.${code.slice(2,4)}.${code.slice(4)}`;
-  return `${code.slice(0,2)}.${code.slice(2,4)}.${code.slice(4)}`;
-}
-
-function getGrauLabel(grau: number): string {
-  const labels: Record<number, string> = { 1: 'N1', 2: 'N2', 3: 'N3', 4: 'N4', 5: 'N5' };
-  return labels[grau] || `N${grau}`;
-}
-
-function getGrauColor(grau: number): 'primary' | 'secondary' | 'success' | 'warning' | 'error' {
-  const colors: Record<number, 'primary' | 'secondary' | 'success' | 'warning' | 'error'> = {
-    1: 'primary',
-    2: 'secondary',
-    3: 'success',
-    4: 'warning',
-    5: 'error',
-  };
-  return colors[grau] || 'primary';
-}
-
 export function LocalItemComponent({
-  node,
-  selectedLocal,
-  expandedPath,
-  onSelect,
+  node, selectedLocal, expandedPath, onSelect, level = 0,
 }: LocalItemProps) {
   const hasChildren = node.children.length > 0;
   const isSelected = selectedLocal === node.codLocal;
@@ -72,128 +33,90 @@ export function LocalItemComponent({
   }, [shouldAutoExpand]);
 
   const totalEstoque = useMemo(() => sumEstoque(node), [node]);
-  const isLeaf = node.analitico === 'S';
+  const count = node.totalProdutosEstoque || totalEstoque;
 
   return (
     <>
-      <ListItemButton
-        onClick={() => {
-          if (hasChildren) setOpen(!open);
-          onSelect(node.codLocal);
-        }}
-        selected={isSelected}
+      <Box
+        onClick={() => { if (hasChildren) setOpen(!open); onSelect(node.codLocal); }}
         sx={{
-          pl: node.grau * 2 + 1,
-          pr: 1,
-          py: 0.5,
-          borderRadius: 1,
-          mb: 0.25,
-          '&.Mui-selected': {
-            bgcolor: 'primary.light',
-            '&:hover': { bgcolor: 'primary.light' },
+          display: 'flex', alignItems: 'center', gap: 0.75,
+          pl: level * 2.5 + 1, pr: 1.5, py: 0.75,
+          cursor: 'pointer',
+          borderRadius: 1.5,
+          mx: 0.5, mb: 0.25,
+          bgcolor: isSelected ? (t) => alpha(t.palette.primary.main, 0.1) : 'transparent',
+          '&:hover': {
+            bgcolor: isSelected
+              ? (t) => alpha(t.palette.primary.main, 0.15)
+              : 'action.hover',
           },
+          transition: 'background-color 0.12s',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
-            {hasChildren ? (
-              open ? (
-                <FolderOpen sx={{ fontSize: 18, color: 'warning.main' }} />
-              ) : (
-                <Folder sx={{ fontSize: 18, color: 'warning.main' }} />
-              )
-            ) : (
-              <Inventory
-                sx={{
-                  fontSize: 16,
-                  color: node.totalProdutosEstoque > 0
-                    ? 'success.main'
-                    : 'text.disabled',
-                }}
-              />
-            )}
+        {/* Seta */}
+        {hasChildren ? (
+          <Box sx={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {open
+              ? <KeyboardArrowDown sx={{ fontSize: 18, color: 'text.secondary' }} />
+              : <KeyboardArrowRight sx={{ fontSize: 18, color: 'text.secondary' }} />}
           </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="body2"
-              noWrap
-              sx={{ fontWeight: isSelected ? 600 : 400 }}
-            >
-              {node.descrLocal}
+        ) : (
+          <Box sx={{ width: 20, flexShrink: 0 }} />
+        )}
+
+        {/* Icone */}
+        {hasChildren
+          ? (open
+            ? <FolderOpen sx={{ fontSize: 20, color: '#f0a500' }} />
+            : <Folder sx={{ fontSize: 20, color: '#d4950a' }} />)
+          : <Inventory2 sx={{ fontSize: 18, color: count > 0 ? 'success.main' : 'text.disabled' }} />
+        }
+
+        {/* Nome */}
+        <Typography sx={{
+          fontSize: 13, flex: 1, minWidth: 0,
+          fontWeight: isSelected ? 700 : 400,
+          color: isSelected ? 'primary.dark' : 'text.primary',
+        }} noWrap>
+          {node.descrLocal}
+        </Typography>
+
+        {/* Responsavel */}
+        {node.nomeUsuario && (
+          <Tooltip title={`Responsavel: ${node.nomeUsuario}`} arrow placement="right">
+            <Person sx={{ fontSize: 15, color: 'text.disabled', flexShrink: 0 }} />
+          </Tooltip>
+        )}
+
+        {/* Contador */}
+        {count > 0 && (
+          <Box sx={{
+            minWidth: 24, height: 20,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 10, px: 0.75, flexShrink: 0,
+            bgcolor: (t) => alpha(t.palette.success.main, 0.1),
+            color: 'success.dark',
+          }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }}>
+              {count}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 0.5, mt: 0.25, flexWrap: 'wrap' }}>
-              <Chip
-                label={getGrauLabel(node.grau)}
-                size="small"
-                color={getGrauColor(node.grau)}
-                sx={{ height: 16, fontSize: '0.6rem', fontWeight: 600 }}
-              />
-              <Chip
-                label={formatLevel(node.codLocal, node.grau)}
-                size="small"
-                variant="outlined"
-                sx={{ height: 16, fontSize: '0.6rem', fontFamily: 'monospace' }}
-              />
-              <Chip
-                label={`ID:${node.codLocal}`}
-                size="small"
-                variant="outlined"
-                sx={{ height: 16, fontSize: '0.55rem', color: 'text.disabled' }}
-              />
-              {isLeaf && node.totalProdutosEstoque > 0 && (
-                <Chip
-                  label={`${node.totalProdutosEstoque} itens`}
-                  size="small"
-                  color="success"
-                  variant="outlined"
-                  sx={{ height: 16, fontSize: '0.6rem' }}
-                />
-              )}
-              {!isLeaf && totalEstoque > 0 && (
-                <Chip
-                  label={`${totalEstoque} total`}
-                  size="small"
-                  color="info"
-                  variant="outlined"
-                  sx={{ height: 16, fontSize: '0.6rem' }}
-                />
-              )}
-              {node.nomeUsuario && (
-                <Tooltip title={node.nomeUsuario} arrow>
-                  <Chip
-                    icon={<Person sx={{ fontSize: '0.7rem !important' }} />}
-                    label={node.nomeUsuario.split('.')[0]}
-                    size="small"
-                    variant="outlined"
-                    color="secondary"
-                    sx={{ height: 16, fontSize: '0.55rem' }}
-                  />
-                </Tooltip>
-              )}
-            </Box>
           </Box>
-          {hasChildren && (
-            <Box sx={{ ml: 0.5 }}>
-              {open
-                ? <ExpandLess sx={{ fontSize: 18 }} />
-                : <ExpandMore sx={{ fontSize: 18 }} />}
-            </Box>
-          )}
-        </Box>
-      </ListItemButton>
+        )}
+      </Box>
+
       {hasChildren && (
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List dense disablePadding>
-            {node.children.map((child) => (
-              <LocalItemComponent
-                key={child.codLocal}
-                node={child}
-                selectedLocal={selectedLocal}
-                expandedPath={expandedPath}
-                onSelect={onSelect}
-              />
-            ))}
-          </List>
+        <Collapse in={open} timeout={120} unmountOnExit>
+          {node.children.map((child) => (
+            <LocalItemComponent
+              key={child.codLocal}
+              node={child}
+              selectedLocal={selectedLocal}
+              expandedPath={expandedPath}
+              onSelect={onSelect}
+              level={level + 1}
+            />
+          ))}
         </Collapse>
       )}
     </>
