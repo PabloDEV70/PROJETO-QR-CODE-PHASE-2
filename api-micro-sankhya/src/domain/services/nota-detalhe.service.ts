@@ -9,6 +9,39 @@ import type {
   NotaDetalheCompleta,
 } from '../../types/TGFCAB';
 
+const STATUS_MAP: Record<string, string> = { A: 'Aberta', L: 'Liberada', P: 'Pendente', E: 'Efetivada', C: 'Cancelada' };
+const NFE_MAP: Record<string, string> = { A: 'Autorizada', D: 'Denegada', C: 'Cancelada', I: 'Inutilizada' };
+const TIPMOV_MAP: Record<string, string> = { V: 'Venda', C: 'Compra', D: 'Devolucao', P: 'Pedido', O: 'Orcamento', T: 'Transferencia', R: 'Remessa', Q: 'Requisicao' };
+const ATUALEST_MAP: Record<string, string> = { N: 'Nao atualiza', S: 'Atualiza', R: 'Reserva', B: 'Baixa' };
+const ATUALFIN_MAP: Record<string, string> = { '1': 'Gera financeiro', '0': 'Nao gera', S: 'Sim', N: 'Nao' };
+const USOPROD_MAP: Record<string, string> = { R: 'Revenda', C: 'Consumo', I: 'Industrializacao', A: 'Ativo' };
+
+function enrichCab(cab: Record<string, unknown>): NotaDetalheCab {
+  const s = (k: string) => (cab[k] as string) ?? '-';
+  cab.STATUS_DESCRICAO = STATUS_MAP[s('STATUSNOTA')] ?? s('STATUSNOTA');
+  cab.STATUS_NFE_DESCRICAO = NFE_MAP[s('STATUSNFE')] ?? s('STATUSNFE');
+  cab.TIPMOV_DESCRICAO = TIPMOV_MAP[s('TIPMOV')] ?? s('TIPMOV');
+  cab.ATUALEST_DESCRICAO = ATUALEST_MAP[s('ATUALEST')] ?? s('ATUALEST');
+  cab.ATUALFIN_DESCRICAO = ATUALFIN_MAP[s('ATUALFIN')] ?? s('ATUALFIN');
+  return cab as unknown as NotaDetalheCab;
+}
+
+function enrichItens(itens: Record<string, unknown>[]): NotaDetalheItem[] {
+  for (const item of itens) {
+    const uso = (item.USOPROD as string) ?? '-';
+    item.USOPROD_DESCRICAO = USOPROD_MAP[uso] ?? uso;
+  }
+  return itens as unknown as NotaDetalheItem[];
+}
+
+function enrichTop(top: Record<string, unknown>): NotaDetalheTop {
+  const s = (k: string) => (top[k] as string) ?? '-';
+  top.TIPMOV_DESCRICAO = TIPMOV_MAP[s('TIPMOV')] ?? s('TIPMOV');
+  top.ATUALEST_DESCRICAO = ATUALEST_MAP[s('ATUALEST')] ?? s('ATUALEST');
+  top.ATUALFIN_DESCRICAO = ATUALFIN_MAP[s('ATUALFIN')] ?? s('ATUALFIN');
+  return top as unknown as NotaDetalheTop;
+}
+
 export class NotaDetalheService {
   private qe: QueryExecutor;
 
@@ -42,10 +75,10 @@ export class NotaDetalheService {
     logger.info('[NotaDetalhe] Fetching NUNOTA=%s cab=%d itens=%d top=%d var=%d chars',
       nu, cabSql.length, itensSql.length, topSql.length, varSql.length);
 
-    const [cabRows, itens, topRows, variacoes] = await Promise.all([
-      this.safeQuery<NotaDetalheCab>('CAB', cabSql),
-      this.safeQuery<NotaDetalheItem>('ITENS', itensSql),
-      this.safeQuery<NotaDetalheTop>('TOP', topSql),
+    const [cabRows, itensRaw, topRows, variacoes] = await Promise.all([
+      this.safeQuery<Record<string, unknown>>('CAB', cabSql),
+      this.safeQuery<Record<string, unknown>>('ITENS', itensSql),
+      this.safeQuery<Record<string, unknown>>('TOP', topSql),
       this.safeQuery<NotaDetalheVar>('VAR', varSql),
     ]);
 
@@ -55,9 +88,9 @@ export class NotaDetalheService {
     }
 
     return {
-      cabecalho: cabRows[0],
-      itens,
-      top: topRows[0] || null,
+      cabecalho: enrichCab(cabRows[0]),
+      itens: enrichItens(itensRaw),
+      top: topRows[0] ? enrichTop(topRows[0]) : null,
       variacoes,
     };
   }

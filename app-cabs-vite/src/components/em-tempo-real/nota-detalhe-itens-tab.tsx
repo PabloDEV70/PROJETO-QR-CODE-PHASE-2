@@ -5,13 +5,19 @@ import {
 import { Inventory } from '@mui/icons-material';
 import type { NotaDetalheItem } from '@/types/em-tempo-real-types';
 
-const fmtBRL = (v: number | null) =>
+const fmtBRL = (v: number | null | undefined) =>
   v != null
     ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
     : '-';
 
-const fmtQtd = (v: number | null) =>
+const fmtQtd = (v: number | null | undefined) =>
   v != null ? v.toLocaleString('pt-BR', { maximumFractionDigits: 4 }) : '-';
+
+const str = (v: unknown): string => {
+  if (v == null) return '-';
+  if (typeof v === 'object') return '-';
+  return String(v);
+};
 
 interface NotaDetalheItensTabProps {
   itens: NotaDetalheItem[];
@@ -62,26 +68,28 @@ export function NotaDetalheItensTab({ itens }: NotaDetalheItensTabProps) {
           <TableBody>
             {itens.map((item) => (
               <TableRow key={item.SEQUENCIA} hover>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{item.SEQUENCIA}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{str(item.SEQUENCIA)}</TableCell>
                 <TableCell>
                   <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-                    {item.PRODUTO_DESCRICAO}
+                    {str(item.CODPROD)}
                   </Typography>
                   <Stack direction="row" spacing={0.5} sx={{ mt: 0.25 }}>
                     {item.PRODUTO_REFERENCIA && (
                       <Typography variant="caption" color="text.secondary">
-                        Ref: {item.PRODUTO_REFERENCIA}
+                        Ref: {str(item.PRODUTO_REFERENCIA)}
                       </Typography>
                     )}
-                    <Typography variant="caption" color="text.secondary">
-                      Cod: {item.CODPROD}
-                    </Typography>
+                    {item.PRODUTO_MARCA && (
+                      <Typography variant="caption" color="text.secondary">
+                        {str(item.PRODUTO_MARCA)}
+                      </Typography>
+                    )}
                   </Stack>
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="body2">{fmtQtd(item.QTDNEG)}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {item.UNIDADE || ''}
+                    {str(item.UNIDADE)}
                   </Typography>
                 </TableCell>
                 <TableCell align="right" sx={{ fontSize: '0.8rem' }}>
@@ -101,32 +109,27 @@ export function NotaDetalheItensTab({ itens }: NotaDetalheItensTabProps) {
         <Paper key={item.SEQUENCIA} variant="outlined" sx={{ p: 1.5 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="subtitle2" fontWeight="bold">
-              #{item.SEQUENCIA} - {item.PRODUTO_DESCRICAO}
+              #{str(item.SEQUENCIA)} - Cod {str(item.CODPROD)}
             </Typography>
-            <Chip label={item.USOPROD_DESCRICAO} size="small" variant="outlined" />
+            {item.USOPROD && (
+              <Chip label={str(item.USOPROD)} size="small" variant="outlined" />
+            )}
           </Stack>
           <Divider sx={{ my: 0.5 }} />
           <Stack spacing={0.25}>
-            <InfoRow label="Grupo" value={item.GRUPO_PRODUTO} />
-            {item.PRODUTO_MARCA && <InfoRow label="Marca" value={item.PRODUTO_MARCA} />}
+            {item.PRODUTO_MARCA && <InfoRow label="Marca" value={str(item.PRODUTO_MARCA)} />}
             <InfoRow label="Qtd Negociada" value={fmtQtd(item.QTDNEG)} />
             <InfoRow label="Qtd Entregue" value={fmtQtd(item.QTDENTREGUE)} />
             {item.QTD_PENDENTE > 0 && (
               <InfoRow label="Qtd Pendente" value={fmtQtd(item.QTD_PENDENTE)} />
             )}
-            {item.PERCDESC != null && item.PERCDESC > 0 && (
-              <InfoRow label="% Desconto" value={`${item.PERCDESC}%`} />
-            )}
             {item.ALIQICMS != null && (
               <InfoRow label="Aliq. ICMS" value={`${item.ALIQICMS}%`} />
             )}
-            {item.ALIQIPI != null && item.ALIQIPI > 0 && (
+            {item.ALIQIPI != null && Number(item.ALIQIPI) > 0 && (
               <InfoRow label="Aliq. IPI" value={`${item.ALIQIPI}%`} />
             )}
-            {item.CONTROLE && <InfoRow label="Controle" value={item.CONTROLE} />}
-            {item.OBSERVACAO_ITEM && (
-              <InfoRow label="Obs" value={item.OBSERVACAO_ITEM} />
-            )}
+            {item.CONTROLE && <InfoRow label="Controle" value={str(item.CONTROLE)} />}
           </Stack>
         </Paper>
       ))}
@@ -139,7 +142,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
   return (
     <Stack direction="row" justifyContent="space-between" sx={{ py: 0.15 }}>
       <Typography variant="caption" color="text.secondary">{label}</Typography>
-      <Typography variant="caption" fontWeight="medium">{value}</Typography>
+      <Typography variant="caption" fontWeight="medium">{str(value)}</Typography>
     </Stack>
   );
 }

@@ -6,15 +6,33 @@ import {
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import type { NotaDetalheCab } from '@/types/em-tempo-real-types';
 
-const fmtBRL = (v: number | null) =>
+const fmtBRL = (v: number | null | undefined) =>
   v != null
     ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
     : '-';
 
-const fmtDate = (v: string | null) => {
+const fmtDate = (v: string | null | undefined) => {
   if (!v) return '-';
   const d = new Date(v);
-  return isNaN(d.getTime()) ? v : d.toLocaleDateString('pt-BR');
+  return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString('pt-BR');
+};
+
+const str = (v: unknown): string => {
+  if (v == null) return '-';
+  if (typeof v === 'object') return '-';
+  return String(v);
+};
+
+const statusLabel: Record<string, string> = {
+  A: 'Aberta', L: 'Liberada', P: 'Pendente', E: 'Efetivada', C: 'Cancelada',
+};
+
+const tipMovLabel: Record<string, string> = {
+  P: 'Pedido', V: 'Venda', C: 'Compra', D: 'Devolucao', O: 'Orcamento',
+};
+
+const atualEstLabel: Record<string, string> = {
+  N: 'Nao', S: 'Sim', R: 'Reserva',
 };
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
@@ -24,7 +42,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
         {label}
       </Typography>
       <Typography variant="body2" fontWeight="medium" textAlign="right" sx={{ flex: 1 }}>
-        {value || '-'}
+        {str(value)}
       </Typography>
     </Stack>
   );
@@ -50,7 +68,7 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
       <Paper variant="outlined" sx={{ p: 1.5 }}>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <Chip
-            label={cab.STATUS_DESCRICAO}
+            label={statusLabel[cab.STATUSNOTA] ?? cab.STATUSNOTA}
             size="small"
             color={
               cab.STATUSNOTA === 'L' ? 'success'
@@ -58,30 +76,36 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
                   : 'warning'
             }
           />
-          <Chip
-            label={cab.TIPMOV_DESCRICAO}
-            size="small"
-            variant="outlined"
-            color="primary"
-          />
-          <Chip
-            label={cab.ATUALEST_DESCRICAO}
-            size="small"
-            variant="outlined"
-          />
+          {cab.TIPMOV && (
+            <Chip
+              label={tipMovLabel[cab.TIPMOV] ?? cab.TIPMOV}
+              size="small"
+              variant="outlined"
+              color="primary"
+            />
+          )}
+          {cab.ATUALEST && (
+            <Chip
+              label={`Est: ${atualEstLabel[cab.ATUALEST] ?? cab.ATUALEST}`}
+              size="small"
+              variant="outlined"
+            />
+          )}
           {cab.STATUSNFE && (
             <Chip
-              label={`NFe: ${cab.STATUS_NFE_DESCRICAO}`}
+              label={`NFe: ${cab.STATUSNFE}`}
               size="small"
               variant="outlined"
               color={cab.STATUSNFE === 'A' ? 'success' : 'default'}
             />
           )}
-          <Chip
-            label={`Financeiro: ${cab.ATUALFIN_DESCRICAO}`}
-            size="small"
-            variant="outlined"
-          />
+          {cab.ATUALFIN && (
+            <Chip
+              label={`Fin: ${cab.ATUALFIN === 'S' ? 'Sim' : cab.ATUALFIN === 'N' ? 'Nao' : cab.ATUALFIN}`}
+              size="small"
+              variant="outlined"
+            />
+          )}
         </Stack>
       </Paper>
 
@@ -94,16 +118,10 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
         <InfoRow label="NUNOTA" value={String(cab.NUNOTA)} />
         <InfoRow label="Num. Nota" value={cab.NUMNOTA ? String(cab.NUMNOTA) : null} />
         <InfoRow label="Serie" value={cab.SERIENOTA} />
-        <InfoRow label="TOP" value={`${cab.CODTIPOPER} - ${cab.TIPO_OPER_DESCRICAO}`} />
-        <InfoRow label="Empresa" value={`${cab.CODEMP} - ${cab.NOME_EMPRESA ?? ''}`} />
+        <InfoRow label="TOP" value={String(cab.CODTIPOPER)} />
+        <InfoRow label="Empresa" value={String(cab.CODEMP)} />
         {cab.CODNAT && (
-          <InfoRow label="Natureza" value={`${cab.CODNAT} - ${cab.NATUREZA_DESCRICAO ?? ''}`} />
-        )}
-        {cab.CODCENCUS && (
-          <InfoRow
-            label="Centro Custo"
-            value={`${cab.CODCENCUS} - ${cab.CENTRO_CUSTO_DESCRICAO ?? ''}`}
-          />
+          <InfoRow label="Natureza" value={String(cab.CODNAT)} />
         )}
         {cab.CHAVENFE && (
           <InfoRow label="Chave NFe" value={cab.CHAVENFE} />
@@ -123,12 +141,6 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
           value={cab.PARCEIRO_TIPO_PESSOA === 'J' ? 'Juridica' : 'Fisica'}
         />
         <InfoRow label="CPF/CNPJ" value={cab.PARCEIRO_CGC_CPF} />
-        {cab.PARCEIRO_CIDADE && (
-          <InfoRow
-            label="Cidade"
-            value={`${cab.PARCEIRO_CIDADE}${cab.PARCEIRO_UF ? ` - ${cab.PARCEIRO_UF}` : ''}`}
-          />
-        )}
       </Paper>
 
       {/* Dates */}
@@ -137,10 +149,6 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
           icon={<CalendarMonth fontSize="small" color="action" />}
           title="Datas"
         />
-        <InfoRow label="Negociacao" value={fmtDate(cab.DTNEG)} />
-        <InfoRow label="Movimento" value={cab.DATA_HORA_MOVIMENTO} />
-        {cab.DTENTSAI && <InfoRow label="Entrada/Saida" value={fmtDate(cab.DTENTSAI)} />}
-        {cab.DTFATUR && <InfoRow label="Faturamento" value={fmtDate(cab.DTFATUR)} />}
         {cab.DTALTER && <InfoRow label="Ult. Alteracao" value={fmtDate(cab.DTALTER)} />}
       </Paper>
 
@@ -151,13 +159,11 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
           title="Valores"
         />
         <InfoRow label="Valor Nota" value={fmtBRL(cab.VLRNOTA)} />
-        <InfoRow label="Desconto" value={fmtBRL(cab.VLRDESC)} />
         <InfoRow label="Frete" value={fmtBRL(cab.VLRFRETE)} />
         <InfoRow label="IPI" value={fmtBRL(cab.VLRIPI)} />
         <InfoRow label="ICMS" value={fmtBRL(cab.VLRICMS)} />
         <InfoRow label="Base ICMS" value={fmtBRL(cab.BASEICMS)} />
         <InfoRow label="Substituicao" value={fmtBRL(cab.VLRSUBST)} />
-        <InfoRow label="Despesas" value={fmtBRL(cab.VLRDESPTOT)} />
       </Paper>
 
       {/* Users */}
@@ -175,11 +181,8 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
             nome={cab.NOME_USUARIO_INC || ''}
             size="small"
           />
-          <Typography variant="body2">{cab.NOME_USUARIO_INC || '-'}</Typography>
+          <Typography variant="body2">{str(cab.NOME_USUARIO_INC)}</Typography>
         </Stack>
-        {cab.NOME_USUARIO_ALTER && (
-          <InfoRow label="Alteracao" value={cab.NOME_USUARIO_ALTER} />
-        )}
         {cab.VENDEDOR_NOME && (
           <InfoRow label="Vendedor" value={cab.VENDEDOR_NOME} />
         )}
@@ -193,7 +196,7 @@ export function NotaDetalheCabTab({ cab }: NotaDetalheCabTabProps) {
             title="Observacao"
           />
           <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-            {cab.OBSERVACAO}
+            {str(cab.OBSERVACAO)}
           </Typography>
         </Paper>
       )}

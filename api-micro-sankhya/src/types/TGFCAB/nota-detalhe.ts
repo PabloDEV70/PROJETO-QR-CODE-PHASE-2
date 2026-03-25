@@ -10,44 +10,33 @@ export interface NotaDetalheCab {
   PARCEIRO_CODCID: number | null;
   PARCEIRO_CIDADE: string | null;
   PARCEIRO_UF: string | null;
-
   DTNEG: string;
   DTMOV: string;
   HRMOV: string;
-  DATA_HORA_MOVIMENTO: string;
   DTENTSAI: string | null;
   DTFATUR: string | null;
-
   STATUSNOTA: string;
   STATUS_DESCRICAO: string;
   STATUSNFE: string | null;
   STATUS_NFE_DESCRICAO: string;
-
   CODTIPOPER: number;
   TIPO_OPER_DESCRICAO: string | null;
+  TIPMOV: string | null;
+  TIPMOV_DESCRICAO: string;
   ATUALEST: string | null;
   ATUALEST_DESCRICAO: string;
   ATUALFIN: string | null;
   ATUALFIN_DESCRICAO: string;
-  TIPMOV: string | null;
-  TIPMOV_DESCRICAO: string;
-
   VLRNOTA: number | null;
-  VLRDESC: number | null;
   VLRFRETE: number | null;
   VLRIPI: number | null;
   VLRICMS: number | null;
   VLRSUBST: number | null;
   BASEICMS: number | null;
-  VLRDESPTOT: number | null;
-
   CODUSUINC: number;
   NOME_USUARIO_INC: string | null;
   CODPARC_USUARIO_INC: number | null;
-  CODUSUALTER: number | null;
-  NOME_USUARIO_ALTER: string | null;
   DTALTER: string | null;
-
   OBSERVACAO: string | null;
   CODNAT: number | null;
   NATUREZA_DESCRICAO: string | null;
@@ -57,7 +46,6 @@ export interface NotaDetalheCab {
   CODTIPVENDA: number | null;
   CODVEND: number | null;
   VENDEDOR_NOME: string | null;
-  NUFIN: number | null;
   CHAVENFE: string | null;
   SERIENOTA: string | null;
   NUMCOTACAO: number | null;
@@ -75,13 +63,10 @@ export interface NotaDetalheItem {
   USOPROD: string | null;
   USOPROD_DESCRICAO: string;
   CODLOCALORIG: number | null;
-  CODLOCALDESTINO: number | null;
   CONTROLE: string | null;
-
   QTDNEG: number;
   QTDENTREGUE: number | null;
   QTD_PENDENTE: number;
-
   VLRUNIT: number | null;
   VLRTOT: number | null;
   VLRDESC: number | null;
@@ -94,7 +79,6 @@ export interface NotaDetalheItem {
   CODCFO: number | null;
   CODTRIB: string | null;
   OBSERVACAO_ITEM: string | null;
-
   UNIDADE: string | null;
 }
 
@@ -109,20 +93,8 @@ export interface NotaDetalheTop {
   ATUALFIN: string | null;
   ATUALFIN_DESCRICAO: string;
   ATIVO: string | null;
-  GOLNEG: string | null;
   BONIFICACAO: string | null;
-  LANCDEDUTIVEL: string | null;
-  GERADUPLICATA: string | null;
-  CONTROLEEST: string | null;
-  TIPFRETE: string | null;
-  TIPFRETE_DESCRICAO: string;
-  EMITENTE: string | null;
-  EMITENTE_DESCRICAO: string;
-  HABILITANFE: string | null;
-  MODELO: string | null;
-  AD_LAYOUTCAB: string | null;
-  AD_LAYOUTITE: string | null;
-  AD_LAYOUTFIN: string | null;
+  NFE: string | null;
 }
 
 export interface NotaDetalheVar {

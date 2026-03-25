@@ -33,7 +33,7 @@ export function EmTempoRealDetailPage() {
   return (
     <PageLayout
       title={`Nota ${nunota}`}
-      subtitle={data ? `${data.cabecalho.TIPO_OPER_DESCRICAO} - ${data.cabecalho.PARCEIRO_NOME}` : ''}
+      subtitle={data ? `TOP ${data.cabecalho.CODTIPOPER} - ${data.cabecalho.PARCEIRO_NOME ?? ''}` : ''}
     >
       {isLoading ? (
         <Stack spacing={2}>

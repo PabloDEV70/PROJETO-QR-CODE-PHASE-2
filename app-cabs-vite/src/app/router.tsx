@@ -10,8 +10,8 @@ const LoginPage = lazy(() =>
 const EmTempoRealPage = lazy(() =>
   import('@/pages/em-tempo-real-page').then((m) => ({ default: m.EmTempoRealPage })),
 );
-const EmTempoRealDetailPage = lazy(() =>
-  import('@/pages/em-tempo-real-detail-page').then((m) => ({ default: m.EmTempoRealDetailPage })),
+const CabDetalhamentoPage = lazy(() =>
+  import('@/pages/cab-detalhamento-page'),
 );
 const CabsPorTopPage = lazy(() =>
   import('@/pages/cabs-por-top-page').then((m) => ({ default: m.CabsPorTopPage })),
@@ -43,7 +43,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'cab/:nunota',
-        element: <Suspense fallback={<Loading />}><EmTempoRealDetailPage /></Suspense>,
+        element: <Suspense fallback={<Loading />}><CabDetalhamentoPage /></Suspense>,
+      },
+      {
+        path: 'cab',
+        element: <Suspense fallback={<Loading />}><CabDetalhamentoPage /></Suspense>,
       },
       {
         path: 'por-top',

@@ -1,4 +1,4 @@
-import { Speed, Receipt, TableChart } from '@mui/icons-material';
+import { Speed, Receipt, TableChart, Search } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 export interface PageConfig {
@@ -25,9 +25,15 @@ export const pagesConfig: PageConfig[] = [
     keywords: ['top', 'tipo operacao', 'tabela', 'grid', 'datagrid'],
   },
   {
-    path: '/cab/:nunota', label: 'Detalhe da Nota', icon: Receipt,
-    description: 'Cabecalho, itens, TOP e variacoes de uma nota',
+    path: '/cab', label: 'Rastreio de Documento', icon: Search,
+    description: 'Investigacao completa: cabecalho, itens, lixeira, auditoria, cotacao, liberacoes',
     group: 'Principal',
-    parent: '/em-tempo-real',
+    keywords: ['rastreio', 'investigacao', 'detalhe', 'lixeira', 'auditoria', 'excluido', 'cab', 'nunota'],
+  },
+  {
+    path: '/cab/:nunota', label: 'Detalhe da Nota', icon: Receipt,
+    description: 'Detalhamento completo de uma nota',
+    group: 'Principal',
+    parent: '/cab',
   },
 ];

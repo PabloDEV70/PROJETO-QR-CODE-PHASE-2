@@ -51,7 +51,7 @@ export function NotaDetalheDrawer({ open, onClose, nunota }: NotaDetalheDrawerPr
             </Typography>
             {cab && (
               <Typography variant="caption" sx={{ opacity: 0.85 }}>
-                {cab.TIPO_OPER_DESCRICAO} | {cab.STATUS_DESCRICAO}
+                TOP {cab.CODTIPOPER} | {cab.STATUSNOTA}
               </Typography>
             )}
           </Box>

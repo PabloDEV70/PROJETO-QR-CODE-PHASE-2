@@ -74,8 +74,6 @@ export interface NotaDetalheCab {
   CODUSUINC: number;
   NOME_USUARIO_INC: string | null;
   CODPARC_USUARIO_INC: number | null;
-  CODUSUALTER: number | null;
-  NOME_USUARIO_ALTER: string | null;
   DTALTER: string | null;
   OBSERVACAO: string | null;
   CODNAT: number | null;
@@ -86,7 +84,6 @@ export interface NotaDetalheCab {
   CODTIPVENDA: number | null;
   CODVEND: number | null;
   VENDEDOR_NOME: string | null;
-  NUFIN: number | null;
   CHAVENFE: string | null;
   SERIENOTA: string | null;
 }
@@ -103,7 +100,6 @@ export interface NotaDetalheItem {
   USOPROD: string | null;
   USOPROD_DESCRICAO: string;
   CODLOCALORIG: number | null;
-  CODLOCALDESTINO: number | null;
   CONTROLE: string | null;
   QTDNEG: number;
   QTDENTREGUE: number | null;
@@ -128,26 +124,11 @@ export interface NotaDetalheTop {
   DESCROPER: string;
   DHALTER: string;
   TIPMOV: string | null;
-  TIPMOV_DESCRICAO: string;
   ATUALEST: string | null;
-  ATUALEST_DESCRICAO: string;
   ATUALFIN: string | null;
-  ATUALFIN_DESCRICAO: string;
   ATIVO: string | null;
-  GOLNEG: string | null;
   BONIFICACAO: string | null;
-  LANCDEDUTIVEL: string | null;
-  GERADUPLICATA: string | null;
-  CONTROLEEST: string | null;
-  TIPFRETE: string | null;
-  TIPFRETE_DESCRICAO: string;
-  EMITENTE: string | null;
-  EMITENTE_DESCRICAO: string;
-  HABILITANFE: string | null;
-  MODELO: string | null;
-  AD_LAYOUTCAB: string | null;
-  AD_LAYOUTITE: string | null;
-  AD_LAYOUTFIN: string | null;
+  NFE: string | null;
 }
 
 export interface NotaDetalheVar {
