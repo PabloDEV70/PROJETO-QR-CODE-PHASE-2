@@ -51,10 +51,20 @@ export function OsKanbanCard({ os, onClick }: Props) {
         </Typography>
       )}
 
+      {os.OBSERVACAO && (
+        <Typography sx={{
+          fontSize: 10.5, color: 'text.secondary', mb: 0.5,
+          overflow: 'hidden', textOverflow: 'ellipsis',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          fontStyle: 'italic', lineHeight: 1.3,
+        }}>
+          {String(os.OBSERVACAO)}
+        </Typography>
+      )}
+
       {os.TOTAL_SERVICOS > 0 && (
         <Typography sx={{ fontSize: 11, color: 'text.disabled', mb: 0.5 }}>
           {os.TOTAL_SERVICOS} servico(s)
-          {os.CUSTO_TOTAL > 0 && ` | R$ ${os.CUSTO_TOTAL.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
         </Typography>
       )}
 

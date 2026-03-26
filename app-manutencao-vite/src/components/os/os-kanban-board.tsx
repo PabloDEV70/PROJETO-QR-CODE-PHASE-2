@@ -1,26 +1,82 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Skeleton, Chip, Stack } from '@mui/material';
+import { Box, Typography, Skeleton, Chip, Stack, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { InboxRounded } from '@mui/icons-material';
-import { OS_STATUS_MAP } from '@/utils/os-constants';
-import type { OrdemServico, OsStatusCode, OsKanbanColumn } from '@/types/os-types';
+import { OS_STATUS_MAP, STATUSGIG_MAP } from '@/utils/os-constants';
+import type { OrdemServico, OsStatusCode } from '@/types/os-types';
 import { OsKanbanCard } from '@/components/os/os-kanban-card';
 
 interface Props {
   ordens: OrdemServico[];
   isLoading: boolean;
+  groupBy?: 'status' | 'statusGig';
+  onGroupByChange?: (v: 'status' | 'statusGig') => void;
 }
 
-const KANBAN_STATUSES: OsStatusCode[] = ['A', 'E'];
+interface KanbanCol {
+  key: string;
+  label: string;
+  color: string;
+  ordens: OrdemServico[];
+}
 
-function buildColumns(ordens: OrdemServico[]): OsKanbanColumn[] {
-  return KANBAN_STATUSES.map((s, i) => ({
-    status: s,
-    label: OS_STATUS_MAP[s].label,
-    color: s === 'A' ? 'warning' : 'info',
-    ordem: i,
+const STATUS_COLORS: Record<string, string> = {
+  A: '#f59e0b', E: '#0ea5e9', F: '#22c55e', C: '#ef4444', R: '#a855f7',
+};
+
+const GIG_COLORS: Record<string, string> = {
+  AN: '#f59e0b',
+  AV: '#3b82f6',
+  MA: '#f97316',
+  AI: '#10b981',
+  SI: '#22c55e',
+  SN: '#ef4444',
+};
+
+const GIG_ORDER = ['AN', 'AV', 'MA', 'AI', 'SI', 'SN'];
+
+function buildByStatus(ordens: OrdemServico[]): KanbanCol[] {
+  const statuses: OsStatusCode[] = ['A', 'E'];
+  return statuses.map((s) => ({
+    key: s,
+    label: OS_STATUS_MAP[s]?.label ?? s,
+    color: STATUS_COLORS[s] ?? '#94a3b8',
     ordens: ordens.filter((o) => o.STATUS === s),
   }));
+}
+
+function buildByStatusGig(ordens: OrdemServico[]): KanbanCol[] {
+  const grouped = new Map<string, OrdemServico[]>();
+  for (const o of ordens) {
+    const gig = o.AD_STATUSGIG ?? '(vazio)';
+    if (!grouped.has(gig)) grouped.set(gig, []);
+    grouped.get(gig)!.push(o);
+  }
+
+  const cols: KanbanCol[] = [];
+  for (const gig of GIG_ORDER) {
+    const items = grouped.get(gig);
+    if (items && items.length > 0) {
+      const def = STATUSGIG_MAP[gig];
+      cols.push({
+        key: gig,
+        label: def?.label ?? gig,
+        color: GIG_COLORS[gig] ?? '#94a3b8',
+        ordens: items,
+      });
+    }
+  }
+  for (const [gig, items] of grouped.entries()) {
+    if (!GIG_ORDER.includes(gig) && items.length > 0) {
+      cols.push({
+        key: gig,
+        label: gig === '(vazio)' ? 'Sem Status GIG' : gig,
+        color: '#94a3b8',
+        ordens: items,
+      });
+    }
+  }
+  return cols;
 }
 
 function CardSkeleton() {
@@ -38,20 +94,18 @@ function CardSkeleton() {
   );
 }
 
-function KanbanColumn({ col }: { col: OsKanbanColumn }) {
+function KanbanColumn({ col }: { col: KanbanCol }) {
   const navigate = useNavigate();
-  const statusDef = OS_STATUS_MAP[col.status as OsStatusCode];
-  const accent = statusDef?.color ?? '#94a3b8';
 
   return (
     <Box sx={{
-      minWidth: 300, flex: '1 1 300px', maxWidth: 420,
+      minWidth: 260, flex: '1 1 260px', maxWidth: 380,
       display: 'flex', flexDirection: 'column',
     }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1, py: 0.75, mb: 1 }}>
-        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: accent, flexShrink: 0 }} />
+        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: col.color, flexShrink: 0 }} />
         <Typography sx={{
-          fontSize: 12, fontWeight: 700, color: 'text.primary',
+          fontSize: 11, fontWeight: 700, color: 'text.primary',
           letterSpacing: '0.04em', textTransform: 'uppercase', flex: 1,
         }}>
           {col.label}
@@ -62,7 +116,7 @@ function KanbanColumn({ col }: { col: OsKanbanColumn }) {
           sx={{
             height: 20, minWidth: 26,
             fontWeight: 700, fontSize: 11,
-            bgcolor: accent, color: '#fff',
+            bgcolor: col.color, color: '#fff',
             borderRadius: '4px',
           }}
         />
@@ -97,16 +151,17 @@ function KanbanColumn({ col }: { col: OsKanbanColumn }) {
   );
 }
 
-export function OsKanbanBoard({ ordens, isLoading }: Props) {
-  const columns = useMemo(() => buildColumns(ordens), [ordens]);
+export function OsKanbanBoard({ ordens, isLoading, groupBy = 'statusGig', onGroupByChange }: Props) {
+  const columns = useMemo(() => {
+    return groupBy === 'statusGig' ? buildByStatusGig(ordens) : buildByStatus(ordens);
+  }, [ordens, groupBy]);
 
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
-        {[1, 2].map((i) => (
-          <Box key={i} sx={{ minWidth: 300, flex: '1 1 300px' }}>
+        {[1, 2, 3, 4].map((i) => (
+          <Box key={i} sx={{ minWidth: 260, flex: '1 1 260px' }}>
             <Skeleton variant="rounded" height={32} sx={{ mb: 1.5, borderRadius: '4px' }} />
-            <CardSkeleton />
             <CardSkeleton />
             <CardSkeleton />
           </Box>
@@ -126,18 +181,29 @@ export function OsKanbanBoard({ ordens, isLoading }: Props) {
         <Typography sx={{ color: 'text.secondary', fontSize: 14, fontWeight: 600 }}>
           Nenhuma OS ativa
         </Typography>
-        <Typography sx={{ color: 'text.disabled', fontSize: 12, mt: 0.5 }}>
-          {ordens.length === 0 ? 'Todas as OS estao finalizadas ou canceladas' : ''}
-        </Typography>
       </Box>
     );
   }
 
   return (
     <Box>
-      <Typography sx={{ fontSize: 11, color: 'text.disabled', mb: 1 }}>
-        Mostrando {ordens.length} OS ativas (Abertas + Em Execucao)
-      </Typography>
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1.5 }}>
+        <Typography sx={{ fontSize: 11, color: 'text.disabled', flex: 1 }}>
+          {ordens.length} OS ativas
+        </Typography>
+        {onGroupByChange && (
+          <ToggleButtonGroup
+            value={groupBy}
+            exclusive
+            onChange={(_, v) => { if (v) onGroupByChange(v); }}
+            size="small"
+            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 11, fontWeight: 600, px: 1.5, py: 0.25 } }}
+          >
+            <ToggleButton value="statusGig">Status GIG</ToggleButton>
+            <ToggleButton value="status">Status OS</ToggleButton>
+          </ToggleButtonGroup>
+        )}
+      </Stack>
       <Box sx={{
         display: 'flex', gap: 2, overflowX: 'auto', pb: 2,
         alignItems: 'flex-start', minHeight: 420,
@@ -145,7 +211,7 @@ export function OsKanbanBoard({ ordens, isLoading }: Props) {
         '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.1)', borderRadius: 3 },
       }}>
         {columns.map((col) => (
-          <KanbanColumn key={col.status} col={col} />
+          <KanbanColumn key={col.key} col={col} />
         ))}
       </Box>
     </Box>

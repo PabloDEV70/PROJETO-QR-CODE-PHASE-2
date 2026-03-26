@@ -1,7 +1,5 @@
-import { Box, Typography, Stack, Breadcrumbs, Link, Chip, Button, IconButton } from '@mui/material';
-import { 
-  ChevronRight, 
-  Printer, 
+import { Box, Typography, Stack, Chip, Button, IconButton } from '@mui/material';
+import {
   ArrowLeft,
   Circle,
   Save,
@@ -9,9 +7,8 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { OS_STATUS_MAP } from '@/utils/os-constants';
+import { OS_STATUS_MAP, TIPO_MANUT_MAP } from '@/utils/os-constants';
 import type { OsDetailEnriched, OsStatusCode } from '@/types/os-types';
-import { format } from 'date-fns';
 
 interface OsHeroProps {
   os: OsDetailEnriched;
@@ -20,66 +17,88 @@ interface OsHeroProps {
 export function OsHero({ os }: OsHeroProps) {
   const navigate = useNavigate();
   const statusDef = OS_STATUS_MAP[os.STATUS as OsStatusCode] || { label: os.STATUS, color: '#666' };
+  const manutDef = TIPO_MANUT_MAP[os.MANUTENCAO ?? ''];
 
   return (
-    <Box sx={{ 
-      px: 3, 
-      py: 1, 
-      borderBottom: '1px solid', 
-      borderColor: 'divider',
+    <Box sx={{
+      px: { xs: 2, md: 3 }, py: 1,
+      borderBottom: '1px solid', borderColor: 'divider',
       bgcolor: 'background.paper',
-      display: 'flex',
-      alignItems: 'center',
+      display: 'flex', alignItems: 'center',
       justifyContent: 'space-between',
-      minHeight: 56
+      minHeight: 52, gap: 2,
+      flexWrap: 'wrap',
     }}>
-      <Stack direction="row" alignItems="center" spacing={3}>
-        <IconButton onClick={() => navigate('/ordens-de-servico')} size="small" sx={{ color: 'text.secondary' }}>
+      {/* Left: Nav + OS info */}
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+        <IconButton
+          onClick={() => navigate('/ordens-de-servico')}
+          size="small"
+          sx={{ color: 'text.secondary', flexShrink: 0 }}
+        >
           <ArrowLeft size={20} />
         </IconButton>
-        
-        <Breadcrumbs separator={<ChevronRight size={14} />} sx={{ '& .MuiBreadcrumbs-li': { fontSize: 13 } }}>
-          <Link underline="hover" color="text.secondary" href="/ordens-de-servico" onClick={(e) => { e.preventDefault(); navigate('/ordens-de-servico'); }}>
-            MANUTENÇÃO
-          </Link>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '0.05em' }}>
-              OS #{os.NUOS}
-            </Typography>
-            <Chip 
-              icon={<Circle size={8} fill="currentColor" />}
-              label={os.statusLabel || statusDef.label} 
-              size="small"
-              sx={{ 
-                height: 22, 
-                fontSize: 10, 
-                fontWeight: 900, 
-                bgcolor: `${statusDef.color}15`, 
-                color: statusDef.color,
-                borderRadius: 0.5,
-                '& .MuiChip-icon': { ml: 0.5 }
-              }} 
-            />
-          </Stack>
-        </Breadcrumbs>
 
-        <Stack direction="row" spacing={2} sx={{ borderLeft: '1px solid', borderColor: 'divider', pl: 3, display: { xs: 'none', md: 'flex' } }}>
-          <Box>
-            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', lineHeight: 1, fontWeight: 800 }}>CRIADOR</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 12 }}>{os.nomeUsuInc || '-'}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', lineHeight: 1, fontWeight: 800 }}>DATA ABERTURA</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 12 }}>{os.DTABERTURA ? format(new Date(os.DTABERTURA), 'dd/MM/yy HH:mm') : '-'}</Typography>
-          </Box>
-        </Stack>
+        <Typography sx={{ fontWeight: 900, fontSize: 18, fontFamily: 'monospace', flexShrink: 0 }}>
+          #{os.NUOS}
+        </Typography>
+
+        <Chip
+          icon={<Circle size={7} fill="currentColor" />}
+          label={os.statusLabel || statusDef.label}
+          size="small"
+          sx={{
+            height: 22, fontSize: 10, fontWeight: 800,
+            bgcolor: `${statusDef.color}15`, color: statusDef.color,
+            borderRadius: '4px',
+            '& .MuiChip-icon': { ml: 0.5 },
+          }}
+        />
+
+        {manutDef && (
+          <Chip
+            label={manutDef.label}
+            size="small"
+            sx={{
+              height: 22, fontSize: 10, fontWeight: 700,
+              bgcolor: `${manutDef.color}15`, color: manutDef.color,
+              borderRadius: '4px',
+              display: { xs: 'none', sm: 'flex' },
+            }}
+          />
+        )}
+
+        {os.veiculo.placa && (
+          <Typography sx={{
+            fontSize: 12, fontWeight: 700, color: 'text.secondary',
+            fontFamily: 'monospace',
+            display: { xs: 'none', md: 'block' },
+          }}>
+            {os.veiculo.placa}
+            {os.veiculo.tag ? ` (${os.veiculo.tag})` : ''}
+          </Typography>
+        )}
       </Stack>
 
-      <Stack direction="row" spacing={1}>
-        <Button variant="outlined" color="inherit" size="small" startIcon={<Printer size={16} />} sx={{ fontWeight: 800, height: 32 }}>Imprimir</Button>
-        <Button variant="contained" color="success" size="small" startIcon={<CheckCircle2 size={16} />} sx={{ fontWeight: 800, height: 32, boxShadow: 'none' }}>Finalizar</Button>
-        <Button variant="contained" color="primary" size="small" startIcon={<Save size={16} />} sx={{ fontWeight: 800, height: 32, boxShadow: 'none' }}>Salvar</Button>
-        <IconButton size="small" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 0.5 }}><MoreHorizontal size={18} /></IconButton>
+      {/* Right: Actions */}
+      <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+        <Button
+          variant="contained" color="success" size="small"
+          startIcon={<CheckCircle2 size={15} />}
+          sx={{ fontWeight: 700, height: 32, boxShadow: 'none', textTransform: 'none', fontSize: 12 }}
+        >
+          Finalizar
+        </Button>
+        <Button
+          variant="contained" color="primary" size="small"
+          startIcon={<Save size={15} />}
+          sx={{ fontWeight: 700, height: 32, boxShadow: 'none', textTransform: 'none', fontSize: 12 }}
+        >
+          Salvar
+        </Button>
+        <IconButton size="small" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '6px' }}>
+          <MoreHorizontal size={16} />
+        </IconButton>
       </Stack>
     </Box>
   );

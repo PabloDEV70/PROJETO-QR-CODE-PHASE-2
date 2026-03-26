@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getMesRhDates } from '@/utils/date-helpers';
 import { saveOsFilters, loadOsFilters } from '@/utils/os-filter-storage';
@@ -11,14 +11,15 @@ export function useOsUrlParams() {
 
   const defaults = useMemo(() => {
     const saved = loadOsFilters();
-    const rh = getMesRhDates();
+    const mesRh = getMesRhDates();
     return {
-      dataInicio: saved?.dataInicio ?? rh.ini,
-      dataFim: saved?.dataFim ?? rh.fim,
+      dataInicio: saved?.dataInicio ?? mesRh.ini,
+      dataFim: saved?.dataFim ?? mesRh.fim,
       status: saved?.status ?? '',
       manutencao: saved?.manutencao ?? '',
       statusGig: saved?.statusGig ?? '',
       tab: saved?.tab ?? 'lista',
+      showKpis: saved?.showKpis ?? '1',
     };
   }, []);
 
@@ -32,17 +33,30 @@ export function useOsUrlParams() {
   const status = get('status', defaults.status);
   const manutencao = get('manutencao', defaults.manutencao);
   const statusGig = get('statusGig', defaults.statusGig);
-  const search = get('search', '');
+  const rawSearch = get('search', '');
   const tab = (get('tab', defaults.tab) as OsTab) || 'lista';
   const page = Number(get('page', '1'));
   const limit = Number(get('limit', '50'));
+  const showKpis = get('showKpis', defaults.showKpis) === '1';
+
+  // Debounced search: URL updates immediately, but API call uses debounced value
+  const [debouncedSearch, setDebouncedSearch] = useState(rawSearch);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(rawSearch);
+    }, 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [rawSearch]);
 
   const setParam = useCallback(
     (key: string, value: string) => {
       const next = new URLSearchParams(searchParams);
       if (value) next.set(key, value);
       else next.delete(key);
-      if (key !== 'page' && key !== 'tab') next.set('page', '1');
+      if (key !== 'page' && key !== 'tab' && key !== 'showKpis') next.set('page', '1');
       saveOsFilters(next);
       setSearchParams(next, { replace: true });
     },
@@ -50,29 +64,33 @@ export function useOsUrlParams() {
   );
 
   const clearFilters = useCallback(() => {
-    const rh = getMesRhDates();
     const next = new URLSearchParams();
-    next.set('dataInicio', rh.ini);
-    next.set('dataFim', rh.fim);
     next.set('tab', tab);
+    if (showKpis) next.set('showKpis', '1');
+    const mesRh = getMesRhDates();
+    next.set('dataInicio', mesRh.ini);
+    next.set('dataFim', mesRh.fim);
     saveOsFilters(next);
     setSearchParams(next, { replace: true });
-  }, [tab, setSearchParams]);
+  }, [tab, showKpis, setSearchParams]);
 
   const listParams: OsListParams = useMemo(
     () => ({
-      page, limit, dataInicio, dataFim,
+      page, limit,
+      ...(dataInicio && { dataInicio }),
+      ...(dataFim && { dataFim }),
       ...(status && { status }),
       ...(manutencao && { manutencao }),
       ...(statusGig && { statusGig }),
-      ...(search && { search }),
+      ...(debouncedSearch && { search: debouncedSearch }),
     }),
-    [page, limit, dataInicio, dataFim, status, manutencao, statusGig, search],
+    [page, limit, dataInicio, dataFim, status, manutencao, statusGig, debouncedSearch],
   );
 
   return {
-    dataInicio, dataFim, status, manutencao, statusGig, search,
-    tab, page, limit,
+    dataInicio, dataFim, status, manutencao, statusGig,
+    search: rawSearch,
+    tab, page, limit, showKpis,
     setParam, clearFilters, listParams,
   };
 }

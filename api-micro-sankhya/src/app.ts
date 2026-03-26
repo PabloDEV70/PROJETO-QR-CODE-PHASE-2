@@ -9,6 +9,7 @@ import { errorHandler } from '@/infra/http/plugins/error-handler';
 import { authGuard } from '@/infra/http/plugins/auth-guard';
 import { publicOriginGuard } from '@/infra/http/plugins/public-origin-guard';
 import { cleanup as cleanupRateLimiter } from '@/domain/services/rate-limiter.service';
+import { registerMetrics } from '@/infra/http/plugins/metrics.plugin';
 import { routePlugins } from '@/infra/http/routes/registry';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -17,6 +18,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Cleanup expired rate-limit entries every 60s
   const rateLimitTimer = setInterval(cleanupRateLimiter, 60_000);
   app.addHook('onClose', () => clearInterval(rateLimitTimer));
+
+  // Prometheus metrics (before auth so /metrics is accessible)
+  await registerMetrics(app);
 
   // Plugins
   await registerCors(app);

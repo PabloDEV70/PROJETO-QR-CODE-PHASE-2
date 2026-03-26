@@ -2,7 +2,7 @@ const STORAGE_KEY = 'manutencao-filters';
 
 const PERSISTED_KEYS = [
   'dataInicio', 'dataFim', 'status', 'manutencao',
-  'statusGig', 'tab',
+  'statusGig', 'tab', 'showKpis',
 ] as const;
 
 type FilterRecord = Record<string, string>;

@@ -2,19 +2,23 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { OsListService } from '../../../domain/services/os-list.service';
 
+const optDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')).transform((v) => v || undefined);
+const optEnum = <T extends string>(values: readonly [T, ...T[]]) =>
+  z.enum(values).optional().or(z.literal('')).transform((v) => v || undefined);
+
 const listSchema = z.object({
-  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dataInicio: optDate,
+  dataFim: optDate,
   codveiculo: z.string().optional(),
   codusuexec: z.string().optional(),
   codparcexec: z.string().optional(),
-  status: z.enum(['A', 'E', 'F', 'C', 'R']).optional(),
-  tipo: z.enum(['I', 'E']).optional(),
-  manutencao: z.enum(['C', 'P', 'O', 'S', 'R', 'T', '1', '2', '3', '4', '5']).optional(),
-  statusGig: z.enum(['MA', 'AI', 'AV', 'SI', 'AN', 'SN']).optional(),
-  search: z.string().optional(),
+  status: optEnum(['A', 'E', 'F', 'C', 'R']),
+  tipo: optEnum(['I', 'E']),
+  manutencao: optEnum(['C', 'P', 'O', 'S', 'R', 'T', '1', '2', '3', '4', '5']),
+  statusGig: optEnum(['MA', 'AI', 'AV', 'SI', 'AN', 'SN']),
+  search: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
   page: z.string().transform(Number).default(1),
-  limit: z.string().transform(Number).default(30),
+  limit: z.string().transform(Number).default(50),
 });
 
 const colabSchema = z.object({

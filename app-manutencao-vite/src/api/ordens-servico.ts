@@ -133,3 +133,57 @@ export async function deleteServico(nuos: number, sequencia: number): Promise<Mu
   const res = await apiClient.delete<MutationResult>(`/os-manutencao/${nuos}/servicos/${sequencia}`);
   return res.data;
 }
+
+// --- M3: Compras vinculadas ---
+export interface OsCompraResponse {
+  notas: OsComprasNota[];
+  itens: OsComprasItem[];
+}
+export interface OsComprasNota {
+  NUNOTA: number;
+  NUMNOTA: number | null;
+  CODTIPOPER: number;
+  TIPO_OPER_DESCRICAO: string | null;
+  TIPMOV: string | null;
+  STATUSNOTA: string;
+  VLRNOTA: number | null;
+  NUMCOTACAO: number | null;
+  DTNEG: string | null;
+  NOME_USUARIO: string | null;
+}
+export interface OsComprasItem {
+  NUNOTA: number;
+  SEQUENCIA: number;
+  CODPROD: number;
+  PRODUTO_DESCRICAO: string;
+  QTDNEG: number;
+  QTDENTREGUE: number | null;
+  QTD_PENDENTE: number;
+  PENDENTE: string | null;
+  STATUS_COTACAO: string | null;
+  NUMPEDIDO: number | null;
+  VLRUNIT: number | null;
+  VLRTOT: number | null;
+  UNIDADE: string | null;
+}
+
+export async function getOsCompras(nuos: number): Promise<OsCompraResponse> {
+  const { data } = await apiClient.get<OsCompraResponse>(`/os/${nuos}/compras`);
+  return data;
+}
+
+// --- M4: Timeline ---
+export interface OsTimelineEntry {
+  SEQUENCIA: number;
+  NUOS: number;
+  DHALTER: string;
+  CODUSU: number | null;
+  NOME_USUARIO: string | null;
+  AD_STATUSGIG: string | null;
+  AD_FINALIZACAO: string | null;
+}
+
+export async function getOsTimeline(nuos: number): Promise<OsTimelineEntry[]> {
+  const { data } = await apiClient.get<OsTimelineEntry[]>(`/os/${nuos}/timeline`);
+  return data;
+}

@@ -70,6 +70,11 @@ SELECT * FROM (
       FROM TCFSERVOS srv
       WHERE srv.NUOS = os.NUOS
     ) as totalServicos,
+    (
+      SELECT TOP 1 CAST(se.DESCRICAO AS VARCHAR(300))
+      FROM TCSOSE se
+      WHERE se.NUMOS = os.NUOS
+    ) as OBSERVACAO,
     ROW_NUMBER() OVER (ORDER BY -- @ORDER) AS RowNum
   FROM TCFOSCAB os
   LEFT JOIN TGFVEI v ON os.CODVEICULO = v.CODVEICULO
