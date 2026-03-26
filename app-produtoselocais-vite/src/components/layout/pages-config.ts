@@ -1,5 +1,5 @@
 import {
-  Dashboard, Warehouse, Inventory,
+  Dashboard, Warehouse, Inventory, QrCode2, People,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -31,5 +31,17 @@ export const pagesConfig: PageConfig[] = [
     description: 'Busca e detalhes de produtos com estoque por local',
     group: 'Principal',
     keywords: ['produto', 'buscar', 'peca', 'material', 'item', 'grupo'],
+  },
+  {
+    path: '/series', label: 'Series', icon: QrCode2,
+    description: 'Produtos por numero de serie (TGFSER)',
+    group: 'Principal',
+    keywords: ['serie', 'serial', 'numero', 'rastreio', 'tgfser', 'patrimonio'],
+  },
+  {
+    path: '/empenhados', label: 'Empenhados', icon: People,
+    description: 'Materiais empenhados por colaborador',
+    group: 'Principal',
+    keywords: ['empenhado', 'colaborador', 'usuario', 'posse', 'material', 'funcionario'],
   },
 ];

@@ -13,6 +13,12 @@ const DashboardPage = lazy(() =>
 const LocaisPage = lazy(() =>
   import('@/pages/locais-page').then((m) => ({ default: m.LocaisPage })),
 );
+const SeriesPage = lazy(() =>
+  import('@/pages/series-page').then((m) => ({ default: m.SeriesPage })),
+);
+const EmpenhadosPage = lazy(() =>
+  import('@/pages/empenhados-page').then((m) => ({ default: m.EmpenhadosPage })),
+);
 
 function Loading() {
   return (
@@ -49,6 +55,14 @@ export const router = createBrowserRouter([
       {
         path: 'locais',
         element: <Suspense fallback={<Loading />}><LocaisPage /></Suspense>,
+      },
+      {
+        path: 'series',
+        element: <Suspense fallback={<Loading />}><SeriesPage /></Suspense>,
+      },
+      {
+        path: 'empenhados',
+        element: <Suspense fallback={<Loading />}><EmpenhadosPage /></Suspense>,
       },
       {
         path: 'produtos',
