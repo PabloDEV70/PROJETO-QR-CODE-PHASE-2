@@ -1,101 +1,45 @@
 export const osList = `
 SELECT TOP @LIMIT * FROM (
   SELECT
-    os.NUOS,
-    os.STATUS,
-    os.MANUTENCAO,
-    os.TIPO,
-    os.DTABERTURA,
-    os.DATAINI,
-    os.DATAFIN,
-    os.PREVISAO,
-    os.DHALTER,
-    os.KM,
-    os.HORIMETRO,
-    os.CODVEICULO,
-    os.CODPARC,
-    os.CODMOTORISTA,
-    os.NUPLANO,
-    os.AD_STATUSGIG,
-    os.AD_BLOQUEIOS,
-    os.AD_LOCALMANUTENCAO,
-    os.AD_OSORIGEM,
-    os.AD_FINALIZACAO,
-    os.CODEMP,
-    os.CODEMPNEGOC,
-    os.CODCENCUS,
-    os.CODNAT,
-    os.CODPROJ,
-    os.CODUSU,
-    os.CODUSUINC,
-    os.CODUSUFINALIZA,
-    os.CODUSUREABRE,
-    os.AD_CODUSUALTER,
-    os.OSMANUAL,
-    os.AUTOMATICO,
-    os.NUNOTA,
-    os.AD_NUNOTASOLCOMPRA,
-    os.AD_NUMCONTRATO,
+    os.NUOS, os.STATUS, os.MANUTENCAO, os.TIPO,
+    os.DTABERTURA, os.DATAINI, os.DATAFIN, os.PREVISAO, os.DHALTER,
+    os.KM, os.HORIMETRO,
+    os.CODVEICULO, os.CODPARC, os.CODMOTORISTA, os.NUPLANO,
+    os.AD_STATUSGIG, os.AD_BLOQUEIOS, os.AD_LOCALMANUTENCAO,
+    os.AD_OSORIGEM, os.AD_FINALIZACAO,
+    os.CODEMP, os.CODEMPNEGOC, os.CODCENCUS,
+    os.CODUSUINC, os.CODUSUFINALIZA, os.AD_CODUSUALTER,
     os.AD_DHALTERSTATUS,
-    os.AD_DATAFINAL,
-    os.AD_DTPLANEJA,
     v.PLACA,
     CAST(v.MARCAMODELO AS VARCHAR(200)) AS MARCAMODELO,
     v.AD_TAG,
-    v.ANOFABRIC,
-    v.ANOMOD,
-    v.COMBUSTIVEL,
-    v.PROPRIO,
     mot.NOMEPARC AS NOMEMOTORISTA,
     par.NOMEPARC AS NOMEPARC,
     emp.NOMEFANTASIA AS NOMEEMPRESA,
-    empn.NOMEFANTASIA AS NOMEEMPNEGOC,
-    cc.DESCRCENCUS AS DESCRCENCUS,
-    nat.DESCRNAT AS DESCRNAT,
-    prj.IDENTIFICACAO AS NOMEPROJETO,
-    plan.DESCRICAO AS DESCRICAOPLANO,
-    usu.NOMEUSU AS NOMEUSU,
     uinc.NOMEUSU AS NOMEUSUINC,
     ufin.NOMEUSU AS NOMEUSUFIN,
-    ureab.NOMEUSU AS NOMEUSUREABRE,
     ualter.NOMEUSU AS NOMEUSUALTER,
+    pm.DESCRICAO AS DESCRICAOPLANO,
     CASE os.STATUS
-      WHEN 'A' THEN 'Aberta'
-      WHEN 'E' THEN 'Em Execucao'
-      WHEN 'F' THEN 'Finalizada'
-      WHEN 'C' THEN 'Cancelada'
-      WHEN 'R' THEN 'Reaberta'
-      ELSE os.STATUS
+      WHEN 'A' THEN 'Aberta' WHEN 'E' THEN 'Em Execucao'
+      WHEN 'F' THEN 'Finalizada' WHEN 'C' THEN 'Cancelada'
+      WHEN 'R' THEN 'Reaberta' ELSE os.STATUS
     END AS statusLabel,
     CASE os.MANUTENCAO
-      WHEN 'C' THEN 'Corretiva'
-      WHEN 'P' THEN 'Preventiva'
-      WHEN 'O' THEN 'Outros'
-      WHEN 'S' THEN 'Socorro'
-      WHEN 'R' THEN 'Reforma'
-      WHEN 'T' THEN 'Retorno'
-      WHEN '1' THEN 'Rev. Garantia'
-      WHEN '2' THEN 'Corretiva Prog.'
-      WHEN '3' THEN 'Inventariado'
-      WHEN '4' THEN 'Logistica'
-      WHEN '5' THEN 'Borracharia'
-      ELSE os.MANUTENCAO
+      WHEN 'C' THEN 'Corretiva' WHEN 'P' THEN 'Preventiva'
+      WHEN 'O' THEN 'Outros' WHEN 'S' THEN 'Socorro'
+      WHEN 'R' THEN 'Reforma' WHEN 'T' THEN 'Retorno'
+      WHEN '1' THEN 'Rev. Garantia' WHEN '2' THEN 'Corretiva Prog.'
+      WHEN '3' THEN 'Inventariado' WHEN '4' THEN 'Logistica'
+      WHEN '5' THEN 'Borracharia' ELSE os.MANUTENCAO
     END AS manutencaoLabel,
-    CASE os.TIPO
-      WHEN 'I' THEN 'Interna'
-      WHEN 'E' THEN 'Externa'
-      ELSE os.TIPO
-    END AS tipoLabel,
+    CASE os.TIPO WHEN 'I' THEN 'Interna' WHEN 'E' THEN 'Externa' ELSE os.TIPO END AS tipoLabel,
     CASE os.AD_LOCALMANUTENCAO
-      WHEN '1' THEN 'Oficina'
-      WHEN '2' THEN 'Campo'
-      WHEN '3' THEN 'Terceiro'
+      WHEN '1' THEN 'Oficina' WHEN '2' THEN 'Campo' WHEN '3' THEN 'Terceiro'
       ELSE os.AD_LOCALMANUTENCAO
     END AS localLabel,
     CASE os.AD_FINALIZACAO
-      WHEN 'LF' THEN 'Funcionando'
-      WHEN 'LT' THEN 'Com Restricao'
-      WHEN 'LD' THEN 'Com Defeito'
+      WHEN 'LF' THEN 'Funcionando' WHEN 'LT' THEN 'Com Restricao' WHEN 'LD' THEN 'Com Defeito'
       ELSE os.AD_FINALIZACAO
     END AS finalizacaoLabel,
     ISNULL(srvAgg.TOTAL_SERVICOS, 0) AS TOTAL_SERVICOS,
@@ -106,16 +50,10 @@ SELECT TOP @LIMIT * FROM (
   LEFT JOIN TGFPAR mot ON os.CODMOTORISTA = mot.CODPARC
   LEFT JOIN TGFPAR par ON os.CODPARC = par.CODPARC
   LEFT JOIN TSIEMP emp ON os.CODEMP = emp.CODEMP
-  LEFT JOIN TSIEMP empn ON os.CODEMPNEGOC = empn.CODEMP
-  LEFT JOIN TSICUS cc ON os.CODCENCUS = cc.CODCENCUS
-  LEFT JOIN TGFNAT nat ON os.CODNAT = nat.CODNAT
-  LEFT JOIN TCSPRJ prj ON os.CODPROJ = prj.CODPROJ
-  LEFT JOIN TCFMAN plan ON os.NUPLANO = plan.NUPLANO
-  LEFT JOIN TSIUSU usu ON os.CODUSU = usu.CODUSU
   LEFT JOIN TSIUSU uinc ON os.CODUSUINC = uinc.CODUSU
   LEFT JOIN TSIUSU ufin ON os.CODUSUFINALIZA = ufin.CODUSU
-  LEFT JOIN TSIUSU ureab ON os.CODUSUREABRE = ureab.CODUSU
   LEFT JOIN TSIUSU ualter ON os.AD_CODUSUALTER = ualter.CODUSU
+  LEFT JOIN TCFMAN pm ON os.NUPLANO = pm.NUPLANO
   LEFT JOIN (
     SELECT NUOS, COUNT(*) AS TOTAL_SERVICOS, SUM(ISNULL(VLRTOT, 0)) AS CUSTO_TOTAL
     FROM TCFSERVOS GROUP BY NUOS
