@@ -4,13 +4,18 @@ import { getRequestContext, getCorrelationId } from './correlation-id.context';
 
 const SENSITIVE_FIELDS = new Set([
   'password', 'token', 'accessToken', 'refreshToken', 'authorization',
+  'senha', 'cpf', 'rg', 'secret',
+  'SENHA', 'CPF', 'RG', 'SENHASMTP', 'SENHAECONECT', 'INTERNO',
 ]);
 
 function redact(metadata?: Record<string, any>): Record<string, any> {
   if (!metadata) return {};
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(metadata)) {
-    result[key] = SENSITIVE_FIELDS.has(key) ? '[REDACTED]' : value;
+    const isSensitive = SENSITIVE_FIELDS.has(key) ||
+      SENSITIVE_FIELDS.has(key.toLowerCase()) ||
+      /password|senha|token|secret/i.test(key);
+    result[key] = isSensitive ? '[REDACTED]' : value;
   }
   return result;
 }

@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InspectionService } from '../modules/inspection/services/inspection.service';
-import { SkipThrottle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import { timingSafeEqual } from 'crypto';
 
 /**
@@ -13,7 +13,7 @@ import { timingSafeEqual } from 'crypto';
  * Only SELECT queries are allowed.
  */
 @Controller('public-query')
-@SkipThrottle()
+@Throttle({ default: { limit: 30, ttl: 60000 } })
 export class PublicQueryController {
   private readonly logger = new Logger(PublicQueryController.name);
   private readonly apiKey: string;

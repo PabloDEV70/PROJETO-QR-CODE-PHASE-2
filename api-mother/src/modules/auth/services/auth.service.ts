@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { TokenService, TokenPayload } from './token.service';
 import { UserValidationService, UserDetails } from './user-validation.service';
 import { StructuredLogger } from '../../../common/logging/structured-logger.service';
-import { AuthResponseDto } from '../dto/auth-response.dto'; // Import AuthResponseDto
+import { AuthResponseDto } from '../dto/auth-response.dto';
+import { sanitizeUserResponse } from '../../../common/utils/mask-pii';
 
 @Injectable()
 export class AuthService {
@@ -100,7 +101,7 @@ export class AuthService {
       }
 
       this.logger.debug('User details retrieved', { userId });
-      return user;
+      return sanitizeUserResponse(user) as UserDetails;
     } catch (error) {
       this.logger.error('Failed to get user details', error as Error, { userId });
       throw error;

@@ -122,7 +122,7 @@ export class SqlServerService {
 
       this.logger.error('SQL execution failed', error as Error, {
         query,
-        params,
+        paramCount: params.length,
         executionTime,
         database: databaseKey,
       });
@@ -130,7 +130,7 @@ export class SqlServerService {
       throw new DatabaseException('An error occurred while executing the SQL query.', {
         database: databaseKey,
         query: query,
-        params: params,
+        paramCount: params.length,
         originalError: {
           message: (error as Error)?.message || error,
           name: (error as Error)?.name,
