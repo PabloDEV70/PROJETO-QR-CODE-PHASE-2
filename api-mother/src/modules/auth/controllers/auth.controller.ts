@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import {
@@ -12,8 +12,9 @@ import {
 } from '@nestjs/swagger';
 import { LoginDto } from '../dto/login.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
-import { RefreshTokenDto } from '../dto/refresh-token.dto'; // Import RefreshTokenDto
+import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { AuthService } from '../services/auth.service';
+import { TokenRevocationService } from '../services/token-revocation.service';
 import { StructuredLogger } from '../../../common/logging/structured-logger.service';
 
 @ApiTags('Auth')
@@ -21,6 +22,7 @@ import { StructuredLogger } from '../../../common/logging/structured-logger.serv
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly tokenRevocationService: TokenRevocationService,
     private readonly appLogger: StructuredLogger,
   ) {}
 
@@ -150,5 +152,24 @@ export class AuthController {
   async getMe(@Request() req) {
     // Retorna todos os dados detalhados do usuário
     return this.authService.getUserDetails(req.user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('logout')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Logout',
+    description: 'Revoga o token de acesso atual, invalidando-o para uso futuro',
+  })
+  @ApiOkResponse({
+    description: 'Logout realizado com sucesso',
+    schema: { example: { success: true, message: 'Logout realizado com sucesso' } },
+  })
+  async logout(@Headers('authorization') authHeader: string) {
+    const token = authHeader?.replace('Bearer ', '');
+    if (token) {
+      await this.tokenRevocationService.revoke(token);
+    }
+    return { success: true, message: 'Logout realizado com sucesso' };
   }
 }

@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsNumber, Min, Max } from 'class-validator';
 
 /**
  * DTO para requisição de execução de query
@@ -20,4 +20,17 @@ export class QueryRequestDto {
   @IsOptional()
   @IsString()
   database?: string;
+
+  @ApiPropertyOptional({
+    description: 'Limite máximo de linhas retornadas (injeta TOP automaticamente se ausente)',
+    example: 5000,
+    default: 5000,
+    minimum: 1,
+    maximum: 10000,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(10000)
+  maxRows?: number;
 }

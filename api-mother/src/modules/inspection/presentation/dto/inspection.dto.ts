@@ -4,7 +4,7 @@
  * DTOs para endpoints de inspeção do banco de dados.
  */
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsArray, IsOptional } from 'class-validator';
+import { IsString, IsArray, IsOptional, IsNumber, Min, Max } from 'class-validator';
 
 // ====================
 // Request DTOs
@@ -26,6 +26,19 @@ export class QueryRequestDto {
   @IsOptional()
   @IsArray()
   params?: unknown[];
+
+  @ApiPropertyOptional({
+    description: 'Limite máximo de linhas retornadas (injeta TOP automaticamente se ausente)',
+    example: 5000,
+    default: 5000,
+    minimum: 1,
+    maximum: 10000,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(10000)
+  maxRows?: number;
 }
 
 // ====================

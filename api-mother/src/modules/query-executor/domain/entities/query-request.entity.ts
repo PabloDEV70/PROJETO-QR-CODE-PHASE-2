@@ -6,10 +6,14 @@ import { GatewayErrorCode } from '../../../../common/enums/gateway-error-code.en
  * Entidade de domínio para requisição de query
  */
 export class RequisicaoQuery {
+  public readonly maxRows: number;
+
   constructor(
     public readonly query: string,
     public readonly database?: string,
+    maxRows?: number,
   ) {
+    this.maxRows = maxRows ?? 5000;
     this.validar();
   }
 

@@ -5,6 +5,7 @@ import { QueryExecutorPort } from '../../ports';
 export interface ExecutarQueryInput {
   query: string;
   database?: string;
+  maxRows?: number;
 }
 
 /**
@@ -25,7 +26,7 @@ export class ExecutarQueryUseCase {
 
     try {
       // Criar entidade de requisição (valida automaticamente)
-      const requisicao = new RequisicaoQuery(input.query, input.database);
+      const requisicao = new RequisicaoQuery(input.query, input.database, input.maxRows);
 
       // Executar query através do port
       const inicioExecucao = Date.now();

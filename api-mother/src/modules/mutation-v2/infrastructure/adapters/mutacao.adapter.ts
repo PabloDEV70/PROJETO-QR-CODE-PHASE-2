@@ -4,6 +4,7 @@ import { AuditService } from '../../../../security/audit.service';
 import { DatabaseContextService } from '../../../../database/database-context.service';
 import { IProvedorMutacao, IProvedorValidacao, PROVEDOR_VALIDACAO } from '../../application/ports';
 import { OperacaoMutacao, ResultadoMutacao } from '../../domain/entities';
+import { safeBracket } from '../../../../common/utils/sql-identifier-validator';
 
 @Injectable()
 export class MutacaoAdapter implements IProvedorMutacao {
@@ -43,7 +44,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
             this.logger.log(`Gerando ID automático para coluna PK: ${chavePK}`);
 
             // Buscar MAX ID + 1
-            const maxIdQuery = `SELECT COALESCE(MAX([${chavePK}]), 0) + 1 as novoId FROM [${operacao.nomeTabela}]`;
+            const maxIdQuery = `SELECT COALESCE(MAX(${safeBracket(chavePK, 'column')}), 0) + 1 as novoId FROM ${safeBracket(operacao.nomeTabela, 'table')}`;
             const resultMaxId = await this.sqlServerService.executeSQL(maxIdQuery, []);
             const proximoId = resultMaxId?.[0]?.novoId ?? resultMaxId?.[0]?.NOVOID ?? 1;
 
@@ -58,8 +59,8 @@ export class MutacaoAdapter implements IProvedorMutacao {
       const valores = Object.values(dados);
       const placeholders = campos.map((_, i) => `@param${i + 1}`).join(', ');
 
-      const quotedCampos = campos.map((c) => `[${c}]`).join(', ');
-      const query = `INSERT INTO [${operacao.nomeTabela}] (${quotedCampos}) VALUES (${placeholders})`;
+      const quotedCampos = campos.map((c) => safeBracket(c, 'column')).join(', ');
+      const query = `INSERT INTO ${safeBracket(operacao.nomeTabela, 'table')} (${quotedCampos}) VALUES (${placeholders})`;
 
       // Se dry-run, apenas retornar preview
       if (operacao.dryRun) {
@@ -138,16 +139,17 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Construir SET clause
       const camposSet = Object.keys(operacao.dadosNovos);
       const valoresSet = Object.values(operacao.dadosNovos);
-      const setClause = camposSet.map((c, i) => `[${c}] = @param${i + 1}`).join(', ');
+      const setClause = camposSet.map((c, i) => `${safeBracket(c, 'column')} = @param${i + 1}`).join(', ');
 
       // Construir WHERE clause (para UPDATE query, params começam após SET)
       const camposWhere = Object.keys(operacao.condicao);
       const valoresWhere = Object.values(operacao.condicao);
-      const whereClauseForUpdate = camposWhere.map((c, i) => `[${c}] = @param${camposSet.length + i + 1}`).join(' AND ');
+      const whereClauseForUpdate = camposWhere.map((c, i) => `${safeBracket(c, 'column')} = @param${camposSet.length + i + 1}`).join(' AND ');
       // WHERE clause para COUNT query (params começam em @param1)
-      const whereClauseForCount = camposWhere.map((c, i) => `[${c}] = @param${i + 1}`).join(' AND ');
+      const whereClauseForCount = camposWhere.map((c, i) => `${safeBracket(c, 'column')} = @param${i + 1}`).join(' AND ');
 
-      const query = `UPDATE TOP(${operacao.limiteRegistros}) [${operacao.nomeTabela}] SET ${setClause} WHERE ${whereClauseForUpdate}`;
+      const limiteSeguro = Math.min(Math.max(1, Number(operacao.limiteRegistros) || 1), 10000);
+      const query = `UPDATE TOP(${limiteSeguro}) ${safeBracket(operacao.nomeTabela, 'table')} SET ${setClause} WHERE ${whereClauseForUpdate}`;
       const params = [...valoresSet, ...valoresWhere];
 
       // Se dry-run, apenas retornar preview
@@ -162,9 +164,9 @@ export class MutacaoAdapter implements IProvedorMutacao {
       }
 
       // Count matching records before update
-      const countQuery = `SELECT COUNT(*) as total FROM [${operacao.nomeTabela}] WHERE ${whereClauseForCount}`;
+      const countQuery = `SELECT COUNT(*) as total FROM ${safeBracket(operacao.nomeTabela, 'table')} WHERE ${whereClauseForCount}`;
       const countResult = await this.sqlServerService.executeSQL(countQuery, valoresWhere);
-      const matchingCount = Math.min(countResult?.[0]?.total ?? countResult?.[0]?.TOTAL ?? 0, operacao.limiteRegistros);
+      const matchingCount = Math.min(countResult?.[0]?.total ?? countResult?.[0]?.TOTAL ?? 0, limiteSeguro);
 
       // Executar UPDATE - executeSQL returns recordset (empty for UPDATE)
       await this.sqlServerService.executeSQL(query, params);
@@ -228,10 +230,12 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Construir WHERE clause
       const camposWhere = Object.keys(operacao.condicao);
       const valoresWhere = Object.values(operacao.condicao);
-      const whereClause = camposWhere.map((c, i) => `[${c}] = @param${i + 1}`).join(' AND ');
+      const whereClause = camposWhere.map((c, i) => `${safeBracket(c, 'column')} = @param${i + 1}`).join(' AND ');
 
       let query: string;
       let usarSoftDelete = operacao.softDelete;
+      const limiteSeguro = Math.min(Math.max(1, Number(operacao.limiteRegistros) || 1), 10000);
+      const tabelaSegura = safeBracket(operacao.nomeTabela, 'table');
 
       if (operacao.softDelete) {
         // Verificar se a tabela tem coluna ATIVO para soft delete
@@ -244,10 +248,10 @@ export class MutacaoAdapter implements IProvedorMutacao {
 
       if (usarSoftDelete) {
         // Soft delete: UPDATE SET ATIVO='N'
-        query = `UPDATE TOP(${operacao.limiteRegistros}) [${operacao.nomeTabela}] SET ATIVO = 'N' WHERE ${whereClause}`;
+        query = `UPDATE TOP(${limiteSeguro}) ${tabelaSegura} SET ATIVO = 'N' WHERE ${whereClause}`;
       } else {
         // Hard delete
-        query = `DELETE TOP(${operacao.limiteRegistros}) FROM [${operacao.nomeTabela}] WHERE ${whereClause}`;
+        query = `DELETE TOP(${limiteSeguro}) FROM ${tabelaSegura} WHERE ${whereClause}`;
       }
 
       // Se dry-run, apenas retornar preview
@@ -262,9 +266,9 @@ export class MutacaoAdapter implements IProvedorMutacao {
       }
 
       // Count matching records before delete
-      const countQuery = `SELECT COUNT(*) as total FROM [${operacao.nomeTabela}] WHERE ${whereClause}`;
+      const countQuery = `SELECT COUNT(*) as total FROM ${tabelaSegura} WHERE ${whereClause}`;
       const countResult = await this.sqlServerService.executeSQL(countQuery, valoresWhere);
-      const matchingCount = Math.min(countResult?.[0]?.total ?? countResult?.[0]?.TOTAL ?? 0, operacao.limiteRegistros);
+      const matchingCount = Math.min(countResult?.[0]?.total ?? countResult?.[0]?.TOTAL ?? 0, limiteSeguro);
 
       // Executar DELETE - executeSQL returns recordset (empty for DELETE/UPDATE)
       await this.sqlServerService.executeSQL(query, valoresWhere);
@@ -324,9 +328,10 @@ export class MutacaoAdapter implements IProvedorMutacao {
 
     const camposWhere = Object.keys(operacao.condicao);
     const valoresWhere = Object.values(operacao.condicao);
-    const whereClause = camposWhere.map((c, i) => `[${c}] = @param${i + 1}`).join(' AND ');
+    const whereClause = camposWhere.map((c, i) => `${safeBracket(c, 'column')} = @param${i + 1}`).join(' AND ');
 
-    const query = `SELECT TOP(${operacao.limiteRegistros + 1}) * FROM [${operacao.nomeTabela}] WHERE ${whereClause}`;
+    const limiteSeguro = Math.min(Math.max(1, Number(operacao.limiteRegistros) || 1), 10000);
+    const query = `SELECT TOP(${limiteSeguro + 1}) * FROM ${safeBracket(operacao.nomeTabela, 'table')} WHERE ${whereClause}`;
 
     try {
       // executeSQL returns recordset directly (array)

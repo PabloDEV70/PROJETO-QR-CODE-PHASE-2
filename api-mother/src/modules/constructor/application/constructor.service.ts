@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { SqlServerService } from '../../../database/sqlserver.service';
 import { StructuredLogger } from '../../../common/logging/structured-logger.service';
 import { DatabaseContextService } from '../../../database/database-context.service';
+import { safeBracket } from '../../../common/utils/sql-identifier-validator';
 
 /**
  * Serviço para construir dinamicamente telas/formulários do Sankhya
@@ -136,7 +137,7 @@ export class ConstructorService {
 
       // Obter dados com paginação
       const queryDados = `
-        SELECT * FROM [${nomeTabela}]
+        SELECT * FROM ${safeBracket(nomeTabela, 'table')}
         ORDER BY 1
         OFFSET @param1 ROWS
         FETCH NEXT @param2 ROWS ONLY
@@ -145,7 +146,7 @@ export class ConstructorService {
       const dados = await this.sqlServerService.executeSQL(queryDados, [offset, limit]);
 
       // Obter total de registros
-      const queryTotal = `SELECT COUNT(*) as total FROM [${nomeTabela}]`;
+      const queryTotal = `SELECT COUNT(*) as total FROM ${safeBracket(nomeTabela, 'table')}`;
       const totalResult = await this.sqlServerService.executeSQL(queryTotal, []);
       const total = totalResult[0]?.total || 0;
 
@@ -379,7 +380,7 @@ export class ConstructorService {
 
         // 4. Deletar tabela se solicitado
         if (deletarTabela) {
-          await this.sqlServerService.executeSQL(`DROP TABLE [${nomeTabela}]`, []);
+          await this.sqlServerService.executeSQL(`DROP TABLE ${safeBracket(nomeTabela, 'table')}`, []);
         }
 
         this.logger.info('Tela deletada com sucesso', {
@@ -412,7 +413,7 @@ export class ConstructorService {
   ): Promise<void> {
     try {
       // Padrão Sankhya: primeira coluna é PRIMARY KEY, sem ID auto-increment
-      let sql = `CREATE TABLE [${nomeTabela}] (\n`;
+      let sql = `CREATE TABLE ${safeBracket(nomeTabela, 'table')} (\n`;
 
       // Rastrear colunas
       const colunasAdicionadas = new Set<string>();
@@ -426,7 +427,7 @@ export class ConstructorService {
 
           // Primeira coluna é PRIMARY KEY (padrão Sankhya)
           const pk = isPrimeiraColuna ? 'PRIMARY KEY' : '';
-          sql += `  ${col.nome} ${tipo} ${nulo} ${pk},\n`;
+          sql += `  ${safeBracket(col.nome, 'column')} ${tipo} ${nulo} ${pk},\n`;
           colunasAdicionadas.add(col.nome.toUpperCase());
           isPrimeiraColuna = false;
         }

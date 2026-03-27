@@ -44,6 +44,7 @@ export class QueryExecutorController {
     const resultado = await this.executarQueryUseCase.executar({
       query: dto.query,
       database: dto.database,
+      maxRows: dto.maxRows,
     });
 
     return {

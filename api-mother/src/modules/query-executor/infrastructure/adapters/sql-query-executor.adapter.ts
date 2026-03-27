@@ -5,6 +5,7 @@ import { RequisicaoQuery, ResultadoQuery } from '../../domain/entities';
 import { QueryExecutorPort } from '../../application/ports';
 import { GatewayException } from '../../../../common/exceptions/gateway.exception';
 import { GatewayErrorCode } from '../../../../common/enums/gateway-error-code.enum';
+import { injectRowLimit } from '../../../../common/utils/inject-row-limit';
 
 /**
  * Adapter para execução de queries SQL no SQL Server
@@ -20,13 +21,17 @@ export class SqlQueryExecutorAdapter implements QueryExecutorPort {
   ) {}
 
   async executarQuery(requisicao: RequisicaoQuery): Promise<ResultadoQuery> {
-    const query = requisicao.obterQueryLimpo();
+    const rawQuery = requisicao.obterQueryLimpo();
     const database = requisicao.obterDatabase();
+    const maxRows = requisicao.maxRows ?? 5000;
 
     this.logger.log(`Executando query no database: ${database || 'default'}`);
 
     // Validar novamente por segurança (defesa em profundidade)
-    this.validarQuery(query);
+    this.validarQuery(rawQuery);
+
+    // Injetar limite de linhas para evitar retornos massivos
+    const query = injectRowLimit(rawQuery, maxRows);
 
     const inicioExecucao = Date.now();
 

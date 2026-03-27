@@ -7,6 +7,7 @@ import { AuditService } from '../../../security/audit.service';
 import { DatabaseContextService } from '../../../database/database-context.service';
 import { SqlErrorAnalyzerService } from '../../../common/services/sql-error-analyzer.service';
 import { InspectionCacheService } from '../infrastructure/adapters/inspection-cache.service';
+import { injectRowLimit } from '../../../common/utils/inject-row-limit';
 
 @Injectable()
 export class InspectionService {
@@ -163,14 +164,15 @@ export class InspectionService {
     }
   }
 
-  async executeQuery(queryDto: { query: string; params: any[] }): Promise<any> {
+  async executeQuery(queryDto: { query: string; params: any[]; maxRows?: number }): Promise<any> {
     const startTime = Date.now();
     const database = this.databaseContext.getCurrentDatabase();
     let success = false;
     let errorMessage: string | undefined;
 
     try {
-      const { query, params } = queryDto;
+      const query = injectRowLimit(queryDto.query, queryDto.maxRows ?? 5000);
+      const params = queryDto.params;
 
       // NEW: Enhanced SQL validation using SqlValidationService
       const validationResult = this.sqlValidationService.validateSql(query);

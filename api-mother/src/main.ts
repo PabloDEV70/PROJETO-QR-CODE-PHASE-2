@@ -15,6 +15,43 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { getCorsConfig } from './config/cors.config';
 
+function validateProductionConfig(configService: ConfigService): void {
+  const isProduction = configService.get('NODE_ENV') === 'production';
+
+  const required = ['JWT_SECRET', 'SQLSERVER_SERVER', 'SQLSERVER_DATABASE'];
+  const missing = required.filter((key) => !configService.get(key));
+
+  const hasUser =
+    configService.get('SQLSERVER_CRUD_USER') || configService.get('SQLSERVER_USER');
+  const hasPassword =
+    configService.get('SQLSERVER_CRUD_PASSWORD') || configService.get('SQLSERVER_PASSWORD');
+
+  if (!hasUser) missing.push('SQLSERVER_CRUD_USER or SQLSERVER_USER');
+  if (!hasPassword) missing.push('SQLSERVER_CRUD_PASSWORD or SQLSERVER_PASSWORD');
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
+  if (isProduction) {
+    const jwtSecret = configService.get<string>('JWT_SECRET');
+    if (jwtSecret && jwtSecret.length < 32) {
+      throw new Error('JWT_SECRET must be at least 32 characters in production');
+    }
+
+    const corsOrigins = configService.get<string>('CORS_ORIGINS');
+    if (!corsOrigins || corsOrigins === '*') {
+      console.warn(
+        '[SECURITY WARNING] CORS_ORIGINS not configured for production. Defaulting to blocked.',
+      );
+    }
+
+    console.log('[SECURITY] Production config validated');
+    console.log('[SECURITY] CORS origins:', corsOrigins || 'BLOCKED');
+    console.log('[SECURITY] SQL encrypt:', configService.get('SQLSERVER_ENCRYPT') ?? 'not set');
+  }
+}
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: false,
@@ -23,6 +60,8 @@ async function bootstrap() {
 
   const structuredLogger = app.get(StructuredLogger);
   const configService = app.get(ConfigService);
+
+  validateProductionConfig(configService);
 
   const isProduction = configService.get('NODE_ENV') === 'production';
 
