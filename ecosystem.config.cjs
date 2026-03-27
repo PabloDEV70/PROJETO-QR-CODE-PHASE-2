@@ -101,5 +101,33 @@ module.exports = {
       args: 'serve -s dist -l 7113',
       max_memory_restart: '128M',
     },
+    {
+      name: 'compras-vite',
+      cwd: './app-compras-vite',
+      script: 'npx',
+      args: 'serve -s dist -l 7114',
+      max_memory_restart: '128M',
+    },
+    {
+      name: 'produtoselocais-vite',
+      cwd: './app-produtoselocais-vite',
+      script: 'npx',
+      args: 'serve -s dist -l 7115',
+      max_memory_restart: '128M',
+    },
+    {
+      name: 'rdoapontamentos-vite',
+      cwd: './app-rdoapontamentos-vite',
+      script: 'npx',
+      args: 'serve -s dist -l 7116',
+      max_memory_restart: '128M',
+    },
+    {
+      name: 'cabs-vite',
+      cwd: './app-cabs-vite',
+      script: 'npx',
+      args: 'serve -s dist -l 7117',
+      max_memory_restart: '128M',
+    },
   ],
 };

@@ -32,6 +32,10 @@ ensure_env_production app-tabman-pwa-vite
 ensure_env_production app-gruposeservicos-vite
 ensure_env_production app-quadro-vite
 ensure_env_production app-ti-admin-vite
+ensure_env_production app-compras-vite
+ensure_env_production app-produtoselocais-vite
+ensure_env_production app-rdoapontamentos-vite
+ensure_env_production app-cabs-vite
 
 echo ""
 echo "=== Building api-micro-sankhya ==="
@@ -49,6 +53,10 @@ APPS=(
   app-gruposeservicos-vite
   app-quadro-vite
   app-ti-admin-vite
+  app-compras-vite
+  app-produtoselocais-vite
+  app-rdoapontamentos-vite
+  app-cabs-vite
 )
 
 for app in "${APPS[@]}"; do
