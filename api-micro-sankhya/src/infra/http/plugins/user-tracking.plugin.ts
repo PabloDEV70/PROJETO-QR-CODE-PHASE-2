@@ -1,17 +1,15 @@
 import { FastifyInstance } from 'fastify';
 import { getRedisClient } from '@/infra/redis/redis-client';
-import { getDatabase, getUserInfo } from '@/infra/api-mother/database-context';
+import { decodeJwtPayload, VALID_DATABASES, type DatabaseName } from '@/infra/api-mother/database-context';
 
-const TTL_SECONDS = 300; // 5 minutes
+const TTL_SECONDS = 300;
 const SKIP_PATHS = new Set(['/health', '/health/deep', '/version']);
 const REQUEST_FEED_KEY = 'request:feed';
 const REQUEST_FEED_MAX = 500;
 
-/** Detect app name from Origin/Referer header */
 function detectApp(origin?: string, referer?: string): string {
   const url = origin || referer || '';
   if (!url) return '-';
-  // Match known app patterns from subdomain or port
   const patterns: [RegExp, string][] = [
     [/manutencao/i, 'manutencao'],
     [/portaria/i, 'portaria'],
@@ -20,21 +18,21 @@ function detectApp(origin?: string, referer?: string): string {
     [/chamados/i, 'chamados'],
     [/etiquetas/i, 'etiquetas'],
     [/gestao-veiculos/i, 'gestao-veiculos'],
-    [/painel-veiculos/i, 'painel-veiculos'],
-    [/rdomotivos/i, 'rdo-motivos'],
+    [/painel-veiculos|painel\./i, 'painel-veiculos'],
+    [/rdomotivos|hhman/i, 'rdo-motivos'],
     [/rdoapontamentos/i, 'rdo-apontamentos'],
     [/tabman/i, 'tabman'],
-    [/ti-admin|:3010/i, 'ti-admin'],
+    [/ti-?admin|tiadmin|:3010/i, 'ti-admin'],
     [/gruposeservicos/i, 'grupos-servicos'],
     [/quadro/i, 'quadro'],
     [/compras/i, 'compras'],
     [/produtoselocais/i, 'produtos-locais'],
     [/cabs/i, 'cabs'],
+    [/corridas|taxi/i, 'corridas'],
   ];
   for (const [re, name] of patterns) {
     if (re.test(url)) return name;
   }
-  // Fallback: extract subdomain or port
   try {
     const u = new URL(url);
     const sub = u.hostname.split('.')[0];
@@ -45,20 +43,59 @@ function detectApp(origin?: string, referer?: string): string {
 }
 
 export async function registerUserTracking(app: FastifyInstance): Promise<void> {
+  // Use preHandler to extract user info and store on request object
+  app.addHook('preHandler', async (request) => {
+    const auth = request.headers.authorization;
+    if (auth?.startsWith('Bearer ')) {
+      const token = auth.slice(7);
+      const payload = decodeJwtPayload(token);
+      if (payload) {
+        (request as any)._trackUser = {
+          userId: payload.sub != null ? String(payload.sub) : null,
+          username: (payload.username as string) ?? (payload.idusu as string) ?? null,
+        };
+      }
+    }
+
+    // Also read from query token (foto routes)
+    if (!(request as any)._trackUser) {
+      const queryToken = (request.query as Record<string, string>)?.token;
+      if (queryToken) {
+        const payload = decodeJwtPayload(queryToken);
+        if (payload) {
+          (request as any)._trackUser = {
+            userId: payload.sub != null ? String(payload.sub) : null,
+            username: (payload.username as string) ?? (payload.idusu as string) ?? null,
+          };
+        }
+      }
+    }
+  });
+
   app.addHook('onResponse', async (request, reply) => {
     const redis = getRedisClient();
     if (!redis) return;
 
+    // Skip CORS preflight and health checks
+    if (request.method === 'OPTIONS') return;
     const path = request.url.split('?')[0];
     if (SKIP_PATHS.has(path)) return;
 
     const status = reply.statusCode;
     const elapsed = Math.round(reply.elapsedTime ?? 0);
     const method = request.method;
-    const db = getDatabase();
-    const info = getUserInfo();
-    const username = info.username ?? (info.codusu ? `#${info.codusu}` : 'anonymous');
-    const userId = info.codusu ? String(info.codusu) : null;
+
+    // Read database from header directly (not AsyncLocalStorage)
+    const dbHeader = request.headers['x-database-selection'] as string | undefined;
+    const db: DatabaseName = dbHeader && VALID_DATABASES.includes(dbHeader as DatabaseName)
+      ? (dbHeader as DatabaseName)
+      : 'PROD';
+
+    // Read user from request object (set in preHandler)
+    const trackUser = (request as any)._trackUser as { userId: string | null; username: string | null } | undefined;
+    const userId = trackUser?.userId ?? null;
+    const username = trackUser?.username ?? 'anonymous';
+
     const ip = request.ip ?? request.socket?.remoteAddress ?? '-';
     const origin = request.headers.origin as string | undefined;
     const referer = request.headers.referer as string | undefined;
@@ -104,7 +141,6 @@ export async function registerUserTracking(app: FastifyInstance): Promise<void> 
       pipeline.zremrangebyscore(`users:online:${db}`, '-inf', now - TTL_SECONDS * 1000);
     }
 
-    // Fire-and-forget
     pipeline.exec().catch(() => {});
   });
 }
