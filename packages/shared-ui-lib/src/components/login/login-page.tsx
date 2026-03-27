@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Box, Typography, IconButton, Tabs, Tab } from '@mui/material';
 import { DarkMode, LightMode } from '@mui/icons-material';
-import { LoginLeftPanel } from './LoginLeftPanel';
-import { StandardLoginForm } from './StandardLoginForm';
-import { ColaboradorLoginForm } from './ColaboradorLoginForm';
-import { TotpVerifyForm } from './TotpVerifyForm';
-import { TotpRecoveryForm } from './TotpRecoveryForm';
-import { DatabaseSelector } from './DatabaseSelector';
-import { LoginError } from './LoginError';
-import { TurnstileWidget } from './TurnstileWidget';
+import { LoginLeftPanel } from './login-left-panel';
+import { StandardLoginForm } from './standard-login-form';
+import { ColaboradorLoginForm } from './colaborador-login-form';
+import { TotpVerifyForm } from './totp-verify-form';
+import { TotpRecoveryForm } from './totp-recovery-form';
+import { DatabaseSelector } from './database-selector';
+import { LoginError } from './login-error';
+import { TurnstileWidget } from './turnstile-widget';
 import type {
   LoginResponse,
   DatabaseEnv,

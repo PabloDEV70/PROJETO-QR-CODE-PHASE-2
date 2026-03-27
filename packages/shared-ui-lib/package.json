@@ -2,37 +2,13 @@
   "name": "@shared/ui-lib",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
-    },
-    "./atoms/*": {
-      "import": "./dist/atoms/*.mjs",
-      "types": "./dist/atoms/*.d.ts"
-    },
-    "./molecules/*": {
-      "import": "./dist/molecules/*.mjs",
-      "types": "./dist/molecules/*.d.ts"
-    },
-    "./organisms/*": {
-      "import": "./dist/organisms/*.mjs",
-      "types": "./dist/organisms/*.d.ts"
-    },
-    "./composables/*": {
-      "import": "./dist/composables/*.mjs",
-      "types": "./dist/composables/*.d.ts"
-    },
-    "./stores": {
-      "import": "./dist/stores/index.mjs",
-      "types": "./dist/stores/index.d.ts"
-    },
-    "./types": {
-      "import": "./dist/types/index.mjs",
-      "types": "./dist/types/index.d.ts"
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
     }
   },
   "scripts": {
@@ -45,9 +21,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
-    "@mui/x-data-grid": "^8.27.4",
     "@tanstack/react-query": "^5.90.21",
-    "axios": "^1.13.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",
