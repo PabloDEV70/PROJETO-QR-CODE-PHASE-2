@@ -31,6 +31,9 @@ const envSchema = z.object({
   // Security: Rate Limiting
   RATE_LIMIT_MAX_ATTEMPTS: z.string().transform(Number).default(5),
   RATE_LIMIT_WINDOW_MINUTES: z.string().transform(Number).default(15),
+
+  // Redis (optional — enables online users tracking + request feed)
+  REDIS_URL: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

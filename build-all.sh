@@ -31,6 +31,7 @@ ensure_env_production app-pwa-rdomotivos
 ensure_env_production app-tabman-pwa-vite
 ensure_env_production app-gruposeservicos-vite
 ensure_env_production app-quadro-vite
+ensure_env_production app-ti-admin-vite
 
 echo ""
 echo "=== Building api-micro-sankhya ==="
@@ -47,6 +48,7 @@ APPS=(
   app-tabman-pwa-vite
   app-gruposeservicos-vite
   app-quadro-vite
+  app-ti-admin-vite
 )
 
 for app in "${APPS[@]}"; do

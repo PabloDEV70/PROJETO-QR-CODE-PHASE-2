@@ -13,7 +13,7 @@ import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data
 import { useQuery } from '@tanstack/react-query';
 import { listRecursos, getRecursosPorPrefixo } from '@/api/permissions';
 import { LoadingSkeleton } from '@/components/shared/loading-skeleton';
-import type { SankhyaAccessResource } from '@/types/permission-types';
+import type { PermissaoTela } from '@/types/permission-types';
 
 export default function PermissoesPage() {
   const [search, setSearch] = useState('');
@@ -28,7 +28,7 @@ export default function PermissoesPage() {
   });
 
   const prefixosUnicos = prefixos
-    ? [...new Set(prefixos.map((r) => r.IDACESSO.split('.')[0]))].sort()
+    ? [...new Set(prefixos.map((r) => r.idAcesso.split('.')[0]))].sort()
     : [];
 
   const { data, isLoading, refetch } = useQuery({
@@ -40,7 +40,7 @@ export default function PermissoesPage() {
     }),
   });
 
-  const rows: SankhyaAccessResource[] = data?.data ?? [];
+  const rows = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
 
   const handlePaginationModelChange = useCallback((model: GridPaginationModel) => {
@@ -53,19 +53,18 @@ export default function PermissoesPage() {
     setPage(0);
   };
 
-  const columns: GridColDef<SankhyaAccessResource>[] = [
-    { field: 'IDACESSO', headerName: 'Recurso', flex: 1, minWidth: 400 },
-    { field: 'SIGLA', headerName: 'Sigla', width: 120 },
-    { field: 'DESCRICAO', headerName: 'Descricao', flex: 1, minWidth: 200 },
+  const columns: GridColDef<PermissaoTela>[] = [
+    { field: 'idAcesso', headerName: 'Recurso', flex: 1, minWidth: 400 },
+    { field: 'nomeAmigavel', headerName: 'Nome', width: 200 },
+    { field: 'qtdGrupos', headerName: 'Grupos', width: 100 },
+    { field: 'qtdUsuarios', headerName: 'Usuarios', width: 100 },
   ];
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Recursos / Permissoes
-      </Typography>
+      <Typography variant="h4" gutterBottom>Recursos / Permissoes</Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Lista de recursos disponiveis no Sankhya para atribuicao de permissoes
+        Lista de telas e recursos do Sankhya com atribuicoes
       </Typography>
 
       <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -105,17 +104,16 @@ export default function PermissoesPage() {
           <DataGrid
             rows={rows}
             columns={columns}
+            getRowId={(row) => row.idAcesso}
             rowCount={total}
             paginationMode="server"
             paginationModel={{ page, pageSize }}
             onPaginationModelChange={handlePaginationModelChange}
             pageSizeOptions={[10, 25, 50, 100]}
-            sx={{
-              height: 600,
-            }}
+            sx={{ height: 600 }}
             disableRowSelectionOnClick
             initialState={{
-              sorting: { sortModel: [{ field: 'IDACESSO', sort: 'asc' }] },
+              sorting: { sortModel: [{ field: 'idAcesso', sort: 'asc' }] },
             }}
           />
         </Paper>

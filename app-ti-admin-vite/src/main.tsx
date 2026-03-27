@@ -1,10 +1,11 @@
-import { StrictMode } from 'react';
+import { StrictMode, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import { createTheme } from '@mui/material/styles';
 import { RouterProvider } from 'react-router-dom';
 import { router } from '@/app/router';
+import { useThemeStore } from '@/stores/theme-store';
+import { lightTheme, darkTheme } from '@/theme/theme-config';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,31 +16,10 @@ const queryClient = new QueryClient({
   },
 });
 
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: { main: '#1976d2' },
-    secondary: { main: '#dc004e' },
-    background: { default: '#f5f5f5', paper: '#ffffff' },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: { textTransform: 'none' },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: { backgroundImage: 'none' },
-      },
-    },
-  },
-});
-
 function App() {
+  const mode = useThemeStore((s) => s.mode);
+  const theme = useMemo(() => (mode === 'dark' ? darkTheme : lightTheme), [mode]);
+
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>

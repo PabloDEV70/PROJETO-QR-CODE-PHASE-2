@@ -16,14 +16,19 @@ import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { AuthService } from '../services/auth.service';
 import { TokenRevocationService } from '../services/token-revocation.service';
 import { StructuredLogger } from '../../../common/logging/structured-logger.service';
+import { RedisService } from '../../../common/services/redis.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
+  private static readonly LOGIN_ATTEMPTS_KEY = 'auth:login:attempts';
+  private static readonly LOGIN_ATTEMPTS_MAX = 500;
+
   constructor(
     private readonly authService: AuthService,
     private readonly tokenRevocationService: TokenRevocationService,
     private readonly appLogger: StructuredLogger,
+    private readonly redisService: RedisService,
   ) {}
 
   @Post('login')
@@ -42,11 +47,47 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiTooManyRequestsResponse({ description: 'Too many login attempts (50 per minute). Try again in 1 minute.' })
   async login(@Body() loginDto: LoginDto, @Request() req): Promise<AuthResponseDto> {
-    const ip = req.ip || req.connection?.remoteAddress || 'unknown'; // Re-added IP extraction
+    const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = (req.headers['user-agent'] ?? '').substring(0, 120);
+    const origin = req.headers['origin'] ?? '-';
     this.appLogger.info(`Login attempt for user: ${loginDto.username} from IP: ${ip}`);
-    const authResponse = await this.authService.login(loginDto.username, loginDto.password, ip);
-    // updateLastLogin removed - API is READ-ONLY, no database modifications allowed
-    return authResponse;
+
+    try {
+      const authResponse = await this.authService.login(loginDto.username, loginDto.password, ip);
+      this.recordLoginAttempt(loginDto.username, ip, userAgent, origin, true);
+      return authResponse;
+    } catch (err) {
+      this.recordLoginAttempt(loginDto.username, ip, userAgent, origin, false, (err as Error).message);
+      throw err;
+    }
+  }
+
+  private recordLoginAttempt(
+    username: string,
+    ip: string,
+    userAgent: string,
+    origin: string,
+    success: boolean,
+    error?: string,
+  ) {
+    const redis = this.redisService.getClient();
+    if (!redis) return;
+
+    const entry = JSON.stringify({
+      ts: new Date().toISOString(),
+      username,
+      ip,
+      userAgent,
+      origin,
+      success,
+      ...(error ? { error } : {}),
+    });
+
+    redis.pipeline()
+      .lpush(AuthController.LOGIN_ATTEMPTS_KEY, entry)
+      .ltrim(AuthController.LOGIN_ATTEMPTS_KEY, 0, AuthController.LOGIN_ATTEMPTS_MAX - 1)
+      .exec()
+      .catch(() => {});
   }
 
   @Post('refresh')

@@ -11,9 +11,15 @@ import { publicOriginGuard } from '@/infra/http/plugins/public-origin-guard';
 import { cleanup as cleanupRateLimiter } from '@/domain/services/rate-limiter.service';
 import { registerMetrics } from '@/infra/http/plugins/metrics.plugin';
 import { routePlugins } from '@/infra/http/routes/registry';
+import { initRedis, closeRedis } from '@/infra/redis/redis-client';
+import { registerUserTracking } from '@/infra/http/plugins/user-tracking.plugin';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = createFastifyInstance();
+
+  // Redis (online users, request feed)
+  await initRedis();
+  app.addHook('onClose', () => closeRedis());
 
   // Cleanup expired rate-limit entries every 60s
   const rateLimitTimer = setInterval(cleanupRateLimiter, 60_000);
@@ -39,6 +45,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Request/Response logging with timing
   await registerRequestLogger(app);
+
+  // User activity tracking to Redis (online users + request feed)
+  await registerUserTracking(app);
 
   // Public origin guard — MUST run BEFORE auth guard
   app.addHook('onRequest', publicOriginGuard);

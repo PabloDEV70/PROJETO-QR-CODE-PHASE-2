@@ -78,4 +78,50 @@ export class UsersOnlineController {
 
     return { counts, total, timestamp: new Date().toISOString() };
   }
+
+  @Get('request-feed')
+  @ApiQuery({ name: 'limit', required: false, description: 'Max entries (default 100, max 500)' })
+  async getRequestFeed(@Query('limit') limit?: string) {
+    const redis = this.redisService.getClient();
+    if (!redis) return { requests: [], total: 0, source: 'unavailable' };
+
+    const max = Math.min(Math.max(parseInt(limit ?? '100', 10) || 100, 1), 500);
+    const raw = await redis.lrange('request:feed', 0, max - 1);
+
+    const requests: Record<string, unknown>[] = [];
+    for (const entry of raw) {
+      try {
+        requests.push(JSON.parse(entry));
+      } catch { /* skip */ }
+    }
+
+    return {
+      requests,
+      total: requests.length,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Get('login-attempts')
+  @ApiQuery({ name: 'limit', required: false, description: 'Max entries (default 100, max 500)' })
+  async getLoginAttempts(@Query('limit') limit?: string) {
+    const redis = this.redisService.getClient();
+    if (!redis) return { attempts: [], total: 0, source: 'unavailable' };
+
+    const max = Math.min(Math.max(parseInt(limit ?? '100', 10) || 100, 1), 500);
+    const raw = await redis.lrange('auth:login:attempts', 0, max - 1);
+
+    const attempts: Record<string, unknown>[] = [];
+    for (const entry of raw) {
+      try {
+        attempts.push(JSON.parse(entry));
+      } catch { /* skip */ }
+    }
+
+    return {
+      attempts,
+      total: attempts.length,
+      timestamp: new Date().toISOString(),
+    };
+  }
 }

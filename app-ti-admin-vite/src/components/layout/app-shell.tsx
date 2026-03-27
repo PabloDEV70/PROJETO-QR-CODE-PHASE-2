@@ -12,25 +12,14 @@ export function AppShell() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100dvh',
-        overflow: 'hidden',
-        bgcolor: 'background.default',
-      }}
-    >
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
       <AppHeader />
       <Box
+        component="main"
         sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: 'auto',
-          overflowX: 'hidden',
-          px: { xs: 1, sm: 2 },
-          pt: { xs: 1, sm: 2 },
-          pb: 2,
+          px: { xs: 1.5, sm: 2, md: 3 },
+          py: { xs: 1.5, sm: 2 },
+          pb: 4,
         }}
       >
         <Suspense fallback={<LoadingSkeleton message="Carregando..." />}>

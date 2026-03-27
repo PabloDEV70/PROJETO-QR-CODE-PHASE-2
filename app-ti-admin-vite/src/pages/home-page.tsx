@@ -1,5 +1,5 @@
 import { Box, Typography, Grid, Card, CardContent, CardActionArea } from '@mui/material';
-import { People, Lock, CompareArrows, Search } from '@mui/icons-material';
+import { People, Lock, CompareArrows, Search, MonitorHeart } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
@@ -33,6 +33,13 @@ export default function HomePage() {
       icon: Search,
       path: '/investigar',
       color: '#7b1fa2',
+    },
+    {
+      title: 'Inspecao',
+      description: 'Monitoramento de APIs, DB e seguranca',
+      icon: MonitorHeart,
+      path: '/inspecao',
+      color: '#d32f2f',
     },
   ];
 

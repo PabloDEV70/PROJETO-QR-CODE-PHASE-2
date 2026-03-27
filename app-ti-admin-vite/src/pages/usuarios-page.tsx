@@ -12,7 +12,6 @@ import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data
 import { useQuery } from '@tanstack/react-query';
 import { listUsuarios } from '@/api/permissions';
 import { LoadingSkeleton } from '@/components/shared/loading-skeleton';
-import type { SankhyaUser } from '@/types/permission-types';
 
 export default function UsuariosPage() {
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ export default function UsuariosPage() {
     }),
   });
 
-  const rows: SankhyaUser[] = data?.data ?? [];
+  const rows = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
 
   const handlePaginationModelChange = useCallback((model: GridPaginationModel) => {
@@ -37,21 +36,16 @@ export default function UsuariosPage() {
     setPageSize(model.pageSize);
   }, []);
 
-  const columns: GridColDef<SankhyaUser>[] = [
-    { field: 'CODUSU', headerName: 'Codigo', width: 100 },
-    { field: 'NOMEUSU', headerName: 'Nome', flex: 1, minWidth: 200 },
-    { field: 'EMAIL', headerName: 'Email', flex: 1, minWidth: 250 },
+  const columns: GridColDef[] = [
+    { field: 'codusu', headerName: 'Codigo', width: 100 },
+    { field: 'nomeusu', headerName: 'Nome', flex: 1, minWidth: 200 },
+    { field: 'email', headerName: 'Email', flex: 1, minWidth: 250 },
+    { field: 'nomeempresa', headerName: 'Empresa', width: 180 },
+    { field: 'nomegrupo', headerName: 'Grupo', width: 150 },
     {
-      field: 'CODFUNC',
-      headerName: 'Cod Func',
-      width: 100,
-      valueGetter: (value) => value ?? '-',
-    },
-    {
-      field: 'CODCENCUSPAD',
-      headerName: 'Centro Custo',
-      width: 130,
-      valueGetter: (value) => value ?? '-',
+      field: 'ativo',
+      headerName: 'Ativo',
+      width: 80,
     },
   ];
 
@@ -87,12 +81,13 @@ export default function UsuariosPage() {
         <DataGrid
           rows={rows}
           columns={columns}
+          getRowId={(row) => row.codusu ?? row.CODUSU ?? Math.random()}
           rowCount={total}
           paginationMode="server"
           paginationModel={{ page, pageSize }}
           onPaginationModelChange={handlePaginationModelChange}
           pageSizeOptions={[10, 25, 50, 100]}
-          onRowClick={(params) => navigate(`/usuarios/${params.row.CODUSU}`)}
+          onRowClick={(params) => navigate(`/usuarios/${params.row.codusu ?? params.row.CODUSU}`)}
           sx={{
             '& .MuiDataGrid-row': { cursor: 'pointer' },
             height: 600,

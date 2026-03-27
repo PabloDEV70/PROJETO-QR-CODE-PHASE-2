@@ -1,5 +1,5 @@
 import {
-  Home, People, Lock, CompareArrows, Search, Map, Person,
+  Home, People, Lock, CompareArrows, Search, Map, Person, MonitorHeart,
 } from '@mui/icons-material';
 import type { SvgIconComponent } from '@mui/icons-material';
 
@@ -49,6 +49,14 @@ export const pagesConfig: PageConfig[] = [
     icon: Search,
     description: 'Investigar documentos e registros',
     group: 'Ferramentas',
+  },
+  {
+    path: '/inspecao',
+    label: 'Inspecao',
+    icon: MonitorHeart,
+    description: 'Monitoramento de APIs, DB, usuarios e auditoria',
+    group: 'Ferramentas',
+    adminOnly: true,
   },
   {
     path: '/perfil',

@@ -4,6 +4,38 @@ import { AuthService } from '../../../domain/services/auth.service';
 import { ApiMotherAuthService } from '../../api-mother/login';
 import { decodeJwtPayload } from '../../api-mother/database-context';
 import { isDev, devLog, R, B, D, GREEN, CYAN, YELLOW, MAGENTA } from '../../../shared/log-colors';
+import { getRedisClient } from '@/infra/redis/redis-client';
+
+const LOGIN_ATTEMPTS_KEY = 'auth:login:attempts';
+const LOGIN_ATTEMPTS_MAX = 500;
+
+function recordLoginAttempt(
+  username: string,
+  ip: string,
+  userAgent: string,
+  origin: string,
+  success: boolean,
+  error?: string,
+) {
+  const redis = getRedisClient();
+  if (!redis) return;
+
+  const entry = JSON.stringify({
+    ts: new Date().toISOString(),
+    username,
+    ip,
+    userAgent: userAgent.substring(0, 120),
+    origin,
+    success,
+    ...(error ? { error } : {}),
+  });
+
+  redis.pipeline()
+    .lpush(LOGIN_ATTEMPTS_KEY, entry)
+    .ltrim(LOGIN_ATTEMPTS_KEY, 0, LOGIN_ATTEMPTS_MAX - 1)
+    .exec()
+    .catch(() => {});
+}
 
 function formatTokenInfo(token: string, label: string): string {
   const payload = decodeJwtPayload(token);
@@ -67,6 +99,7 @@ export async function authRoutes(app: FastifyInstance) {
       const refreshInfo = result.refreshToken ? formatTokenInfo(result.refreshToken, 'refresh') : '';
       request.log.info('[AUTH] Login SUCCESS user="%s" ip=%s', username, ip);
       devLog(`  ${GREEN}${B}LOGIN OK${R} ${CYAN}${username}${R} ${D}|${R} ${tokenInfo} ${D}|${R} ${refreshInfo}`);
+      recordLoginAttempt(username, ip, ua, origin, true);
       return result;
     } catch (error: unknown) {
       // TooManyRequestsError is an AppError — let error handler deal with it
@@ -85,6 +118,7 @@ export async function authRoutes(app: FastifyInstance) {
         ip,
         msg,
       );
+      recordLoginAttempt(username, ip, ua, origin, false, msg);
       reply.status(401).send({
         statusCode: 401,
         error: 'Unauthorized',
@@ -179,6 +213,7 @@ export async function authRoutes(app: FastifyInstance) {
         codparc,
         ip,
       );
+      recordLoginAttempt(`colaborador:${codparc}`, ip, ua, origin, true);
       return result;
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'statusCode' in error) {
@@ -196,6 +231,7 @@ export async function authRoutes(app: FastifyInstance) {
         ip,
         msg,
       );
+      recordLoginAttempt(`colaborador:${codparc}`, ip, ua, origin, false, msg);
       reply.status(401).send({
         statusCode: 401,
         error: 'Unauthorized',

@@ -12,6 +12,7 @@ const CompararPage = lazy(() => import('@/pages/comparar-page'));
 const InvestigarDocumentoPage = lazy(() => import('@/pages/investigar-documento-page'));
 const SitemapPage = lazy(() => import('@/pages/sitemap-page'));
 const PerfilPage = lazy(() => import('@/pages/perfil-page'));
+const InspecaoPage = lazy(() => import('@/pages/inspecao-page'));
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: 'permissoes', element: <PermissoesPage /> },
       { path: 'comparar', element: <CompararPage /> },
       { path: 'investigar', element: <InvestigarDocumentoPage /> },
+      { path: 'inspecao', element: <InspecaoPage /> },
       { path: 'sitemap', element: <SitemapPage /> },
       { path: 'perfil', element: <PerfilPage /> },
     ],

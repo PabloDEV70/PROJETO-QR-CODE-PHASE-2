@@ -27,24 +27,28 @@ export default function CompararPage() {
 
   const usuarios = usuariosData?.data ?? [];
 
+  const codA = usuarioA?.codusu ?? usuarioA?.CODUSU;
+  const codB = usuarioB?.codusu ?? usuarioB?.CODUSU;
+
   const { data: comparacao, isLoading: loadingComparacao } = useQuery({
-    queryKey: ['comparar', usuarioA?.CODUSU, usuarioB?.CODUSU],
-    queryFn: () => comparePermissoes({
-      usuarioA: usuarioA!.CODUSU,
-      usuarioB: usuarioB!.CODUSU,
-    }),
-    enabled: !!usuarioA && !!usuarioB,
+    queryKey: ['comparar', codA, codB],
+    queryFn: () => comparePermissoes({ usuarioA: codA!, usuarioB: codB! }),
+    enabled: !!codA && !!codB,
   });
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
+  const getLabel = (u: SankhyaUser) => {
+    const nome = u.nomeusu ?? u.NOMEUSU ?? '';
+    const cod = u.codusu ?? u.CODUSU ?? '';
+    return `${nome} (${cod})`;
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Comparar Permissoes
-      </Typography>
+      <Typography variant="h4" gutterBottom>Comparar Permissoes</Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Compare permissoes entre dois usuarios para identificar diferencas
       </Typography>
@@ -54,13 +58,11 @@ export default function CompararPage() {
           <Grid size={{ xs: 12, md: 5 }}>
             <Autocomplete
               options={usuarios}
-              getOptionLabel={(option) => `${option.NOMEUSU} (${option.CODUSU})`}
+              getOptionLabel={getLabel}
               value={usuarioA}
               onChange={(_, value) => setUsuarioA(value)}
               loading={loadingUsuarios}
-              renderInput={(params) => (
-                <TextField {...params} label="Usuario A" fullWidth />
-              )}
+              renderInput={(params) => <TextField {...params} label="Usuario A" fullWidth />}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 2 }} sx={{ textAlign: 'center' }}>
@@ -69,13 +71,11 @@ export default function CompararPage() {
           <Grid size={{ xs: 12, md: 5 }}>
             <Autocomplete
               options={usuarios}
-              getOptionLabel={(option) => `${option.NOMEUSU} (${option.CODUSU})`}
+              getOptionLabel={getLabel}
               value={usuarioB}
               onChange={(_, value) => setUsuarioB(value)}
               loading={loadingUsuarios}
-              renderInput={(params) => (
-                <TextField {...params} label="Usuario B" fullWidth />
-              )}
+              renderInput={(params) => <TextField {...params} label="Usuario B" fullWidth />}
             />
           </Grid>
         </Grid>
@@ -94,7 +94,7 @@ export default function CompararPage() {
                 <Button
                   size="small"
                   startIcon={<ContentCopy />}
-                  onClick={() => handleCopy(comparacao.onlyInA.map((p) => p.IDACESSO).join('\n'))}
+                  onClick={() => handleCopy(comparacao.onlyInA.map((p) => p.idAcesso).join('\n'))}
                 >
                   Copiar
                 </Button>
@@ -102,19 +102,10 @@ export default function CompararPage() {
               <Divider />
               <Box sx={{ mt: 2, maxHeight: 400, overflow: 'auto' }}>
                 {comparacao.onlyInA.map((p) => (
-                  <Chip
-                    key={p.IDACESSO}
-                    label={p.IDACESSO}
-                    size="small"
-                    sx={{ m: 0.5 }}
-                    color="error"
-                    variant="outlined"
-                  />
+                  <Chip key={p.idAcesso} label={p.nomeAmigavel || p.idAcesso} size="small" sx={{ m: 0.5 }} color="error" variant="outlined" />
                 ))}
                 {comparacao.onlyInA.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhuma diferenca
-                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Nenhuma diferenca</Typography>
                 )}
               </Box>
             </Paper>
@@ -129,7 +120,7 @@ export default function CompararPage() {
                 <Button
                   size="small"
                   startIcon={<ContentCopy />}
-                  onClick={() => handleCopy(comparacao.common.map((p) => p.IDACESSO).join('\n'))}
+                  onClick={() => handleCopy(comparacao.common.map((p) => p.idAcesso).join('\n'))}
                 >
                   Copiar
                 </Button>
@@ -137,19 +128,10 @@ export default function CompararPage() {
               <Divider />
               <Box sx={{ mt: 2, maxHeight: 400, overflow: 'auto' }}>
                 {comparacao.common.map((p) => (
-                  <Chip
-                    key={p.IDACESSO}
-                    label={p.IDACESSO}
-                    size="small"
-                    sx={{ m: 0.5 }}
-                    color="success"
-                    variant="outlined"
-                  />
+                  <Chip key={p.idAcesso} label={p.nomeAmigavel || p.idAcesso} size="small" sx={{ m: 0.5 }} color="success" variant="outlined" />
                 ))}
                 {comparacao.common.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhuma permissao em comum
-                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Nenhuma em comum</Typography>
                 )}
               </Box>
             </Paper>
@@ -164,7 +146,7 @@ export default function CompararPage() {
                 <Button
                   size="small"
                   startIcon={<ContentCopy />}
-                  onClick={() => handleCopy(comparacao.onlyInB.map((p) => p.IDACESSO).join('\n'))}
+                  onClick={() => handleCopy(comparacao.onlyInB.map((p) => p.idAcesso).join('\n'))}
                 >
                   Copiar
                 </Button>
@@ -172,19 +154,10 @@ export default function CompararPage() {
               <Divider />
               <Box sx={{ mt: 2, maxHeight: 400, overflow: 'auto' }}>
                 {comparacao.onlyInB.map((p) => (
-                  <Chip
-                    key={p.IDACESSO}
-                    label={p.IDACESSO}
-                    size="small"
-                    sx={{ m: 0.5 }}
-                    color="warning"
-                    variant="outlined"
-                  />
+                  <Chip key={p.idAcesso} label={p.nomeAmigavel || p.idAcesso} size="small" sx={{ m: 0.5 }} color="warning" variant="outlined" />
                 ))}
                 {comparacao.onlyInB.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhuma diferenca
-                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Nenhuma diferenca</Typography>
                 )}
               </Box>
             </Paper>
@@ -193,9 +166,7 @@ export default function CompararPage() {
       ) : (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Warning sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6">
-            Selecione dois usuarios para comparar
-          </Typography>
+          <Typography variant="h6">Selecione dois usuarios para comparar</Typography>
         </Paper>
       )}
     </Box>

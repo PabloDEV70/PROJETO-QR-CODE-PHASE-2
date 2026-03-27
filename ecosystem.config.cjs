@@ -94,5 +94,12 @@ module.exports = {
       args: 'serve -s dist -l 7112',
       max_memory_restart: '128M',
     },
+    {
+      name: 'ti-admin-vite',
+      cwd: './app-ti-admin-vite',
+      script: 'npx',
+      args: 'serve -s dist -l 7113',
+      max_memory_restart: '128M',
+    },
   ],
 };

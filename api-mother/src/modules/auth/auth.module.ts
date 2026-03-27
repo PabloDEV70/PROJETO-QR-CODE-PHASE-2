@@ -8,6 +8,7 @@ import { TokenRevocationService } from './services/token-revocation.service';
 import { UserValidationService } from './services/user-validation.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RedisService } from '../../common/services/redis.service';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, TokenService, TokenRevocationService, UserValidationService, JwtStrategy],
+  providers: [AuthService, TokenService, TokenRevocationService, UserValidationService, JwtStrategy, RedisService],
   exports: [AuthService, TokenService, TokenRevocationService, JwtModule],
 })
 export class AuthModule {}

@@ -7,13 +7,14 @@ import {
   Grid,
   Button,
   Divider,
+  Chip,
 } from '@mui/material';
 import { ArrowBack, ContentCopy } from '@mui/icons-material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
-import { getUsuario, getUsuarioPermissoes } from '@/api/permissions';
+import { getUsuario, getUsuarioDetalhes } from '@/api/permissions';
 import { LoadingSkeleton } from '@/components/shared/loading-skeleton';
 import { useState } from 'react';
-import type { UserPermission } from '@/types/permission-types';
+import type { UsuarioPermDireta } from '@/types/permission-types';
 
 export default function UsuarioDetailPage() {
   const { codUsu } = useParams<{ codUsu: string }>();
@@ -26,40 +27,34 @@ export default function UsuarioDetailPage() {
     enabled: !!usuarioId,
   });
 
-  const { data: permissoes, isLoading: loadingPermissoes } = useQuery({
-    queryKey: ['usuario-permissoes', usuarioId],
-    queryFn: () => getUsuarioPermissoes(usuarioId),
+  const { data: detalhes, isLoading: loadingDetalhes } = useQuery({
+    queryKey: ['usuario-detalhes', usuarioId],
+    queryFn: () => getUsuarioDetalhes(usuarioId),
     enabled: !!usuarioId,
   });
 
   const [copied, setCopied] = useState(false);
 
+  const allPerms = [...(detalhes?.diretas ?? []), ...(detalhes?.herdadas ?? [])];
+
   const handleCopyPermissoes = () => {
-    if (!permissoes) return;
-    const text = permissoes.map((p) => `${p.IDACESSO}|${p.ACESSO}`).join('\n');
+    const text = allPerms.map((p) => `${p.idAcesso}|${p.acesso}`).join('\n');
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const columns: GridColDef<UserPermission>[] = [
-    { field: 'IDACESSO', headerName: 'Recurso', flex: 1, minWidth: 300 },
-    { field: 'ACESSO', headerName: 'Acesso', width: 120 },
-    { field: 'CODGRUPO', headerName: 'Grupo', width: 100 },
+  const columns: GridColDef<UsuarioPermDireta>[] = [
+    { field: 'idAcesso', headerName: 'Recurso', flex: 1, minWidth: 300 },
+    { field: 'nomeAmigavel', headerName: 'Nome', width: 200 },
+    { field: 'acesso', headerName: 'Acesso', width: 120 },
   ];
 
   if (loadingUsuario) {
     return <LoadingSkeleton message="Carregando usuario..." />;
   }
 
-  if (!usuario) {
-    return (
-      <Box>
-        <Typography>Usuario nao encontrado</Typography>
-        <Button onClick={() => navigate('/usuarios')}>Voltar</Button>
-      </Box>
-    );
-  }
+  const nome = usuario?.nomeusu ?? usuario?.NOMEUSU ?? '-';
 
   return (
     <Box>
@@ -67,48 +62,39 @@ export default function UsuarioDetailPage() {
         <Button startIcon={<ArrowBack />} onClick={() => navigate('/usuarios')}>
           Voltar
         </Button>
-        <Typography variant="h4">Usuario: {usuario.NOMEUSU}</Typography>
+        <Typography variant="h4">Usuario: {nome}</Typography>
       </Box>
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Dados do Usuario
-            </Typography>
+            <Typography variant="h6" gutterBottom>Dados do Usuario</Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Codigo
-                </Typography>
-                <Typography variant="body1">{usuario.CODUSU}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Nome
-                </Typography>
-                <Typography variant="body1">{usuario.NOMEUSU}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Email
-                </Typography>
-                <Typography variant="body1">{usuario.EMAIL || '-'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Codigo Funcionario
-                </Typography>
-                <Typography variant="body1">{usuario.CODFUNC || '-'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Centro de Custo
-                </Typography>
-                <Typography variant="body1">{usuario.CODCENCUSPAD || '-'}</Typography>
-              </Box>
+              <InfoRow label="Codigo" value={usuario?.codusu ?? usuario?.CODUSU} />
+              <InfoRow label="Nome" value={nome} />
+              <InfoRow label="Email" value={usuario?.email ?? usuario?.EMAIL} />
+              <InfoRow label="Empresa" value={usuario?.nomeempresa} />
+              <InfoRow label="Grupo" value={detalhes?.nomeGrupo} />
             </Box>
+
+            {detalhes && detalhes.conflitos.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" color="error.main" gutterBottom>
+                  Conflitos ({detalhes.conflitos.length})
+                </Typography>
+                {detalhes.conflitos.map((c) => (
+                  <Chip
+                    key={c.idAcesso}
+                    label={`${c.nomeAmigavel}: user=${c.acessoUsuario} grupo=${c.acessoGrupo}`}
+                    color="error"
+                    variant="outlined"
+                    size="small"
+                    sx={{ m: 0.5 }}
+                  />
+                ))}
+              </Box>
+            )}
           </Paper>
         </Grid>
 
@@ -116,35 +102,41 @@ export default function UsuarioDetailPage() {
           <Paper sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6">
-                Permissoes ({permissoes?.length ?? 0})
+                Permissoes ({allPerms.length})
               </Typography>
-              <Button
-                size="small"
-                startIcon={<ContentCopy />}
-                onClick={handleCopyPermissoes}
-              >
+              <Button size="small" startIcon={<ContentCopy />} onClick={handleCopyPermissoes}>
                 {copied ? 'Copiado!' : 'Copiar'}
               </Button>
             </Box>
             <Divider sx={{ mb: 2 }} />
 
-            {loadingPermissoes ? (
+            {loadingDetalhes ? (
               <LoadingSkeleton />
             ) : (
               <DataGrid
-                rows={permissoes ?? []}
+                rows={allPerms}
                 columns={columns}
+                getRowId={(row) => row.idAcesso}
                 density="compact"
-                sx={{ height: 400 }}
+                sx={{ height: 500 }}
                 disableRowSelectionOnClick
                 initialState={{
-                  sorting: { sortModel: [{ field: 'IDACESSO', sort: 'asc' }] },
+                  sorting: { sortModel: [{ field: 'idAcesso', sort: 'asc' }] },
                 }}
               />
             )}
           </Paper>
         </Grid>
       </Grid>
+    </Box>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: unknown }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary">{label}</Typography>
+      <Typography variant="body1">{value != null ? String(value) : '-'}</Typography>
     </Box>
   );
 }
