@@ -22,30 +22,9 @@ echo "[1/4] Git pull no servidor..."
 $SSH_CMD "cd $PROD_PATH && git pull"
 echo ""
 
-# Step 2: Install deps per project (only those with changes)
+# Step 2: Install deps per project
 echo "[2/4] pnpm install por projeto..."
-PROJECTS=(
-  api-micro-sankhya
-  api-mother
-  app-ti-admin-vite
-  app-publico-vite
-  app-etiquetas-vite
-  app-chamados-vite
-  app-manutencao-vite
-  app-pwa-rdomotivos
-  app-painel-veiculos-vite
-  app-gestao-veiculos-pwa-vite
-  app-tabman-pwa-vite
-  app-gruposeservicos-vite
-  app-quadro-vite
-)
-
-for proj in "${PROJECTS[@]}"; do
-  if [ -f "$PROD_PATH/$proj/package.json" ]; then
-    echo "  Installing $proj..."
-    $SSH_CMD "cd $PROD_PATH/$proj && pnpm install --frozen-lockfile 2>/dev/null || pnpm install"
-  fi
-done
+$SSH_CMD "cd $PROD_PATH && for proj in api-micro-sankhya api-mother app-ti-admin-vite app-publico-vite app-etiquetas-vite app-chamados-vite app-manutencao-vite app-pwa-rdomotivos app-painel-veiculos-vite app-gestao-veiculos-pwa-vite app-tabman-pwa-vite app-gruposeservicos-vite app-quadro-vite; do if [ -f \$proj/package.json ]; then echo \"  Installing \$proj...\"; (cd \$proj && pnpm install --frozen-lockfile 2>/dev/null || pnpm install); fi; done"
 echo ""
 
 # Step 3: Build all apps
