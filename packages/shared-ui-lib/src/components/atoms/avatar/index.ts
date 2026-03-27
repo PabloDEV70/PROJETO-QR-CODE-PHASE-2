@@ -1,2 +1,2 @@
-export { Avatar, FuncionarioAvatar } from './Avatar';
+export { Avatar, FuncionarioAvatar } from './avatar';
 export type { AvatarProps, FuncionarioAvatarProps } from './avatar.types';
