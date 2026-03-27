@@ -3,7 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, GlobalStyles } from '@mui/material';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { useThemeStore } from '@/stores/theme-store';
-import { lightTheme, darkTheme } from '@/theme/theme-config';
+import { lightTheme, darkTheme } from '@shared/ui-lib';
 import { ErrorBoundary } from '@/components/shared/error-boundary';
 import { NotificationProvider } from '@/components/shared/notification-provider';
 import { parseApiError } from '@/types/api-error';

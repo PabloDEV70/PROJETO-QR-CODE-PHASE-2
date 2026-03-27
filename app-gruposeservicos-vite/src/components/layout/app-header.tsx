@@ -13,7 +13,7 @@ import { UserMenu } from '@/components/layout/user-menu';
 import { DevIndicator } from '@/components/layout/dev-indicator';
 import { ApiStatusIndicator } from '@/components/layout/api-status-indicator';
 import { PageSearch } from '@/components/layout/page-search';
-import type { DatabaseEnv } from '@/types/auth-types';
+import type { DatabaseEnv } from '@shared/ui-lib';
 
 const DB_COLORS: Record<DatabaseEnv, string> = {
   PROD: '#2e7d32',

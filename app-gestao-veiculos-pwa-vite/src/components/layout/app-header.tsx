@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { PessoaAvatar } from '@/components/shared/pessoa-avatar';
-import type { DatabaseEnv } from '@/types/auth-types';
+import type { DatabaseEnv } from '@shared/ui-lib';
 
 const DB_META: Record<DatabaseEnv, { color: string; label: string }> = {
   PROD: { color: '#16a34a', label: 'PROD' },

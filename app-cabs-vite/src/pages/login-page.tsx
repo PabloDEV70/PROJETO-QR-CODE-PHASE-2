@@ -11,10 +11,6 @@ async function loginStandard(payload: { username: string; password: string; turn
   return data;
 }
 
-async function loginColaborador(payload: { codparc: number; cpf: string; turnstileToken?: string }) {
-  const { data } = await apiClient.post('/auth/login/colaborador', payload);
-  return data;
-}
 async function verifyTotp(totpToken: string, code: string): Promise<LoginResponse> {
   const { data } = await apiClient.post<LoginResponse>('/auth/totp/verify', { totpToken, code });
   return data;
@@ -77,8 +73,6 @@ export function LoginPage() {
       enableTotp
       onVerifyTotp={verifyTotp}
       onRecoverTotp={recoverTotp}
-      enableColaborador
-      onLoginColaborador={loginColaborador}
       enableDbSelector
       enableTurnstile={!!import.meta.env.VITE_TURNSTILE_SITE_KEY}
       turnstileSiteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}

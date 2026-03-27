@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuthUser, DatabaseEnv } from '@/types/auth-types';
+import type { AuthUser, DatabaseEnv } from '@shared/ui-lib';
 
 const ADMIN_GROUPS = ['TI', 'TECNOLOGIA DA INFORMACAO', 'INFORMATICA'];
 

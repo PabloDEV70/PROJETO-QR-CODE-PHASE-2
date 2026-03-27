@@ -14,6 +14,9 @@ export interface AuthUser {
   codfunc?: number;
   pertencedp?: string;
   nomegrupo?: string;
+  cargo?: string;
+  codcargahor?: number;
+  [key: string]: unknown;
 }
 
 export interface StandardLoginPayload {
@@ -48,4 +51,7 @@ export interface MeResponse {
   codfunc: number | null;
   pertencedp: string | null;
   nomegrupo: string | null;
+  cargo?: string | null;
+  codcargahor?: number | null;
+  [key: string]: unknown;
 }

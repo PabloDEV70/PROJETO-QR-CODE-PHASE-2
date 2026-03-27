@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { UserMenu } from '@/components/layout/user-menu';
-import type { DatabaseEnv } from '@/types/auth-types';
+import type { DatabaseEnv } from '@shared/ui-lib';
 
 const DB_COLORS: Record<DatabaseEnv, string> = {
   PROD: '#2e7d32',

@@ -12,7 +12,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
-import type { DatabaseEnv } from '@/types/auth-types';
+import type { DatabaseEnv } from '@shared/ui-lib';
 
 const DB_META: Record<DatabaseEnv, { color: string; label: string }> = {
   PROD: { color: '#16a34a', label: 'PROD' },

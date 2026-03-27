@@ -12,7 +12,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { getAll, getPendingCount, getFailedCount, retryFailed, remove, type QueuedMutation } from '@/utils/offline-queue';
-import type { DatabaseEnv } from '@/types/auth-types';
+import type { DatabaseEnv } from '@shared/ui-lib';
 
 declare const __APP_VERSION__: string;
 
