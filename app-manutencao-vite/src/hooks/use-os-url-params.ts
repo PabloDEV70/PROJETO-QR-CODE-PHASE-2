@@ -41,7 +41,7 @@ export function useOsUrlParams() {
 
   // Debounced search: URL updates immediately, but API call uses debounced value
   const [debouncedSearch, setDebouncedSearch] = useState(rawSearch);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);

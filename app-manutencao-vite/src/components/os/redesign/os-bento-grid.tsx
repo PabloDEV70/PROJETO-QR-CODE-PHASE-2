@@ -62,7 +62,7 @@ export function OsBentoGrid({ os }: OsBentoGridProps) {
   const leadDays = leadHours / 24;
 
   // Eficiencia: comparar lead time com media do tipo de manutencao
-  const mediaTipo = mediaDias?.find((m: { tipo: string }) => m.tipo === os.MANUTENCAO);
+  const mediaTipo = mediaDias?.find((m) => m.manutencao === os.MANUTENCAO);
   const mediaDiasTipo = mediaTipo?.mediaDias ?? 0;
   const eficiencia = mediaDiasTipo > 0 && leadDays > 0
     ? Math.min(100, Math.round((mediaDiasTipo / leadDays) * 100))

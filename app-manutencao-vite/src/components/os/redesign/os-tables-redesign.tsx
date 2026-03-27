@@ -10,7 +10,6 @@ import { STATUSGIG_MAP } from '@/utils/os-constants';
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import { useOsCompras, useOsTimeline } from '@/hooks/use-ordens-servico';
 import type { OsDetailEnriched, OsDetailServico, OsDetailExecutor } from '@/types/os-types';
-import type { OsComprasNota, OsComprasItem, OsTimelineEntry } from '@/api/ordens-servico';
 
 interface OsTablesRedesignProps {
   os: OsDetailEnriched;

@@ -192,7 +192,7 @@ function OsGridToolbar(props: OsToolbarExtraProps) {
 
         <Divider orientation="vertical" variant="middle" flexItem sx={{ mx: 0.5 }} />
 
-        <ToolbarButton disabled={isProd} onClick={onNewOs} color="success">
+        <ToolbarButton disabled={isProd} onClick={onNewOs} color="primary">
           <Add fontSize="small" />
         </ToolbarButton>
       </Toolbar>
@@ -223,8 +223,6 @@ interface Props {
   showKpis?: boolean;
   onToggleKpis?: () => void;
 }
-
-const LOCAL_MAP: Record<string, string> = { '1': 'Oficina', '2': 'Campo', '3': 'Terceiro' };
 
 function fmtDateTime(v: string | null | undefined): string {
   if (!v) return '-';
@@ -324,7 +322,7 @@ const gridSx = {
 export function OsDataGrid({
   ordens, isLoading, page, limit, total,
   onPageChange, onPageSizeChange,
-  tab, onTabChange, onNewOs, resumo,
+  tab, onTabChange, onNewOs, resumo: _resumo,
   filters, onSetFilter,
   showKpis, onToggleKpis,
 }: Props) {
