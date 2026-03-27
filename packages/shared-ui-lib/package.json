@@ -33,5 +33,8 @@
     "@types/react-dom": "^19.2.3",
     "tsup": "^8.3.0",
     "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "@marsidev/react-turnstile": "^1.4.2"
   }
 }

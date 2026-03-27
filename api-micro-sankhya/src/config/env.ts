@@ -35,6 +35,9 @@ const envSchema = z.object({
 
   // Redis (optional — enables online users tracking + request feed)
   REDIS_URL: z.string().optional(),
+
+  // Cloudflare Turnstile (optional — bot protection on login)
+  TURNSTILE_SECRET_KEY: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

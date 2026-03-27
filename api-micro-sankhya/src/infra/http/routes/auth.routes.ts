@@ -5,9 +5,29 @@ import { ApiMotherAuthService } from '../../api-mother/login';
 import { decodeJwtPayload } from '../../api-mother/database-context';
 import { isDev, devLog, R, B, D, GREEN, CYAN, YELLOW, MAGENTA } from '../../../shared/log-colors';
 import { getRedisClient } from '@/infra/redis/redis-client';
+import { env } from '@/config/env';
 
 const LOGIN_ATTEMPTS_KEY = 'auth:login:attempts';
 const LOGIN_ATTEMPTS_MAX = 500;
+
+async function validateTurnstile(token: string | undefined): Promise<boolean> {
+  if (!env.TURNSTILE_SECRET_KEY) return true; // skip if not configured
+  if (!token) return false; // token required when secret is configured
+  try {
+    const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: env.TURNSTILE_SECRET_KEY,
+        response: token,
+      }),
+    });
+    const data = await resp.json() as { success: boolean };
+    return data.success === true;
+  } catch {
+    return true; // fail open if Cloudflare is unreachable
+  }
+}
 
 function recordLoginAttempt(
   username: string,
@@ -56,11 +76,13 @@ function formatTokenInfo(token: string, label: string): string {
 const loginStandardSchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 const loginColaboradorSchema = z.object({
   codparc: z.number().int().positive(),
   cpf: z.string().min(11),
+  turnstileToken: z.string().optional(),
 });
 
 export async function authRoutes(app: FastifyInstance) {
@@ -79,16 +101,28 @@ export async function authRoutes(app: FastifyInstance) {
 
     let username: string;
     let password: string;
+    let turnstileToken: string | undefined;
     try {
       const parsed = loginStandardSchema.parse(request.body);
       username = parsed.username;
       password = parsed.password;
+      turnstileToken = parsed.turnstileToken;
     } catch (err) {
       request.log.warn(
         { ip, origin, body: request.body },
         '[AUTH] Login validation failed — invalid payload',
       );
-      throw err; // Zod error → error handler returns 400
+      throw err;
+    }
+
+    const turnstileOk = await validateTurnstile(turnstileToken);
+    if (!turnstileOk) {
+      recordLoginAttempt(username, ip, ua, origin, false, 'Turnstile verification failed');
+      return reply.status(403).send({
+        statusCode: 403,
+        error: 'Forbidden',
+        message: 'Verificacao humana falhou. Tente novamente.',
+      });
     }
 
     request.log.info('[AUTH] Login standard user="%s" ip=%s origin=%s', username, ip, origin);
@@ -185,16 +219,28 @@ export async function authRoutes(app: FastifyInstance) {
 
     let codparc: number;
     let cpf: string;
+    let turnstileToken: string | undefined;
     try {
       const parsed = loginColaboradorSchema.parse(request.body);
       codparc = parsed.codparc;
       cpf = parsed.cpf;
+      turnstileToken = parsed.turnstileToken;
     } catch (err) {
       request.log.warn(
         { ip, origin, body: request.body },
         '[AUTH] Colaborador login validation failed — invalid payload',
       );
       throw err;
+    }
+
+    const turnstileOk = await validateTurnstile(turnstileToken);
+    if (!turnstileOk) {
+      recordLoginAttempt(`colaborador:${codparc}`, ip, ua, origin, false, 'Turnstile verification failed');
+      return reply.status(403).send({
+        statusCode: 403,
+        error: 'Forbidden',
+        message: 'Verificacao humana falhou. Tente novamente.',
+      });
     }
 
     const cpfMasked = cpf.substring(0, 3) + '***' + cpf.substring(cpf.length - 2);
