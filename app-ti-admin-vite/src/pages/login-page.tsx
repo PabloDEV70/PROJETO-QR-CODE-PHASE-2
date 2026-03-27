@@ -72,6 +72,8 @@ export default function TiAdminLoginPage() {
       appSubtitle="Administracao e monitoramento"
       enableTotp
       enableDbSelector
+      enableTurnstile={!!import.meta.env.VITE_TURNSTILE_SITE_KEY}
+      turnstileSiteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
       database={database}
       onDatabaseChange={setDatabase}
       themeMode={mode}
