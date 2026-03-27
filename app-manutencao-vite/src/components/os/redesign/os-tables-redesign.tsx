@@ -1,12 +1,11 @@
-import { useState } from 'react';
 import {
-  Box, Typography, Chip, Stack, Paper, useTheme,
+  Box, Typography, Chip, Stack, Paper,
 } from '@mui/material';
 import {
   DataGrid, type GridColDef,
   GridToolbar,
 } from '@mui/x-data-grid';
-import { Clock, ShoppingCart, History } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { STATUSGIG_MAP } from '@/utils/os-constants';
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import { useOsCompras, useOsTimeline } from '@/hooks/use-ordens-servico';

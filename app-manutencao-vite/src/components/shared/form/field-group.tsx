@@ -1,4 +1,4 @@
-import { Box, Typography, Stack } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 interface FieldGroupProps {
   title: string;
