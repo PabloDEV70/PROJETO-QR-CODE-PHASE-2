@@ -1,85 +1,37 @@
 import { create } from 'zustand';
-import type { User, Token } from '../types';
+import { persist } from 'zustand/middleware';
+import type { AuthUser, DatabaseEnv } from '../types/auth-types';
 
-interface AuthStoreOptions {
-  storageKey?: string;
-}
-
-export interface AuthData {
-  user: User | null;
-  token: Token | null;
+export interface AuthState {
+  user: AuthUser | null;
+  database: DatabaseEnv;
   isAuthenticated: boolean;
-  database: string | null;
-}
-
-interface AuthActions {
-  setUser: (user: User | null) => void;
-  setToken: (token: Token | null) => void;
-  setDatabase: (database: string | null) => void;
-  login: (user: User, token: Token) => void;
+  setUser: (user: AuthUser) => void;
   logout: () => void;
-  initialize: () => void;
+  setDatabase: (db: DatabaseEnv) => void;
 }
 
-export function createAuthStore(options: AuthStoreOptions = {}) {
-  const { storageKey = 'auth_token' } = options;
-
-  return create<AuthData & AuthActions>((set) => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    database: null,
-
-    setUser: (user) => set({ user }),
-
-    setToken: (token) => {
-      if (token && typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, JSON.stringify(token));
-      } else if (!token && typeof window !== 'undefined') {
-        localStorage.removeItem(storageKey);
-      }
-      set({ token, isAuthenticated: !!token });
-    },
-
-    setDatabase: (database) => {
-      if (database && typeof window !== 'undefined') {
-        localStorage.setItem(`${storageKey}_db`, database);
-      }
-      set({ database });
-    },
-
-    login: (user, token) => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, JSON.stringify(token));
-      }
-      set({ user, token, isAuthenticated: true });
-    },
-
-    logout: () => {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(storageKey);
-        localStorage.removeItem(`${storageKey}_db`);
-      }
-      set({ user: null, token: null, isAuthenticated: false, database: null });
-    },
-
-    initialize: () => {
-      if (typeof window === 'undefined') return;
-
-      try {
-        const storedToken = localStorage.getItem(storageKey);
-        const storedDb = localStorage.getItem(`${storageKey}_db`);
-
-        if (storedToken) {
-          const token = JSON.parse(storedToken) as Token;
-          set({ token, isAuthenticated: true, database: storedDb });
-        }
-      } catch {
-        set({ token: null, isAuthenticated: false });
-      }
-    },
-  }));
+export function createAuthStore(storageKey: string) {
+  return create<AuthState>()(
+    persist(
+      (set) => ({
+        user: null,
+        database: 'PROD' as DatabaseEnv,
+        isAuthenticated: false,
+        setUser: (user) => set({ user, isAuthenticated: true }),
+        logout: () => set({ user: null, isAuthenticated: false }),
+        setDatabase: (database) => set({ database }),
+      }),
+      {
+        name: storageKey,
+        partialize: (state) => ({
+          user: state.user,
+          database: state.database,
+          isAuthenticated: state.isAuthenticated,
+        }),
+      },
+    ),
+  );
 }
 
 export type AuthStore = ReturnType<typeof createAuthStore>;
-export type { AuthActions };

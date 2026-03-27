@@ -1,48 +1,51 @@
-export interface User {
-  id: number;
-  nome: string;
-  email: string;
-  tipoFuncionario: string;
-  urlFoto?: string;
-  funcao?: string;
-  idFuncao?: number;
+export type DatabaseEnv = 'PROD' | 'TESTE' | 'TREINA';
+
+export interface AuthUser {
+  token: string;
+  refreshToken?: string;
+  type: 'standard' | 'colaborador';
+  username?: string;
+  codparc?: number;
+  codusu?: number;
+  nome?: string;
+  nomecompleto?: string;
+  codgrupo?: number;
+  codemp?: number;
+  codfunc?: number;
+  pertencedp?: string;
+  nomegrupo?: string;
 }
 
-export interface Token {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  token_type: string;
-}
-
-export interface LoginCredentials {
+export interface StandardLoginPayload {
   username: string;
   password: string;
-  database?: string;
+  turnstileToken?: string;
 }
 
-export interface AuthState {
-  user: User | null;
-  token: Token | null;
-  isAuthenticated: boolean;
-  database: string | null;
+export interface ColaboradorLoginPayload {
+  codparc: number;
+  cpf: string;
+  turnstileToken?: string;
 }
 
 export interface LoginResponse {
-  token: Token;
-  user: User;
+  token: string;
+  refreshToken?: string;
+  type: 'standard' | 'colaborador';
+  username?: string;
+  codparc?: number;
+  requiresTotp?: boolean;
+  totpToken?: string;
 }
 
-export interface TotpSetupResponse {
-  secret: string;
-  qrCode: string;
-}
-
-export interface TotpVerifyRequest {
-  code: string;
-}
-
-export interface Database {
-  name: string;
-  alias: string;
+export interface MeResponse {
+  codusu: number;
+  nome: string;
+  nomecompleto: string | null;
+  codparc: number | null;
+  codgrupo: number | null;
+  codemp: number | null;
+  codfunc: number | null;
+  pertencedp: string | null;
+  nomegrupo: string | null;
 }
