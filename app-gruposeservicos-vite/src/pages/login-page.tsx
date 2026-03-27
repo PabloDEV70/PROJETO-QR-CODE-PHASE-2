@@ -25,7 +25,7 @@ async function recoverTotp(totpToken: string, code: string): Promise<LoginRespon
   return data;
 }
 
-export default function AppLoginPage() {
+export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -91,3 +91,4 @@ export default function AppLoginPage() {
     />
   );
 }
+export default LoginPage;
