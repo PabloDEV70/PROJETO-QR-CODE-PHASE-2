@@ -78,6 +78,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+    dedupe: ['react', 'react-dom', 'react-router-dom', '@mui/material', '@emotion/react', '@emotion/styled', 'zustand'],
       '@': path.resolve(__dirname, 'src'),
     },
   },

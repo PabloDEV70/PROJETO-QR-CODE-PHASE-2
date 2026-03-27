@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
-import { LoginPage } from '@/pages/login-page';
+import LoginPage from '@/pages/login-page';
 import { DashboardPage } from '@/pages/dashboard-page';
 import { VeiculosPage } from '@/pages/veiculos-page';
 import { VeiculoDetailPage } from '@/pages/veiculo-detail-page';

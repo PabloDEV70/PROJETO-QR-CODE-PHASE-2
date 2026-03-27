@@ -48,6 +48,7 @@ export default defineConfig({
   plugins: [react(), versionJsonPlugin()],
   resolve: {
     alias: {
+    dedupe: ['react', 'react-dom', 'react-router-dom', '@mui/material', '@emotion/react', '@emotion/styled', 'zustand'],
       '@': path.resolve(__dirname, 'src'),
     },
   },
