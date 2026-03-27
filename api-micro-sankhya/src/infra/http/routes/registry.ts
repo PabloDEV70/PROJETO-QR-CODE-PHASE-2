@@ -59,6 +59,7 @@ import { painelSaidasRoutes } from './painel-saidas.routes';
 import { analiseFrotaRoutes } from './analise-frota.routes';
 import { comprasRoutes } from './compras.routes';
 import { seriesRoutes } from './series.routes';
+import { usersOnlineRoutes } from './users-online.routes';
 
 export const routePlugins: FastifyPluginAsync[] = [
   versionRoutes,
@@ -121,5 +122,6 @@ export const routePlugins: FastifyPluginAsync[] = [
   analiseFrotaRoutes,
   comprasRoutes,
   seriesRoutes,
+  usersOnlineRoutes,
 ];
 // compras routes loaded

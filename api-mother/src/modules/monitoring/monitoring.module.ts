@@ -26,15 +26,19 @@ import {
 // Adapters
 import { MonitoramentoAdapter } from './infrastructure/adapters';
 
-// Controller
+// Controllers
 import { MonitoringController } from './presentation/controllers';
+import { UsersOnlineController } from './controllers/users-online.controller';
+
+// Redis
+import { RedisService } from '../../common/services/redis.service';
 
 // Database
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [MonitoringController],
+  controllers: [MonitoringController, UsersOnlineController],
   providers: [
     // Use Cases
     ObterVisaoServidorUseCase,
@@ -67,6 +71,9 @@ import { DatabaseModule } from '../../database/database.module';
       provide: PROVEDOR_VISAO_SERVIDOR,
       useExisting: MonitoramentoAdapter,
     },
+
+    // Redis
+    RedisService,
   ],
   exports: [
     ObterVisaoServidorUseCase,

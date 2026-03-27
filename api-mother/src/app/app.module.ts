@@ -27,6 +27,8 @@ import { CharTrimInterceptor } from '../common/interceptors/char-trim.intercepto
 import { DatabaseContextInterceptor } from '../common/interceptors/database-context.interceptor';
 import { RequestTrackerInterceptor } from '../common/interceptors/request-tracker.interceptor';
 import { MetricsInterceptor } from '../common/interceptors/metrics.interceptor';
+import { UserActivityInterceptor } from '../common/interceptors/user-activity.interceptor';
+import { RedisService } from '../common/services/redis.service';
 import { ShutdownStateService } from '../common/services/shutdown-state.service';
 import { PermissoesEscritaModule } from '../modules/permissoes-escrita/permissoes-escrita.module';
 import { AdminPermissoesModule } from '../modules/admin-permissoes/admin-permissoes.module';
@@ -106,8 +108,13 @@ import { MetricsModule } from '../modules/metrics';
       provide: APP_INTERCEPTOR,
       useClass: MetricsInterceptor,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UserActivityInterceptor,
+    },
+    RedisService,
   ],
-  exports: [ShutdownStateService],
+  exports: [ShutdownStateService, RedisService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
