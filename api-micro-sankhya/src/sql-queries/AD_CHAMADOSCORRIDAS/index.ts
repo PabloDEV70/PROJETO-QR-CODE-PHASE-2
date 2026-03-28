@@ -1,0 +1,12 @@
+export { getList } from './get-list';
+export { getById } from './get-by-id';
+export { getCount } from './get-count';
+export { getResumo } from './get-resumo';
+export { getMotoristas } from './get-motoristas';
+export { getStatsTempoTransito } from './get-stats-tempo-transito';
+export { getStatsPorMotorista } from './get-stats-por-motorista';
+export { getStatsPorSolicitante } from './get-stats-por-solicitante';
+export { getStatsPorParceiro } from './get-stats-por-parceiro';
+export { getStatsVolumeMensal } from './get-stats-volume-mensal';
+export { getStatsPorTipo } from './get-stats-por-tipo';
+export { getStatsPorHora } from './get-stats-por-hora';
