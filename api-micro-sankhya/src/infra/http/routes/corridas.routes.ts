@@ -188,6 +188,25 @@ export async function corridasRoutes(app: FastifyInstance) {
     return timed('GET /corridas/me/role', () => service.getUserRole(codusu));
   });
 
+  app.patch('/corridas/minha-localizacao', async (request) => {
+    const codusu = extractCodusu(request);
+    if (!codusu) throw new ForbiddenError('Token invalido ou ausente');
+
+    const body = localizacaoSchema.parse(request.body);
+    return timed('PATCH /corridas/minha-localizacao', async () => {
+      await service.saveMinhaLocalizacao(codusu, {
+        lat: body.latitude,
+        lng: body.longitude,
+        accuracy: body.accuracy,
+      });
+      return { ok: true };
+    });
+  });
+
+  app.get('/corridas/localizacoes-ativas', async () => {
+    return timed('GET /corridas/localizacoes-ativas', () => service.getLocalizacoesAtivas());
+  });
+
   app.patch('/corridas/:id/localizacao', async (request) => {
     const codusu = extractCodusu(request);
     if (!codusu) throw new ForbiddenError('Token invalido ou ausente');

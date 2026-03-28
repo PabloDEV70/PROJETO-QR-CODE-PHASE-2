@@ -15,6 +15,8 @@ import type {
   UserRole,
   Localizacao,
   MinhasCorridasParams,
+  LocUser,
+  ParceiroBusca,
 } from '@/types/corrida';
 
 export async function getCorridasList(params: ListCorridasParams = {}): Promise<{ data: Corrida[]; total: number }> {
@@ -118,5 +120,30 @@ export async function enviarLocalizacao(
 
 export async function getLocalizacao(id: number): Promise<Localizacao> {
   const { data } = await apiClient.get<Localizacao>(`/corridas/${id}/localizacao`);
+  return data;
+}
+
+export async function enviarMinhaLocalizacao(
+  latitude: number,
+  longitude: number,
+  accuracy?: number,
+): Promise<{ ok: boolean }> {
+  const { data } = await apiClient.patch<{ ok: boolean }>('/corridas/minha-localizacao', {
+    latitude,
+    longitude,
+    accuracy,
+  });
+  return data;
+}
+
+export async function getLocalizacoesAtivas(): Promise<LocUser[]> {
+  const { data } = await apiClient.get<LocUser[]>('/corridas/localizacoes-ativas');
+  return data;
+}
+
+export async function buscarParceiros(search: string): Promise<ParceiroBusca[]> {
+  const { data } = await apiClient.get<ParceiroBusca[]>('/corridas/parceiros-busca', {
+    params: { search },
+  });
   return data;
 }

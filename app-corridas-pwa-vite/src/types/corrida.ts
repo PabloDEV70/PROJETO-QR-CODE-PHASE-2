@@ -19,6 +19,18 @@ export interface Corrida {
   USER_ID: number | null;
   ENVIAWPP: string | null;
   SETOR: string | null;
+  ENDERECO?: string | null;
+  TELEFONE?: string | null;
+  EMAIL?: string | null;
+  BAIRRO?: string | null;
+  CIDADE?: string | null;
+  UF?: string | null;
+  CEP?: string | null;
+  CODPARC_SOL?: number | null;
+  CODPARC_MOT?: number | null;
+  CARGO_SOL?: string | null;
+  CARGO_MOT?: string | null;
+  SETOR_MOT?: string | null;
 }
 
 export interface CorridaResumo {
@@ -157,4 +169,23 @@ export interface MinhasCorridasParams {
   role?: 'motorista' | 'solicitante';
   status?: string;
   limit?: number;
+}
+
+export interface LocUser {
+  codusu: number;
+  nome: string;
+  codparc: number | null;
+  cargo: string | null;
+  lat: number;
+  lng: number;
+  accuracy?: number;
+  ts: string;
+  tempoDesde: number;
+}
+
+export interface ParceiroBusca {
+  CODPARC: number;
+  NOMEPARC: string;
+  ENDERECO?: string | null;
+  TELEFONE?: string | null;
 }

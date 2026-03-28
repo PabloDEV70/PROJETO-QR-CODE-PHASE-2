@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { enviarLocalizacao } from '@/api/corridas';
+import { enviarLocalizacao, enviarMinhaLocalizacao } from '@/api/corridas';
 
 const SEND_INTERVAL_MS = 30_000;
 
@@ -11,7 +11,9 @@ interface GpsState {
   error: string | null;
 }
 
-export function useGpsTracking(corridaId: number | null) {
+function useGpsCore(
+  sendFn: (lat: number, lng: number, acc?: number) => Promise<unknown>,
+) {
   const [state, setState] = useState<GpsState>({
     latitude: null,
     longitude: null,
@@ -29,10 +31,9 @@ export function useGpsTracking(corridaId: number | null) {
   });
 
   const sendPosition = useCallback(async () => {
-    if (!corridaId || !latestPos.current.lat) return;
+    if (!latestPos.current.lat) return;
     try {
-      await enviarLocalizacao(
-        corridaId,
+      await sendFn(
         latestPos.current.lat,
         latestPos.current.lng,
         latestPos.current.acc ?? undefined,
@@ -40,7 +41,7 @@ export function useGpsTracking(corridaId: number | null) {
     } catch {
       // silently fail, will retry next interval
     }
-  }, [corridaId]);
+  }, [sendFn]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
@@ -104,4 +105,27 @@ export function useGpsTracking(corridaId: number | null) {
     startTracking,
     stopTracking,
   };
+}
+
+export function useGpsTracking(corridaId: number | null) {
+  const sendFn = useCallback(
+    async (lat: number, lng: number, acc?: number) => {
+      if (!corridaId) return;
+      await enviarLocalizacao(corridaId, lat, lng, acc);
+    },
+    [corridaId],
+  );
+
+  return useGpsCore(sendFn);
+}
+
+export function useUserLocationSharing() {
+  const sendFn = useCallback(
+    async (lat: number, lng: number, acc?: number) => {
+      await enviarMinhaLocalizacao(lat, lng, acc);
+    },
+    [],
+  );
+
+  return useGpsCore(sendFn);
 }

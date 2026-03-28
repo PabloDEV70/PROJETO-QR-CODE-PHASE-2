@@ -241,6 +241,105 @@ export class CorridasService {
     return this.qe.executeQuery(listSql);
   }
 
+  async saveMinhaLocalizacao(
+    codusu: number,
+    data: { lat: number; lng: number; accuracy?: number },
+  ): Promise<boolean> {
+    const redis = getRedisClient();
+    if (!redis) return false;
+
+    const payload = JSON.stringify({
+      lat: data.lat,
+      lng: data.lng,
+      accuracy: data.accuracy ?? null,
+      ts: new Date().toISOString(),
+      codusu,
+    });
+
+    await redis.set(`user:loc:${codusu}`, payload, 'EX', 120);
+    return true;
+  }
+
+  async getLocalizacoesAtivas(): Promise<
+    { codusu: number; nome: string; codparc: number | null; cargo: string | null; lat: number; lng: number; accuracy: number | null; ts: string; tempoDesde: number }[]
+  > {
+    const redis = getRedisClient();
+    if (!redis) return [];
+
+    const keys = await redis.keys('user:loc:*');
+    if (!keys.length) return [];
+
+    const values = await redis.mget(...keys);
+
+    const parsed: { codusu: number; lat: number; lng: number; accuracy: number | null; ts: string; tempoDesde: number }[] = [];
+    for (const raw of values) {
+      if (!raw) continue;
+      try {
+        const item = JSON.parse(raw);
+        const tempoDesde = item.ts
+          ? Math.round((Date.now() - new Date(item.ts).getTime()) / 1000)
+          : 0;
+        parsed.push({
+          codusu: item.codusu,
+          lat: item.lat,
+          lng: item.lng,
+          accuracy: item.accuracy ?? null,
+          ts: item.ts,
+          tempoDesde,
+        });
+      } catch {
+        /* skip malformed */
+      }
+    }
+
+    if (!parsed.length) return [];
+
+    const codusuList = parsed.map((p) => p.codusu);
+    const userInfoMap = await this.getUserInfoBatch(codusuList);
+
+    return parsed.map((p) => {
+      const info = userInfoMap.get(p.codusu);
+      return {
+        ...p,
+        nome: info?.nome ?? '',
+        codparc: info?.codparc ?? null,
+        cargo: info?.cargo ?? null,
+      };
+    });
+  }
+
+  private async getUserInfoBatch(
+    codusuList: number[],
+  ): Promise<Map<number, { nome: string; codparc: number | null; cargo: string | null }>> {
+    const ck = cacheKey('corridas:user-info-batch', { ids: codusuList.sort().join(',') });
+    const cached = cache.get<Map<number, { nome: string; codparc: number | null; cargo: string | null }>>(ck);
+    if (cached) return cached;
+
+    const inClause = codusuList.join(',');
+    const sql = `
+      SELECT U.CODUSU, U.NOMEUSU, U.CODPARC,
+        CAR.DESCRCARGO AS CARGO
+      FROM TSIUSU U WITH (NOLOCK)
+      LEFT JOIN TFPFUN F ON F.CODEMP = U.CODEMP AND F.CODFUNC = U.CODFUNC
+      LEFT JOIN TFPCAR CAR ON CAR.CODCARGO = F.CODCARGO
+      WHERE U.CODUSU IN (${inClause})
+    `;
+    const rows = await this.qe.executeQuery<{
+      CODUSU: number;
+      NOMEUSU: string;
+      CODPARC: number | null;
+      CARGO: string | null;
+    }>(sql);
+
+    const map = new Map<number, { nome: string; codparc: number | null; cargo: string | null }>();
+    for (const row of rows) {
+      map.set(row.CODUSU, { nome: row.NOMEUSU, codparc: row.CODPARC, cargo: row.CARGO });
+    }
+
+    cache.set(ck, map, CACHE_TTL.FILTERS); // 5 min
+    return map;
+  }
+
   async getUserRole(codusu: number): Promise<{
     codusu: number;
     nome: string;

@@ -136,5 +136,12 @@ module.exports = {
       args: 'serve -s dist -l 7118',
       max_memory_restart: '128M',
     },
+    {
+      name: 'corridas-web',
+      cwd: './app-corridas-web-vite',
+      script: 'npx',
+      args: 'serve -s dist -l 7119',
+      max_memory_restart: '128M',
+    },
   ],
 };

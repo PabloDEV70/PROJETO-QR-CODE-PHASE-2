@@ -2,35 +2,34 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { CircularProgress, Box } from '@mui/material';
 import { ProtectedRoute } from '@/components/layout/protected-route';
-import { AppShellMotorista } from '@/components/layout/app-shell-motorista';
-import { AppShellSolicitante } from '@/components/layout/app-shell-solicitante';
+import { AppShell } from '@/components/layout/app-shell';
 
 const LoginPage = lazy(() =>
   import('@/pages/login-page').then((m) => ({ default: m.LoginPage })),
 );
 
-const RoleRedirectPage = lazy(() =>
-  import('@/pages/role-redirect-page').then((m) => ({ default: m.RoleRedirectPage })),
+const HomePage = lazy(() =>
+  import('@/pages/home-page').then((m) => ({ default: m.HomePage })),
 );
 
-const MotoristaPage = lazy(() =>
-  import('@/pages/motorista-page').then((m) => ({ default: m.MotoristaPage })),
+const CorridasPage = lazy(() =>
+  import('@/pages/corridas-page').then((m) => ({ default: m.CorridasPage })),
 );
 
-const CorridaAtivaPage = lazy(() =>
-  import('@/pages/corrida-ativa-page').then((m) => ({ default: m.CorridaAtivaPage })),
+const CorridaDetailPage = lazy(() =>
+  import('@/pages/corrida-detail-page').then((m) => ({ default: m.CorridaDetailPage })),
 );
 
-const SolicitarPage = lazy(() =>
-  import('@/pages/solicitar-page').then((m) => ({ default: m.SolicitarPage })),
+const MapaLivePage = lazy(() =>
+  import('@/pages/mapa-live-page').then((m) => ({ default: m.MapaLivePage })),
 );
 
-const MinhasCorridasPage = lazy(() =>
-  import('@/pages/minhas-corridas-page').then((m) => ({ default: m.MinhasCorridasPage })),
+const NovaCorridaPage = lazy(() =>
+  import('@/pages/nova-corrida-page').then((m) => ({ default: m.NovaCorridaPage })),
 );
 
-const CorridaDetalhePage = lazy(() =>
-  import('@/pages/corrida-detalhe-page').then((m) => ({ default: m.CorridaDetalhePage })),
+const PerfilPage = lazy(() =>
+  import('@/pages/perfil-page').then((m) => ({ default: m.PerfilPage })),
 );
 
 function Loading() {
@@ -51,48 +50,35 @@ export const router = createBrowserRouter([
     element: <Lazy><LoginPage /></Lazy>,
   },
   {
-    path: '/',
     element: (
       <ProtectedRoute>
-        <Lazy><RoleRedirectPage /></Lazy>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    element: (
-      <ProtectedRoute>
-        <AppShellMotorista />
+        <AppShell />
       </ProtectedRoute>
     ),
     children: [
       {
-        path: 'motorista',
-        element: <Lazy><MotoristaPage /></Lazy>,
+        index: true,
+        element: <Lazy><HomePage /></Lazy>,
       },
       {
-        path: 'motorista/corrida/:id',
-        element: <Lazy><CorridaAtivaPage /></Lazy>,
-      },
-    ],
-  },
-  {
-    element: (
-      <ProtectedRoute>
-        <AppShellSolicitante />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        path: 'solicitar',
-        element: <Lazy><SolicitarPage /></Lazy>,
-      },
-      {
-        path: 'minhas',
-        element: <Lazy><MinhasCorridasPage /></Lazy>,
+        path: 'corridas',
+        element: <Lazy><CorridasPage /></Lazy>,
       },
       {
         path: 'corrida/:id',
-        element: <Lazy><CorridaDetalhePage /></Lazy>,
+        element: <Lazy><CorridaDetailPage /></Lazy>,
+      },
+      {
+        path: 'mapa',
+        element: <Lazy><MapaLivePage /></Lazy>,
+      },
+      {
+        path: 'nova',
+        element: <Lazy><NovaCorridaPage /></Lazy>,
+      },
+      {
+        path: 'perfil',
+        element: <Lazy><PerfilPage /></Lazy>,
       },
     ],
   },
