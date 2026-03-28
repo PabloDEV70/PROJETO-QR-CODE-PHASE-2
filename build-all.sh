@@ -36,7 +36,7 @@ ensure_env_production app-compras-vite
 ensure_env_production app-produtoselocais-vite
 ensure_env_production app-rdoapontamentos-vite
 ensure_env_production app-cabs-vite
-ensure_env_production app-corridas-vite
+ensure_env_production app-corridas-pwa-vite
 
 echo ""
 echo "=== Building api-micro-sankhya ==="
@@ -58,7 +58,7 @@ APPS=(
   app-produtoselocais-vite
   app-rdoapontamentos-vite
   app-cabs-vite
-  app-corridas-vite
+  app-corridas-pwa-vite
 )
 
 for app in "${APPS[@]}"; do

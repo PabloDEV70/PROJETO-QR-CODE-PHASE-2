@@ -273,7 +273,7 @@ importers:
         specifier: ^7.3.1
         version: 7.3.1(@types/node@24.12.0)(terser@5.46.1)
 
-  app-corridas-vite:
+  app-corridas-pwa-vite:
     dependencies:
       '@emotion/react':
         specifier: ^11.14.0

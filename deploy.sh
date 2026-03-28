@@ -24,7 +24,7 @@ echo ""
 
 # Step 2: Install deps per project
 echo "[2/4] pnpm install por projeto..."
-$SSH_CMD "cd $PROD_PATH && for proj in api-micro-sankhya api-mother app-ti-admin-vite app-publico-vite app-etiquetas-vite app-chamados-vite app-manutencao-vite app-pwa-rdomotivos app-painel-veiculos-vite app-gestao-veiculos-pwa-vite app-tabman-pwa-vite app-gruposeservicos-vite app-quadro-vite app-corridas-vite; do if [ -f \$proj/package.json ]; then echo \"  Installing \$proj...\"; (cd \$proj && pnpm install --frozen-lockfile 2>/dev/null || pnpm install); fi; done"
+$SSH_CMD "cd $PROD_PATH && for proj in api-micro-sankhya api-mother app-ti-admin-vite app-publico-vite app-etiquetas-vite app-chamados-vite app-manutencao-vite app-pwa-rdomotivos app-painel-veiculos-vite app-gestao-veiculos-pwa-vite app-tabman-pwa-vite app-gruposeservicos-vite app-quadro-vite app-corridas-pwa-vite; do if [ -f \$proj/package.json ]; then echo \"  Installing \$proj...\"; (cd \$proj && pnpm install --frozen-lockfile 2>/dev/null || pnpm install); fi; done"
 echo ""
 
 # Step 3: Build all apps

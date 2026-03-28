@@ -1,12 +1,12 @@
 #!/bin/bash
 # =============================================================
-# app-corridas-vite - Kill & Start (porta 3015)
+# app-corridas-pwa-vite - Kill & Start (porta 3015)
 # =============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-FRONTEND_DIR="$SCRIPT_DIR/app-corridas-vite"
+FRONTEND_DIR="$SCRIPT_DIR/app-corridas-pwa-vite"
 PORT=3015
-LOG="/tmp/app-corridas-vite.log"
+LOG="/tmp/app-corridas-pwa-vite.log"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -26,7 +26,7 @@ if [ -n "$PID" ]; then
 fi
 
 echo ""
-echo -e "${BOLD}${CYAN}app-corridas-vite${NC} - porta ${BOLD}$PORT${NC}"
+echo -e "${BOLD}${CYAN}app-corridas-pwa-vite${NC} - porta ${BOLD}$PORT${NC}"
 echo ""
 
 # Install deps
