@@ -28,7 +28,7 @@ export function CorridasPage() {
     limit: 50,
   });
 
-  const corridas = data?.data ?? [];
+  const corridas = data ?? [];
 
   const handlePullRefresh = useCallback(() => {
     refetch();

@@ -99,8 +99,8 @@ export async function getMyRole(): Promise<UserRole> {
   return data;
 }
 
-export async function getMinhasCorridas(params: MinhasCorridasParams = {}): Promise<{ data: Corrida[]; total: number }> {
-  const { data } = await apiClient.get<{ data: Corrida[]; total: number }>('/corridas/minhas', { params });
+export async function getMinhasCorridas(params: MinhasCorridasParams = {}): Promise<Corrida[]> {
+  const { data } = await apiClient.get<Corrida[]>('/corridas/minhas', { params });
   return data;
 }
 

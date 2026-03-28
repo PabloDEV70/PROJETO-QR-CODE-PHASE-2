@@ -39,7 +39,7 @@ export function HomePage() {
   });
 
   const isLoading = loadAtivas || loadPend;
-  const corridaAtiva = ativas?.data?.[0] ?? null;
+  const corridaAtiva = ativas?.[0] ?? null;
   const gpsActive = Boolean(localStorage.getItem('gps-sharing-active'));
 
   if (isLoading) {
@@ -165,20 +165,20 @@ export function HomePage() {
         </Paper>
       )}
 
-      {(pendentes?.data?.length ?? 0) > 0 && (
+      {(pendentes?.length ?? 0) > 0 && (
         <>
           <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-            Pendentes ({pendentes!.data.length})
+            Pendentes ({pendentes!.length})
           </Typography>
           <Stack spacing={1} sx={{ mb: 2 }}>
-            {pendentes!.data.map((c) => (
+            {pendentes!.map((c) => (
               <CorridaCardRich key={c.ID} corrida={c} />
             ))}
           </Stack>
         </>
       )}
 
-      {(!pendentes?.data?.length && !corridaAtiva) && (
+      {(!pendentes?.length && !corridaAtiva) && (
         <Paper sx={{ p: 3, textAlign: 'center', mb: 2 }}>
           <Typography color="text.secondary" variant="body2">
             Nenhuma corrida pendente
@@ -186,14 +186,14 @@ export function HomePage() {
         </Paper>
       )}
 
-      {recentes && recentes.data.length > 0 && (
+      {recentes && recentes.length > 0 && (
         <>
           <Divider sx={{ my: 2 }} />
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
             Recentes
           </Typography>
           <Stack spacing={0.5}>
-            {recentes.data.map((c) => (
+            {recentes.map((c) => (
               <CorridaCardRich key={c.ID} corrida={c} compact />
             ))}
           </Stack>
