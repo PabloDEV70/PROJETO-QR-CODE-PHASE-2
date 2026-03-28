@@ -24,10 +24,13 @@ export class ApiMotherAuthService {
     logger.info('[ApiMotherAuth] Authenticating as %s...', username);
     try {
       const database = getDatabase();
+      const headers: Record<string, string> = { 'X-Database': database };
+      if (env.NETWORK_BYPASS_KEY) headers['X-Network-Bypass-Key'] = env.NETWORK_BYPASS_KEY;
+
       const response = await axios.post(
         `${env.API_MAE_BASE_URL}/auth/login`,
         { username, password },
-        { headers: { 'X-Database': database } },
+        { headers },
       );
 
       const data = response.data as {
@@ -60,10 +63,13 @@ export class ApiMotherAuthService {
     logger.info('[ApiMotherAuth] Refreshing user token...');
     try {
       const database = getDatabase();
+      const headers: Record<string, string> = { 'X-Database': database };
+      if (env.NETWORK_BYPASS_KEY) headers['X-Network-Bypass-Key'] = env.NETWORK_BYPASS_KEY;
+
       const response = await axios.post(
         `${env.API_MAE_BASE_URL}/auth/refresh`,
         { refreshToken },
-        { headers: { 'X-Database': database } },
+        { headers },
       );
 
       const data = response.data as {

@@ -47,6 +47,7 @@ export class PublicQueryExecutor {
             'Content-Type': 'application/json',
             'X-Api-Key': env.API_MOTHER_PUBLIC_KEY,
             'X-Database': database,
+            ...(env.NETWORK_BYPASS_KEY && { 'X-Network-Bypass-Key': env.NETWORK_BYPASS_KEY }),
           },
           timeout: 30000,
         },

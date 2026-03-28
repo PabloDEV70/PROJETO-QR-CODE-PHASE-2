@@ -61,6 +61,10 @@ apiMotherClient.interceptors.request.use(async (config) => {
   config.headers['X-Database'] = database;
   config.headers['X-DATABASE'] = database;
 
+  if (env.NETWORK_BYPASS_KEY) {
+    config.headers['X-Network-Bypass-Key'] = env.NETWORK_BYPASS_KEY;
+  }
+
   return config;
 });
 

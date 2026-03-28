@@ -38,6 +38,9 @@ const envSchema = z.object({
 
   // Cloudflare Turnstile (optional — bot protection on login)
   TURNSTILE_SECRET_KEY: z.string().optional(),
+
+  // Network bypass key for API Mother (allows external access)
+  NETWORK_BYPASS_KEY: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);
