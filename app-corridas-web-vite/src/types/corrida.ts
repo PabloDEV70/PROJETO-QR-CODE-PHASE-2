@@ -4,8 +4,10 @@ export interface Corrida {
   NOMESOLICITANTE: string;
   USU_MOTORISTA: number | null;
   NOMEMOTORISTA: string | null;
+  CODPARC_MOTORISTA: number | null;
   CODPARC: number | null;
   NOMEPARC: string | null;
+  CODPARC_SOLICITANTE: number | null;
   DESTINO: string | null;
   BUSCARLEVAR: string;
   PASSAGEIROSMERCADORIA: string | null;
@@ -19,6 +21,21 @@ export interface Corrida {
   USER_ID: number | null;
   ENVIAWPP: string | null;
   SETOR: string | null;
+  TELEFONE_PARCEIRO: string | null;
+  EMAIL_PARCEIRO: string | null;
+  CEP_PARCEIRO: string | null;
+  NUMEND_PARCEIRO: string | null;
+  COMPLEMENTO_PARCEIRO: string | null;
+  RUA_PARCEIRO: string | null;
+  BAIRRO_PARCEIRO: string | null;
+  CIDADE_PARCEIRO: string | null;
+  UF_PARCEIRO: string | null;
+  LATITUDE_PARCEIRO: number | null;
+  LONGITUDE_PARCEIRO: number | null;
+  CARGO_MOTORISTA: string | null;
+  NOMECOMPLETO_MOTORISTA: string | null;
+  CARGO_SOLICITANTE: string | null;
+  NOMECOMPLETO_SOLICITANTE: string | null;
 }
 
 export interface CorridaResumo {
@@ -109,6 +126,7 @@ export const PRIORIDADE_LABELS: Record<string, string> = {
 
 export interface CreateCorridaPayload {
   USU_SOLICITANTE: number;
+  USU_MOTORISTA?: number;
   CODPARC?: number;
   DESTINO?: string;
   BUSCARLEVAR: string;
@@ -120,6 +138,7 @@ export interface CreateCorridaPayload {
 }
 
 export interface UpdateCorridaPayload {
+  USU_MOTORISTA?: number;
   CODPARC?: number;
   DESTINO?: string;
   BUSCARLEVAR?: string;
@@ -134,27 +153,4 @@ export interface MutationResult {
   sucesso: boolean;
   mensagem: string;
   registrosAfetados?: number;
-}
-
-export interface UserRole {
-  codusu: number;
-  nome: string;
-  codparc: number | null;
-  cargo: string | null;
-  departamento: string | null;
-  isMotorista: boolean;
-}
-
-export interface Localizacao {
-  lat: number | null;
-  lng: number | null;
-  accuracy?: number;
-  ts?: string;
-  tempoDesde?: number;
-}
-
-export interface MinhasCorridasParams {
-  role?: 'motorista' | 'solicitante';
-  status?: string;
-  limit?: number;
 }

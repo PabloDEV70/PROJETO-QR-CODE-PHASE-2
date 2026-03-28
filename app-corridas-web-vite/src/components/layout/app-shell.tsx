@@ -6,12 +6,12 @@ export function AppShell() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
       <AppHeader />
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <Outlet />
       </Box>
       <Box sx={{ textAlign: 'center', py: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>
         <Box component="span" sx={{ fontSize: 11, color: 'text.disabled' }}>
-          corridas.gigantao.net &middot; v{__APP_VERSION__} ({__COMMIT_SHORT__})
+          corridas-admin.gigantao.net &middot; v{__APP_VERSION__} ({__COMMIT_SHORT__})
         </Box>
       </Box>
     </Box>

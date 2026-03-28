@@ -13,7 +13,13 @@ export function UserMenu() {
 
   const displayName = user?.nome || user?.username || '?';
   const subtitle = user?.nome ? user.username : 'Usuario do Sistema';
-  const initials = displayName.slice(0, 2).toUpperCase();
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w: string) => w[0])
+    .join('')
+    .toUpperCase();
 
   return (
     <>
@@ -25,9 +31,7 @@ export function UserMenu() {
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}
       >
-        <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'primary.main' }}>
-          {initials}
-        </Avatar>
+        <Avatar sx={{ width: 32, height: 32, fontSize: 13 }}>{initials}</Avatar>
       </IconButton>
 
       <Menu
@@ -40,7 +44,7 @@ export function UserMenu() {
         slotProps={{ paper: { elevation: 3, sx: { mt: 1, minWidth: 220 } } }}
       >
         <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar sx={{ bgcolor: 'primary.main' }}>{initials}</Avatar>
+          <Avatar sx={{ width: 40, height: 40, fontSize: 15 }}>{initials}</Avatar>
           <Box>
             <Typography variant="subtitle2" fontWeight="bold">
               {displayName}

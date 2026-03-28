@@ -1,6 +1,7 @@
 import { QueryExecutor } from '../../infra/api-mother/queryExecutor';
 import { cache, CACHE_TTL, cacheKey } from '../../shared/cache';
 import { escapeSqlString, escapeSqlDate } from '../../shared/sql-sanitize';
+import { getRedisClient } from '../../infra/redis/redis-client';
 import * as Q from '../../sql-queries/AD_CHAMADOSCORRIDAS';
 
 export interface ListCorridasOptions {
@@ -129,5 +130,155 @@ export class CorridasService {
 
     cache.set(ck, result, CACHE_TTL.CHAMADOS);
     return result;
+  }
+
+  async buscarParceiros(search: string): Promise<unknown[]> {
+    const term = escapeSqlString(search);
+    const sql = `
+      SELECT TOP 20 P.CODPARC, P.NOMEPARC, P.TELEFONE, P.CEP, P.NUMEND,
+        E.NOMEEND AS RUA, B.NOMEBAI AS BAIRRO, C.NOMECID AS CIDADE, U.UF
+      FROM TGFPAR P WITH (NOLOCK)
+      LEFT JOIN TSIEND E ON E.CODEND = P.CODEND
+      LEFT JOIN TSIBAI B ON B.CODBAI = P.CODBAI
+      LEFT JOIN TSICID C ON C.CODCID = P.CODCID
+      LEFT JOIN TSIUFS U ON U.CODUF = C.UF
+      WHERE P.ATIVO = 'S'
+        AND (P.NOMEPARC LIKE '%${term}%' OR CAST(P.CODPARC AS VARCHAR) LIKE '%${term}%')
+      ORDER BY P.NOMEPARC
+    `;
+    return this.qe.executeQuery(sql);
+  }
+
+  async getMotoristasDetalhado(): Promise<unknown[]> {
+    const ck = cacheKey('corridas:motoristas-detalhado');
+    const cached = cache.get<unknown[]>(ck);
+    if (cached) return cached;
+
+    const sql = `
+      SELECT U.CODUSU, U.NOMEUSU, U.CODPARC, F.NOMEFUNC AS NOMECOMPLETO,
+        CAR.DESCRCARGO AS CARGO,
+        COUNT(C.ID) as TOTAL_CORRIDAS,
+        SUM(CASE WHEN C.STATUS = '0' THEN 1 ELSE 0 END) as ABERTAS,
+        SUM(CASE WHEN C.STATUS = '1' THEN 1 ELSE 0 END) as EM_ANDAMENTO
+      FROM TSIUSU U WITH (NOLOCK)
+      INNER JOIN TFPFUN F ON F.CODEMP = U.CODEMP AND F.CODFUNC = U.CODFUNC
+      INNER JOIN TFPCAR CAR ON CAR.CODCARGO = F.CODCARGO
+      LEFT JOIN AD_CHAMADOSCORRIDAS C ON C.USU_MOTORISTA = U.CODUSU
+      WHERE UPPER(CAR.DESCRCARGO) LIKE '%MOTORISTA%'
+      GROUP BY U.CODUSU, U.NOMEUSU, U.CODPARC, F.NOMEFUNC, CAR.DESCRCARGO
+      ORDER BY TOTAL_CORRIDAS DESC
+    `;
+    const rows = await this.qe.executeQuery(sql);
+    cache.set(ck, rows, CACHE_TTL.CHAMADOS);
+    return rows;
+  }
+
+  async saveLocalizacao(
+    corridaId: number,
+    data: { lat: number; lng: number; accuracy?: number; codusu: number },
+  ): Promise<boolean> {
+    const redis = getRedisClient();
+    if (!redis) return false;
+
+    const payload = JSON.stringify({
+      lat: data.lat,
+      lng: data.lng,
+      accuracy: data.accuracy ?? null,
+      ts: new Date().toISOString(),
+      codusu: data.codusu,
+    });
+
+    await redis.set(`corrida:loc:${corridaId}`, payload, 'EX', 300);
+    return true;
+  }
+
+  async getLocalizacao(corridaId: number): Promise<{
+    lat: number | null;
+    lng: number | null;
+    accuracy: number | null;
+    ts: string | null;
+    codusu: number | null;
+    tempoDesde: number | null;
+  }> {
+    const redis = getRedisClient();
+    if (!redis) return { lat: null, lng: null, accuracy: null, ts: null, codusu: null, tempoDesde: null };
+
+    const raw = await redis.get(`corrida:loc:${corridaId}`);
+    if (!raw) return { lat: null, lng: null, accuracy: null, ts: null, codusu: null, tempoDesde: null };
+
+    const parsed = JSON.parse(raw);
+    const tempoDesde = parsed.ts
+      ? Math.round((Date.now() - new Date(parsed.ts).getTime()) / 1000)
+      : null;
+
+    return {
+      lat: parsed.lat,
+      lng: parsed.lng,
+      accuracy: parsed.accuracy ?? null,
+      ts: parsed.ts,
+      codusu: parsed.codusu,
+      tempoDesde,
+    };
+  }
+
+  async getMinhas(options: {
+    codusu: number;
+    role: 'solicitante' | 'motorista';
+    status?: string;
+    limit: number;
+  }): Promise<unknown[]> {
+    const column = options.role === 'motorista' ? 'USU_MOTORISTA' : 'USU_SOLICITANTE';
+    const conditions: string[] = [`C.${column} = ${options.codusu}`];
+    if (options.status) conditions.push(`C.STATUS = '${options.status}'`);
+
+    const whereSql = `AND ${conditions.join(' AND ')}`;
+    const listSql = Q.getList
+      .replace('-- @ORDER', 'C.DT_CREATED DESC')
+      .replace('-- @WHERE', whereSql)
+      .replace(/@OFFSET/g, '0')
+      .replace(/@LIMIT/g, options.limit.toString());
+
+    return this.qe.executeQuery(listSql);
+  }
+
+  async getUserRole(codusu: number): Promise<{
+    codusu: number;
+    nome: string;
+    codparc: number | null;
+    cargo: string | null;
+    departamento: string | null;
+    isMotorista: boolean;
+  }> {
+    const sql = `
+      SELECT U.CODUSU, U.NOMEUSU, U.CODPARC,
+        CAR.DESCRCARGO AS CARGO,
+        F.DEPARTAMENTO
+      FROM TSIUSU U WITH (NOLOCK)
+      LEFT JOIN TFPFUN F ON F.CODEMP = U.CODEMP AND F.CODFUNC = U.CODFUNC
+      LEFT JOIN TFPCAR CAR ON CAR.CODCARGO = F.CODCARGO
+      WHERE U.CODUSU = ${codusu}
+    `;
+    const rows = await this.qe.executeQuery<{
+      CODUSU: number;
+      NOMEUSU: string;
+      CODPARC: number | null;
+      CARGO: string | null;
+      DEPARTAMENTO: string | null;
+    }>(sql);
+
+    const row = rows[0];
+    if (!row) {
+      return { codusu, nome: '', codparc: null, cargo: null, departamento: null, isMotorista: false };
+    }
+
+    const cargo = row.CARGO ?? '';
+    return {
+      codusu: row.CODUSU,
+      nome: row.NOMEUSU,
+      codparc: row.CODPARC,
+      cargo: row.CARGO,
+      departamento: row.DEPARTAMENTO,
+      isMotorista: cargo.toUpperCase().includes('MOTORISTA'),
+    };
   }
 }

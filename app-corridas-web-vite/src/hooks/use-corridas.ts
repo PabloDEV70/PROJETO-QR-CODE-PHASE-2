@@ -8,9 +8,8 @@ import {
   updateCorrida,
   updateCorridaStatus,
   assignMotorista,
-  getMinhasCorridas,
 } from '@/api/corridas';
-import type { ListCorridasParams, CreateCorridaPayload, UpdateCorridaPayload, MinhasCorridasParams } from '@/types/corrida';
+import type { ListCorridasParams, CreateCorridaPayload, UpdateCorridaPayload } from '@/types/corrida';
 import { useNotificationStore } from '@/stores/notification-store';
 
 export function useCorridasList(params: ListCorridasParams) {
@@ -82,14 +81,6 @@ export function useUpdateCorridaStatus() {
       qc.invalidateQueries({ queryKey: ['corridas'] });
       addToast('success', 'Status atualizado');
     },
-  });
-}
-
-export function useMinhasCorridas(params: MinhasCorridasParams) {
-  return useQuery({
-    queryKey: ['corridas', 'minhas', params],
-    queryFn: () => getMinhasCorridas(params),
-    staleTime: 30_000,
   });
 }
 

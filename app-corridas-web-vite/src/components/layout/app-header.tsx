@@ -4,8 +4,10 @@ import {
 } from '@mui/material';
 import {
   DarkMode, LightMode, Storage, Circle, Check,
+  TableChart, Dashboard,
 } from '@mui/icons-material';
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { UserMenu } from '@/components/layout/user-menu';
@@ -28,9 +30,13 @@ export function AppHeader() {
   const setDatabase = useAuthStore((s) => s.setDatabase);
   const mode = useThemeStore((s) => s.mode);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [dbAnchor, setDbAnchor] = useState<null | HTMLElement>(null);
 
   const color = DB_COLORS[database];
+  const isCorridasActive = location.pathname === '/corridas' || location.pathname === '/';
+  const isDashboardActive = location.pathname === '/dashboard';
 
   const handleDatabaseChange = (db: DatabaseEnv) => {
     setDatabase(db);
@@ -57,9 +63,26 @@ export function AppHeader() {
         >
           GIGANTAO
         </Typography>
-        <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>
-          Corridas
-        </Typography>
+        <Stack direction="row" spacing={0.5} sx={{ ml: 2 }}>
+          <Chip
+            icon={<TableChart sx={{ fontSize: 16 }} />}
+            label="Corridas"
+            size="small"
+            onClick={() => navigate('/corridas')}
+            variant={isCorridasActive ? 'filled' : 'outlined'}
+            color={isCorridasActive ? 'primary' : 'default'}
+            sx={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}
+          />
+          <Chip
+            icon={<Dashboard sx={{ fontSize: 16 }} />}
+            label="Dashboard"
+            size="small"
+            onClick={() => navigate('/dashboard')}
+            variant={isDashboardActive ? 'filled' : 'outlined'}
+            color={isDashboardActive ? 'primary' : 'default'}
+            sx={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}
+          />
+        </Stack>
 
         <Box sx={{ flex: 1 }} />
 

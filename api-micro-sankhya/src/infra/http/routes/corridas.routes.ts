@@ -69,6 +69,18 @@ const assignSchema = z.object({
   codUsu: z.number(),
 });
 
+const localizacaoSchema = z.object({
+  latitude: z.number(),
+  longitude: z.number(),
+  accuracy: z.number().optional(),
+});
+
+const minhasSchema = z.object({
+  role: z.enum(['solicitante', 'motorista']).optional(),
+  status: z.enum(['0', '1', '2', '3']).optional(),
+  limit: z.coerce.number().min(1).max(100).default(20),
+});
+
 function requireMutableDatabase(userToken?: string) {
   const db = getDatabase();
   if (db === 'PROD' && !userToken) {
@@ -84,6 +96,15 @@ function extractUserToken(request: { headers: { authorization?: string } }): str
   const auth = request.headers.authorization;
   if (!auth?.startsWith('Bearer ')) return undefined;
   return auth.slice(7);
+}
+
+function extractCodusu(request: { headers: { authorization?: string } }): number | null {
+  const auth = request.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(auth.slice(7).split('.')[1], 'base64').toString());
+    return Number(payload.sub) || null;
+  } catch { return null; }
 }
 
 export async function corridasRoutes(app: FastifyInstance) {
@@ -132,6 +153,61 @@ export async function corridasRoutes(app: FastifyInstance) {
 
   app.get('/corridas/motoristas', async () => {
     return timed('GET /corridas/motoristas', () => service.getMotoristas());
+  });
+
+  app.get('/corridas/motoristas-detalhado', async () => {
+    return timed('GET /corridas/motoristas-detalhado', () => service.getMotoristasDetalhado());
+  });
+
+  app.get('/corridas/parceiros-busca', async (request) => {
+    const { search } = z.object({ search: z.string().min(1) }).parse(request.query);
+    return timed('GET /corridas/parceiros-busca', () => service.buscarParceiros(search));
+  });
+
+  // --- GPS & user-scoped endpoints (must be before :id catch-all) ---
+
+  app.get('/corridas/minhas', async (request) => {
+    const codusu = extractCodusu(request);
+    if (!codusu) throw new ForbiddenError('Token invalido ou ausente');
+
+    const options = minhasSchema.parse(request.query);
+    return timed('GET /corridas/minhas', async () => {
+      let role = options.role;
+      if (!role) {
+        const userRole = await service.getUserRole(codusu);
+        role = userRole.isMotorista ? 'motorista' : 'solicitante';
+      }
+      return service.getMinhas({ codusu, role, status: options.status, limit: options.limit });
+    });
+  });
+
+  app.get('/corridas/me/role', async (request) => {
+    const codusu = extractCodusu(request);
+    if (!codusu) throw new ForbiddenError('Token invalido ou ausente');
+
+    return timed('GET /corridas/me/role', () => service.getUserRole(codusu));
+  });
+
+  app.patch('/corridas/:id/localizacao', async (request) => {
+    const codusu = extractCodusu(request);
+    if (!codusu) throw new ForbiddenError('Token invalido ou ausente');
+
+    const { id } = idSchema.parse(request.params);
+    const body = localizacaoSchema.parse(request.body);
+    return timed(`PATCH /corridas/${id}/localizacao`, async () => {
+      await service.saveLocalizacao(id, {
+        lat: body.latitude,
+        lng: body.longitude,
+        accuracy: body.accuracy,
+        codusu,
+      });
+      return { ok: true };
+    });
+  });
+
+  app.get('/corridas/:id/localizacao', async (request) => {
+    const { id } = idSchema.parse(request.params);
+    return timed(`GET /corridas/${id}/localizacao`, () => service.getLocalizacao(id));
   });
 
   app.get('/corridas/:id', async (request) => {

@@ -12,9 +12,6 @@ import type {
   CreateCorridaPayload,
   UpdateCorridaPayload,
   MutationResult,
-  UserRole,
-  Localizacao,
-  MinhasCorridasParams,
 } from '@/types/corrida';
 
 export async function getCorridasList(params: ListCorridasParams = {}): Promise<{ data: Corrida[]; total: number }> {
@@ -72,6 +69,37 @@ export async function getStatsPorHora(params?: { dataInicio?: string; dataFim?: 
   return data;
 }
 
+export interface ParceiroBusca {
+  CODPARC: number;
+  NOMEPARC: string;
+  TELEFONE: string | null;
+  CEP: string | null;
+  NUMEND: string | null;
+  RUA: string | null;
+  BAIRRO: string | null;
+  CIDADE: string | null;
+  UF: string | null;
+}
+
+export interface MotoristaDetalhado {
+  CODUSU: number;
+  NOMEUSU: string;
+  CODPARC: number | null;
+  TOTAL_CORRIDAS: number;
+  ABERTAS: number;
+  EM_ANDAMENTO: number;
+}
+
+export async function buscarParceiros(search: string): Promise<ParceiroBusca[]> {
+  const { data } = await apiClient.get<ParceiroBusca[]>('/corridas/parceiros-busca', { params: { search } });
+  return data;
+}
+
+export async function getMotoristasDetalhado(): Promise<MotoristaDetalhado[]> {
+  const { data } = await apiClient.get<MotoristaDetalhado[]>('/corridas/motoristas-detalhado');
+  return data;
+}
+
 export async function createCorrida(payload: CreateCorridaPayload): Promise<MutationResult> {
   const { data } = await apiClient.post<MutationResult>('/corridas', payload);
   return data;
@@ -89,34 +117,5 @@ export async function updateCorridaStatus(id: number, status: string, codUsu?: n
 
 export async function assignMotorista(id: number, codUsu: number): Promise<MutationResult> {
   const { data } = await apiClient.patch<MutationResult>(`/corridas/${id}/motorista`, { codUsu });
-  return data;
-}
-
-export async function getMyRole(): Promise<UserRole> {
-  const { data } = await apiClient.get<UserRole>('/corridas/me/role');
-  return data;
-}
-
-export async function getMinhasCorridas(params: MinhasCorridasParams = {}): Promise<{ data: Corrida[]; total: number }> {
-  const { data } = await apiClient.get<{ data: Corrida[]; total: number }>('/corridas/minhas', { params });
-  return data;
-}
-
-export async function enviarLocalizacao(
-  id: number,
-  latitude: number,
-  longitude: number,
-  accuracy?: number,
-): Promise<{ ok: boolean }> {
-  const { data } = await apiClient.patch<{ ok: boolean }>(`/corridas/${id}/localizacao`, {
-    latitude,
-    longitude,
-    accuracy,
-  });
-  return data;
-}
-
-export async function getLocalizacao(id: number): Promise<Localizacao> {
-  const { data } = await apiClient.get<Localizacao>(`/corridas/${id}/localizacao`);
   return data;
 }
