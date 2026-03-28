@@ -4,8 +4,10 @@ import {
   Typography,
   Stack,
   Paper,
-  CircularProgress,
+  Chip,
+  Skeleton,
 } from '@mui/material';
+import { LocationOn, SignalWifi4Bar, SignalWifiOff } from '@mui/icons-material';
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import { getLocalizacoesAtivas } from '@/api/corridas';
 import type { LocUser } from '@/types/corrida';
@@ -44,7 +46,7 @@ export function MapaLivePage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ height: '50vh', minHeight: 200, bgcolor: 'grey.200' }}>
+      <Box sx={{ height: '50vh', minHeight: 200, bgcolor: 'grey.200', position: 'relative' }}>
         <iframe
           title="Mapa ao vivo"
           src={mapSrc}
@@ -55,54 +57,89 @@ export function MapaLivePage() {
       </Box>
 
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-          Usuarios online ({users.length})
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            Usuarios online
+          </Typography>
+          <Chip
+            label={users.length}
+            size="small"
+            color={users.length > 0 ? 'success' : 'default'}
+            sx={{ fontWeight: 700, minWidth: 28 }}
+          />
+        </Stack>
 
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={24} />
-          </Box>
+          <Stack spacing={1}>
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} variant="rounded" height={60} />
+            ))}
+          </Stack>
         ) : users.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-            Nenhum usuario compartilhando localizacao
-          </Typography>
+          <Box sx={{ py: 6, textAlign: 'center' }}>
+            <LocationOn sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+            <Typography variant="body1" color="text.secondary" fontWeight={500}>
+              Nenhum usuario compartilhando localizacao
+            </Typography>
+            <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5 }}>
+              Ative o GPS no perfil para aparecer aqui
+            </Typography>
+          </Box>
         ) : (
           <Stack spacing={1}>
-            {users.map((u) => (
-              <Paper
-                key={u.codusu}
-                variant="outlined"
-                onClick={() => {
-                  window.open(
-                    `https://www.google.com/maps?q=${u.lat},${u.lng}`,
-                    '_blank',
-                  );
-                }}
-                sx={{ p: 1.5, cursor: 'pointer', minHeight: 44 }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <FuncionarioAvatar codparc={u.codparc} nome={u.nome} size="small" />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" fontWeight={600} noWrap sx={{ fontSize: '0.75rem' }}>
-                      {u.nome}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-                      {u.cargo ?? ''} {u.tempoDesde != null ? `- ${u.tempoDesde}s atras` : ''}
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: (u.tempoDesde ?? 999) < 60 ? '#2e7d32' : '#ed6c02',
-                      flexShrink: 0,
-                    }}
-                  />
-                </Stack>
-              </Paper>
-            ))}
+            {users.map((u) => {
+              const isRecent = (u.tempoDesde ?? 999) < 60;
+              const tempoLabel = u.tempoDesde != null
+                ? u.tempoDesde < 60
+                  ? `${u.tempoDesde}s`
+                  : `${Math.floor(u.tempoDesde / 60)}min`
+                : '';
+
+              return (
+                <Paper
+                  key={u.codusu}
+                  elevation={0}
+                  onClick={() => {
+                    window.open(
+                      `https://www.google.com/maps?q=${u.lat},${u.lng}`,
+                      '_blank',
+                    );
+                  }}
+                  sx={{
+                    p: 1.5,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    transition: 'background-color 0.15s',
+                    '&:active': { bgcolor: 'action.selected' },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <FuncionarioAvatar codparc={u.codparc} nome={u.nome} size="medium" />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" fontWeight={600} noWrap>
+                        {u.nome}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {u.cargo ?? ''}
+                      </Typography>
+                    </Box>
+                    <Stack alignItems="flex-end" spacing={0.25}>
+                      {isRecent ? (
+                        <SignalWifi4Bar sx={{ fontSize: 16, color: 'success.main' }} />
+                      ) : (
+                        <SignalWifiOff sx={{ fontSize: 16, color: 'warning.main' }} />
+                      )}
+                      {tempoLabel && (
+                        <Typography variant="caption" color={isRecent ? 'success.main' : 'warning.main'} sx={{ fontSize: '0.65rem', fontWeight: 600 }}>
+                          {tempoLabel}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Stack>
+                </Paper>
+              );
+            })}
           </Stack>
         )}
       </Box>

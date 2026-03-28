@@ -6,12 +6,13 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Paper,
+  Badge,
 } from '@mui/material';
 import {
   Home,
   ListAlt,
   Map,
-  AddCircle,
+  AddCircleOutline,
   Person,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -22,7 +23,7 @@ const routes = [
   { label: 'Inicio', icon: <Home />, path: '/' },
   { label: 'Corridas', icon: <ListAlt />, path: '/corridas' },
   { label: 'Mapa', icon: <Map />, path: '/mapa' },
-  { label: 'Nova', icon: <AddCircle />, path: '/nova' },
+  { label: 'Nova', icon: <AddCircleOutline />, path: '/nova' },
   { label: 'Perfil', icon: <Person />, path: '/perfil' },
 ];
 
@@ -36,7 +37,7 @@ export function AppShell() {
     return location.pathname.startsWith(r.path);
   });
 
-  const cargo = user?.pertencedp ?? '';
+  const gpsActive = Boolean(localStorage.getItem('gps-sharing-active'));
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
@@ -50,27 +51,42 @@ export function AppShell() {
           borderColor: 'divider',
         }}
       >
-        <Toolbar sx={{ gap: 1, minHeight: 48, px: 1.5 }}>
-          <FuncionarioAvatar codparc={user?.codparc} nome={user?.nome} size="small" />
+        <Toolbar sx={{ gap: 1.5, minHeight: 56, px: 2 }}>
+          <Badge
+            overlap="circular"
+            variant="dot"
+            invisible={!gpsActive}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            sx={{
+              '& .MuiBadge-dot': {
+                bgcolor: 'success.main',
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                border: '2px solid',
+                borderColor: 'background.paper',
+              },
+            }}
+          >
+            <FuncionarioAvatar codparc={user?.codparc} nome={user?.nome} size="small" />
+          </Badge>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="body2" fontWeight={700} noWrap sx={{ fontSize: '0.75rem', lineHeight: 1.3 }}>
+            <Typography variant="body2" fontWeight={700} noWrap sx={{ lineHeight: 1.3 }}>
               {user?.nome ?? user?.username ?? 'Usuario'}
-              {cargo ? (
-                <Typography
-                  component="span"
-                  sx={{ fontSize: '0.65rem', color: 'text.secondary', ml: 0.5, fontWeight: 400 }}
-                >
-                  {cargo}
-                </Typography>
-              ) : null}
             </Typography>
+            {user?.pertencedp && (
+              <Typography variant="caption" color="text.secondary" noWrap display="block" sx={{ fontSize: '0.7rem' }}>
+                {user.pertencedp}
+              </Typography>
+            )}
           </Box>
           <Typography
             sx={{
               fontFamily: "'STOP', 'Arial Black', sans-serif",
-              fontSize: 14,
+              fontSize: 16,
               color: 'primary.main',
-              letterSpacing: '0.06em',
+              letterSpacing: '0.08em',
+              fontWeight: 900,
             }}
           >
             GIGANTAO
@@ -78,12 +94,12 @@ export function AppShell() {
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', bgcolor: 'grey.50', '[data-mui-color-scheme="dark"] &': { bgcolor: 'background.default' } }}>
         <Outlet />
       </Box>
 
       <Paper
-        elevation={3}
+        elevation={8}
         sx={{
           position: 'sticky',
           bottom: 0,
@@ -97,12 +113,20 @@ export function AppShell() {
           onChange={(_, idx) => navigate(routes[idx].path)}
           showLabels
           sx={{
+            height: 64,
             '& .MuiBottomNavigationAction-root': {
               minWidth: 0,
-              py: 0.5,
-              minHeight: 56,
+              py: 1,
+              gap: 0.25,
+              transition: 'color 0.2s',
             },
-            '& .MuiBottomNavigationAction-label': { fontSize: 11 },
+            '& .MuiBottomNavigationAction-label': {
+              fontSize: '0.65rem',
+              '&.Mui-selected': { fontSize: '0.65rem' },
+            },
+            '& .Mui-selected': {
+              '& .MuiSvgIcon-root': { transform: 'scale(1.1)' },
+            },
           }}
         >
           {routes.map((r) => (

@@ -1,6 +1,12 @@
-import { Paper, Typography, Stack, Box } from '@mui/material';
+import { Paper, Typography, Stack, Box, Chip, alpha } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import {
+  AccessTime,
+  LocalShipping,
+  CallReceived,
+  SwapHoriz,
+} from '@mui/icons-material';
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import type { Corrida } from '@/types/corrida';
 import { STATUS_LABELS, STATUS_COLORS, BUSCAR_LEVAR_LABELS } from '@/types/corrida';
@@ -11,6 +17,12 @@ interface CorridaCardRichProps {
   showSolicitante?: boolean;
   compact?: boolean;
 }
+
+const TIPO_ICONS: Record<string, React.ReactNode> = {
+  '0': <CallReceived sx={{ fontSize: 14 }} />,
+  '1': <LocalShipping sx={{ fontSize: 14 }} />,
+  '3': <SwapHoriz sx={{ fontSize: 14 }} />,
+};
 
 export function CorridaCardRich({
   corrida,
@@ -39,15 +51,41 @@ export function CorridaCardRich({
       <Paper
         variant="outlined"
         onClick={() => navigate(`/corrida/${c.ID}`)}
-        sx={{ p: 1.5, cursor: 'pointer', opacity: 0.85, minHeight: 44 }}
+        sx={{
+          p: 1.5,
+          cursor: 'pointer',
+          transition: 'background-color 0.15s',
+          '&:active': { bgcolor: 'action.selected' },
+        }}
       >
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="body2" noWrap sx={{ fontSize: '0.75rem' }}>
+            <Typography variant="body2" noWrap fontWeight={600}>
               #{c.ID} - {parceiro}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
-              {tempoStr ?? ''} {c.DT_FINISHED ? format(new Date(c.DT_FINISHED), 'dd/MM HH:mm') : ''}
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
+              {tempoStr && (
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                  {tempoStr}
+                </Typography>
+              )}
+              {c.DT_FINISHED && (
+                <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem' }}>
+                  {format(new Date(c.DT_FINISHED), 'dd/MM HH:mm')}
+                </Typography>
+              )}
+            </Stack>
+          </Box>
+          <Box
+            sx={{
+              px: 1,
+              py: 0.25,
+              borderRadius: 1,
+              bgcolor: alpha(statusColor, 0.1),
+            }}
+          >
+            <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: statusColor }}>
+              {statusLabel}
             </Typography>
           </Box>
         </Stack>
@@ -58,81 +96,115 @@ export function CorridaCardRich({
   return (
     <Paper
       onClick={() => navigate(`/corrida/${c.ID}`)}
+      elevation={0}
       sx={{
-        p: 1.5,
+        p: 2,
         cursor: 'pointer',
-        '&:active': { bgcolor: 'action.selected' },
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: 'all 0.15s',
+        '&:active': { bgcolor: 'action.selected', transform: 'scale(0.99)' },
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
-        <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary' }}>
-          #{c.ID}
-        </Typography>
-        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: statusColor }}>
-          {statusLabel}
-        </Typography>
-        <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>
-          {tipoLabel}
-        </Typography>
-        {tempoStr && (
-          <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', ml: 'auto !important' }}>
-            {tempoStr}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography variant="body2" fontWeight={700} color="text.secondary">
+            #{c.ID}
           </Typography>
-        )}
+          <Chip
+            label={statusLabel}
+            size="small"
+            sx={{
+              height: 22,
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              bgcolor: alpha(statusColor, 0.1),
+              color: statusColor,
+              '& .MuiChip-label': { px: 1 },
+            }}
+          />
+        </Stack>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          {TIPO_ICONS[c.BUSCARLEVAR]}
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+            {tipoLabel}
+          </Typography>
+        </Stack>
       </Stack>
 
-      <Typography variant="body2" fontWeight={700} noWrap sx={{ fontSize: '0.75rem' }}>
+      <Typography variant="body1" fontWeight={700} noWrap>
         {parceiro}
       </Typography>
 
       {(address || c.DESTINO) && (
-        <Typography variant="caption" display="block" color="text.secondary" noWrap sx={{ fontSize: '0.65rem' }}>
+        <Typography variant="body2" color="text.secondary" noWrap sx={{ mt: 0.25 }}>
           {address || c.DESTINO}
         </Typography>
       )}
 
       {phone && (
-        <Typography variant="caption" display="block" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
+        <Typography
+          component="a"
+          href={`tel:${phone}`}
+          variant="body2"
+          color="primary"
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          sx={{ textDecoration: 'none', display: 'block', mt: 0.25, fontSize: '0.8rem' }}
+        >
           {phone}
         </Typography>
       )}
 
       {c.PASSAGEIROSMERCADORIA && (
-        <Typography variant="caption" display="block" sx={{ fontSize: '0.75rem', mt: 0.5 }} noWrap>
+        <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 500 }} noWrap>
           {c.PASSAGEIROSMERCADORIA}
         </Typography>
       )}
 
-      {(showSolicitante || showMotorista) && (
-        <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}
+      >
+        <Stack direction="row" spacing={1.5}>
           {showSolicitante && (
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0, flex: 1 }}>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0 }}>
               <FuncionarioAvatar codparc={c.CODPARC_SOL ?? null} nome={c.NOMESOLICITANTE} size="small" />
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="caption" display="block" fontWeight={600} noWrap sx={{ fontSize: '0.65rem' }}>
+                <Typography variant="caption" fontWeight={600} noWrap display="block" sx={{ fontSize: '0.7rem' }}>
                   {c.NOMESOLICITANTE}
                 </Typography>
-                <Typography variant="caption" display="block" color="text.secondary" noWrap sx={{ fontSize: '0.6rem' }}>
+                <Typography variant="caption" color="text.secondary" noWrap display="block" sx={{ fontSize: '0.65rem' }}>
                   {c.CARGO_SOL ?? c.SETOR ?? ''}
                 </Typography>
               </Box>
             </Stack>
           )}
           {showMotorista && c.NOMEMOTORISTA && (
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0, flex: 1 }}>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0 }}>
               <FuncionarioAvatar codparc={c.CODPARC_MOT ?? null} nome={c.NOMEMOTORISTA} size="small" />
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="caption" display="block" fontWeight={600} noWrap sx={{ fontSize: '0.65rem' }}>
+                <Typography variant="caption" fontWeight={600} noWrap display="block" sx={{ fontSize: '0.7rem' }}>
                   {c.NOMEMOTORISTA}
                 </Typography>
-                <Typography variant="caption" display="block" color="text.secondary" noWrap sx={{ fontSize: '0.6rem' }}>
+                <Typography variant="caption" color="text.secondary" noWrap display="block" sx={{ fontSize: '0.65rem' }}>
                   {c.CARGO_MOT ?? 'Motorista'}
                 </Typography>
               </Box>
             </Stack>
           )}
         </Stack>
-      )}
+
+        {tempoStr && (
+          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
+            <AccessTime sx={{ fontSize: 14, color: 'text.disabled' }} />
+            <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem' }}>
+              {tempoStr}
+            </Typography>
+          </Stack>
+        )}
+      </Stack>
     </Paper>
   );
 }

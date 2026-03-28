@@ -5,9 +5,10 @@ import {
   Stack,
   Button,
   IconButton,
-  CircularProgress,
   Paper,
-  Divider,
+  Chip,
+  alpha,
+  Skeleton,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -17,6 +18,9 @@ import {
   CheckCircle,
   PlayArrow,
   Cancel,
+  AccessTime,
+  Inventory,
+  StickyNote2,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -97,8 +101,14 @@ export function CorridaDetailPage() {
 
   if (isLoading || !corrida) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress size={32} />
+      <Box sx={{ p: 2 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+          <Skeleton variant="circular" width={32} height={32} />
+          <Skeleton width={100} height={28} />
+        </Stack>
+        <Skeleton variant="rounded" height={200} sx={{ mb: 2 }} />
+        <Skeleton width="80%" height={24} sx={{ mb: 1 }} />
+        <Skeleton width="60%" height={20} />
       </Box>
     );
   }
@@ -113,29 +123,47 @@ export function CorridaDetailPage() {
     : null;
 
   const showActions = corrida.STATUS === '0' || corrida.STATUS === '1';
-
   const timeline = buildTimeline(corrida);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1.5, py: 1 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1}
+        sx={{
+          px: 1,
+          py: 1,
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
         <IconButton onClick={() => navigate(-1)} size="small">
           <ArrowBack />
         </IconButton>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ fontSize: '0.85rem' }}>
+        <Typography variant="subtitle1" fontWeight={700}>
           #{corrida.ID}
         </Typography>
-        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: statusColor }}>
-          {statusLabel}
-        </Typography>
-        <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>
+        <Chip
+          label={statusLabel}
+          size="small"
+          sx={{
+            fontWeight: 700,
+            fontSize: '0.7rem',
+            height: 24,
+            bgcolor: alpha(statusColor, 0.1),
+            color: statusColor,
+          }}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto !important' }}>
           {tipoLabel}
         </Typography>
       </Stack>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pb: showActions ? '120px' : 2 }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', pb: showActions ? '140px' : 2 }}>
         {mapSrc && (
-          <Box sx={{ width: '100%', height: 200, bgcolor: 'grey.200' }}>
+          <Box sx={{ width: '100%', height: 220, bgcolor: 'grey.200' }}>
             <iframe
               title="Mapa destino"
               src={mapSrc}
@@ -148,23 +176,23 @@ export function CorridaDetailPage() {
         )}
 
         <Box sx={{ p: 2 }}>
-          <Typography variant="body1" fontWeight={700}>
+          <Typography variant="h6" fontWeight={700}>
             {corrida.NOMEPARC ?? 'Sem parceiro'}
           </Typography>
 
           {corrida.ENDERECO && (
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {corrida.ENDERECO}
               {corrida.BAIRRO ? `, ${corrida.BAIRRO}` : ''}
             </Typography>
           )}
           {(corrida.CIDADE || corrida.CEP) && (
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+            <Typography variant="body2" color="text.secondary">
               {corrida.CIDADE ?? ''}{corrida.UF ? `/${corrida.UF}` : ''}{corrida.CEP ? ` - ${corrida.CEP}` : ''}
             </Typography>
           )}
           {!corrida.ENDERECO && corrida.DESTINO && (
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {corrida.DESTINO}
             </Typography>
           )}
@@ -173,28 +201,28 @@ export function CorridaDetailPage() {
             <Typography
               component="a"
               href={`tel:${corrida.TELEFONE}`}
-              variant="caption"
-              display="block"
+              variant="body2"
               color="primary"
-              sx={{ fontSize: '0.75rem', textDecoration: 'none', mt: 0.5 }}
+              fontWeight={600}
+              sx={{ textDecoration: 'none', display: 'block', mt: 0.75 }}
             >
               {corrida.TELEFONE}
             </Typography>
           )}
           {corrida.EMAIL && (
-            <Typography variant="caption" display="block" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
+            <Typography variant="body2" color="text.disabled" sx={{ mt: 0.25 }}>
               {corrida.EMAIL}
             </Typography>
           )}
 
-          <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
             {destAddr && (
               <Button
                 size="small"
                 variant="outlined"
                 startIcon={<Navigation />}
                 onClick={handleNavegar}
-                sx={{ textTransform: 'none', fontSize: 12, minHeight: 44 }}
+                sx={{ textTransform: 'none', minHeight: 40, fontWeight: 600, flex: 1 }}
               >
                 Rota
               </Button>
@@ -206,7 +234,7 @@ export function CorridaDetailPage() {
                 startIcon={<Phone />}
                 component="a"
                 href={`tel:${corrida.TELEFONE}`}
-                sx={{ textTransform: 'none', fontSize: 12, minHeight: 44 }}
+                sx={{ textTransform: 'none', minHeight: 40, fontWeight: 600, flex: 1 }}
               >
                 Ligar
               </Button>
@@ -216,41 +244,49 @@ export function CorridaDetailPage() {
               variant="outlined"
               startIcon={<Share />}
               onClick={handleCompartilhar}
-              sx={{ textTransform: 'none', fontSize: 12, minHeight: 44 }}
+              sx={{ textTransform: 'none', minHeight: 40, fontWeight: 600, flex: 1 }}
             >
               Compartilhar
             </Button>
           </Stack>
 
-          <Divider sx={{ my: 2 }} />
-
           {corrida.PASSAGEIROSMERCADORIA && (
-            <Box sx={{ mb: 1.5 }}>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem' }}>
-                Mercadoria / Passageiros
-              </Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+            <Paper
+              variant="outlined"
+              sx={{ p: 1.5, mt: 2.5 }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                <Inventory sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  Mercadoria / Passageiros
+                </Typography>
+              </Stack>
+              <Typography variant="body2">
                 {corrida.PASSAGEIROSMERCADORIA}
               </Typography>
-            </Box>
+            </Paper>
           )}
 
           {corrida.OBS && (
-            <Box sx={{ mb: 1.5 }}>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem' }}>
-                Observacoes
-              </Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+            <Paper
+              variant="outlined"
+              sx={{ p: 1.5, mt: 1.5 }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                <StickyNote2 sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  Observacoes
+                </Typography>
+              </Stack>
+              <Typography variant="body2">
                 {corrida.OBS}
               </Typography>
-            </Box>
+            </Paper>
           )}
 
-          <Divider sx={{ my: 2 }} />
-
-          <Stack direction="row" spacing={2}>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem', mb: 0.5 }}>
+          <Stack direction="row" spacing={2} sx={{ mt: 2.5 }}>
+            <Paper variant="outlined" sx={{ flex: 1, p: 1.5 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 1 }}>
                 Solicitante
               </Typography>
               <Stack direction="row" alignItems="center" spacing={1}>
@@ -260,19 +296,19 @@ export function CorridaDetailPage() {
                   size="medium"
                 />
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" fontWeight={600} noWrap sx={{ fontSize: '0.75rem' }}>
+                  <Typography variant="body2" fontWeight={600} noWrap>
                     {corrida.NOMESOLICITANTE}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: '0.6rem' }}>
+                  <Typography variant="caption" color="text.secondary" noWrap>
                     {corrida.CARGO_SOL ?? ''} {corrida.SETOR ? `- ${corrida.SETOR}` : ''}
                   </Typography>
                 </Box>
               </Stack>
-            </Box>
+            </Paper>
 
             {corrida.NOMEMOTORISTA && (
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem', mb: 0.5 }}>
+              <Paper variant="outlined" sx={{ flex: 1, p: 1.5 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 1 }}>
                   Motorista
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -282,58 +318,85 @@ export function CorridaDetailPage() {
                     size="medium"
                   />
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" fontWeight={600} noWrap sx={{ fontSize: '0.75rem' }}>
+                    <Typography variant="body2" fontWeight={600} noWrap>
                       {corrida.NOMEMOTORISTA}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: '0.6rem' }}>
+                    <Typography variant="caption" color="text.secondary" noWrap>
                       {corrida.CARGO_MOT ?? 'Motorista'}
                     </Typography>
                   </Box>
                 </Stack>
-              </Box>
+              </Paper>
             )}
           </Stack>
 
-          <Divider sx={{ my: 2 }} />
-
-          <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem', mb: 1 }}>
-            Timeline
-          </Typography>
-          <Stack spacing={0}>
-            {timeline.map((item, idx) => (
-              <Stack key={item.label} direction="row" alignItems="flex-start" spacing={1.5}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 16 }}>
-                  <Box
-                    sx={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      bgcolor: item.date ? 'primary.main' : 'grey.300',
-                      flexShrink: 0,
-                    }}
-                  />
-                  {idx < timeline.length - 1 && (
-                    <Box sx={{ width: 2, flex: 1, bgcolor: 'divider', minHeight: 20 }} />
-                  )}
-                </Box>
-                <Box sx={{ pb: 1.5 }}>
-                  <Typography variant="caption" fontWeight={600} sx={{ fontSize: '0.65rem' }}>
-                    {item.label}
-                  </Typography>
-                  <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
-                    {item.date ? format(new Date(item.date), 'dd/MM/yyyy HH:mm') : 'Pendente'}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
+          <Paper variant="outlined" sx={{ p: 1.5, mt: 2 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+              <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                Timeline
+              </Typography>
+            </Stack>
+            <Stack spacing={0}>
+              {timeline.map((item, idx) => (
+                <Stack key={item.label} direction="row" alignItems="flex-start" spacing={1.5}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 16 }}>
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        bgcolor: item.date ? 'primary.main' : 'grey.300',
+                        flexShrink: 0,
+                      }}
+                    />
+                    {idx < timeline.length - 1 && (
+                      <Box sx={{ width: 2, flex: 1, bgcolor: 'divider', minHeight: 24 }} />
+                    )}
+                  </Box>
+                  <Box sx={{ pb: 2 }}>
+                    <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2 }}>
+                      {item.label}
+                    </Typography>
+                    <Typography variant="caption" color={item.date ? 'text.secondary' : 'text.disabled'}>
+                      {item.date ? format(new Date(item.date), 'dd/MM/yyyy HH:mm') : 'Pendente'}
+                    </Typography>
+                  </Box>
+                </Stack>
+              ))}
+            </Stack>
+          </Paper>
 
           {gps.isTracking && gps.latitude && (
-            <Paper variant="outlined" sx={{ p: 1.5, mt: 2 }}>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem' }}>
-                GPS Ativo
-              </Typography>
-              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.65rem' }}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 1.5,
+                mt: 2,
+                bgcolor: (theme) => alpha(theme.palette.success.main, 0.04),
+                borderColor: (theme) => alpha(theme.palette.success.main, 0.2),
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: 'success.main',
+                    animation: 'pulse 2s infinite',
+                    '@keyframes pulse': {
+                      '0%': { opacity: 1 },
+                      '50%': { opacity: 0.4 },
+                      '100%': { opacity: 1 },
+                    },
+                  }}
+                />
+                <Typography variant="body2" fontWeight={600} color="success.main">
+                  GPS Ativo
+                </Typography>
+              </Stack>
+              <Typography variant="body2" sx={{ fontFamily: 'monospace', mt: 0.5 }}>
                 {gps.latitude.toFixed(6)}, {gps.longitude?.toFixed(6)}
                 {gps.accuracy ? ` (~${Math.round(gps.accuracy)}m)` : ''}
               </Typography>
@@ -341,7 +404,7 @@ export function CorridaDetailPage() {
           )}
 
           {gps.error && (
-            <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block', fontSize: '0.65rem' }}>
+            <Typography variant="body2" color="error" sx={{ mt: 1.5 }}>
               GPS: {gps.error}
             </Typography>
           )}
@@ -371,7 +434,7 @@ export function CorridaDetailPage() {
               startIcon={<PlayArrow />}
               onClick={handleIniciar}
               disabled={updateStatus.isPending}
-              sx={{ minHeight: 48, fontWeight: 700, fontSize: 16, mb: 1 }}
+              sx={{ minHeight: 52, fontWeight: 700, fontSize: 16, mb: 1, textTransform: 'none' }}
             >
               {updateStatus.isPending ? 'Iniciando...' : 'Iniciar Corrida'}
             </Button>
@@ -387,9 +450,9 @@ export function CorridaDetailPage() {
                 startIcon={<CheckCircle />}
                 onClick={handleConcluir}
                 disabled={updateStatus.isPending}
-                sx={{ minHeight: 48, fontWeight: 700, fontSize: 16 }}
+                sx={{ minHeight: 52, fontWeight: 700, fontSize: 16, textTransform: 'none' }}
               >
-                {updateStatus.isPending ? 'Concluindo...' : 'Concluir'}
+                {updateStatus.isPending ? 'Concluindo...' : 'Concluir Corrida'}
               </Button>
               <Stack direction="row" spacing={1}>
                 <Button
@@ -398,7 +461,7 @@ export function CorridaDetailPage() {
                   fullWidth
                   startIcon={<Share />}
                   onClick={handleCompartilhar}
-                  sx={{ minHeight: 44 }}
+                  sx={{ minHeight: 44, textTransform: 'none' }}
                 >
                   Compartilhar
                 </Button>
@@ -407,7 +470,7 @@ export function CorridaDetailPage() {
                   fullWidth
                   startIcon={<Navigation />}
                   onClick={handleNavegar}
-                  sx={{ minHeight: 44 }}
+                  sx={{ minHeight: 44, textTransform: 'none' }}
                 >
                   Navegar
                 </Button>
@@ -422,7 +485,7 @@ export function CorridaDetailPage() {
             startIcon={<Cancel />}
             onClick={handleCancelar}
             disabled={updateStatus.isPending}
-            sx={{ minHeight: 44, mt: 1 }}
+            sx={{ minHeight: 44, mt: 1, textTransform: 'none' }}
           >
             Cancelar
           </Button>

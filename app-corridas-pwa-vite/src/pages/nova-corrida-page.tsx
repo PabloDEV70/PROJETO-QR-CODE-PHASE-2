@@ -10,6 +10,7 @@ import {
   ToggleButtonGroup,
   Autocomplete,
   CircularProgress,
+  alpha,
 } from '@mui/material';
 import { CallReceived, LocalShipping, SwapHoriz, Send } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -78,33 +79,34 @@ export function NovaCorridaPage() {
 
   return (
     <Box sx={{ p: 2, pb: 4 }}>
-      <Typography variant="h6" fontWeight={700} sx={{ mb: 2, fontSize: '1rem' }}>
+      <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
         Nova Corrida
       </Typography>
 
-      <Paper sx={{ p: 2 }}>
+      <Paper elevation={0} sx={{ p: 2.5, border: '1px solid', borderColor: 'divider' }}>
         <form onSubmit={handleSubmit}>
-          <Stack spacing={2.5}>
+          <Stack spacing={3}>
             <Box>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                Tipo
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>
+                Tipo de corrida
               </Typography>
               <ToggleButtonGroup
                 value={buscarLevar}
                 exclusive
                 onChange={(_, v) => { if (v !== null) setBuscarLevar(v); }}
                 fullWidth
-                orientation="vertical"
                 sx={{
                   '& .MuiToggleButton-root': {
                     py: 1.5,
-                    fontSize: 13,
+                    fontSize: '0.85rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    gap: 0.5,
-                    minHeight: 48,
-                    justifyContent: 'flex-start',
-                    px: 2,
+                    gap: 1,
+                    minHeight: 52,
+                    '&.Mui-selected': {
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                      fontWeight: 700,
+                    },
                   },
                 }}
               >
@@ -135,16 +137,16 @@ export function NovaCorridaPage() {
               renderOption={(props, opt) => (
                 <li {...props} key={opt.CODPARC}>
                   <Box sx={{ py: 0.5 }}>
-                    <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.75rem' }}>
+                    <Typography variant="body2" fontWeight={600}>
                       {opt.NOMEPARC}
                     </Typography>
                     {opt.ENDERECO && (
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem' }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
                         {opt.ENDERECO}
                       </Typography>
                     )}
                     {opt.TELEFONE && (
-                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
+                      <Typography variant="caption" color="text.disabled">
                         {opt.TELEFONE}
                       </Typography>
                     )}
@@ -202,10 +204,10 @@ export function NovaCorridaPage() {
               type="submit"
               variant="contained"
               size="large"
-              startIcon={<Send />}
+              startIcon={create.isPending ? <CircularProgress size={20} color="inherit" /> : <Send />}
               disabled={create.isPending}
               fullWidth
-              sx={{ minHeight: 48, fontWeight: 700, fontSize: 16 }}
+              sx={{ minHeight: 52, fontWeight: 700, fontSize: 16, textTransform: 'none' }}
             >
               {create.isPending ? 'Enviando...' : 'Solicitar Corrida'}
             </Button>

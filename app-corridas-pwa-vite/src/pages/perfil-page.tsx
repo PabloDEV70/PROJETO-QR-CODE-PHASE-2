@@ -7,12 +7,12 @@ import {
   Switch,
   FormControlLabel,
   Button,
-  Divider,
   ToggleButton,
   ToggleButtonGroup,
   IconButton,
+  alpha,
 } from '@mui/material';
-import { Logout, DarkMode, LightMode } from '@mui/icons-material';
+import { Logout, DarkMode, LightMode, MyLocation, GpsFixed } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
@@ -60,24 +60,53 @@ export function PerfilPage() {
 
   return (
     <Box sx={{ p: 2, pb: 4 }}>
-      <Stack alignItems="center" spacing={1} sx={{ mb: 3, mt: 1 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          mb: 2.5,
+          border: '1px solid',
+          borderColor: 'divider',
+          textAlign: 'center',
+        }}
+      >
         <FuncionarioAvatar
           codparc={user?.codparc}
           nome={user?.nome}
-          sx={{ width: 80, height: 80, fontSize: 32 }}
+          sx={{ width: 80, height: 80, fontSize: 32, mx: 'auto', mb: 1.5 }}
         />
-        <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1rem' }}>
+        <Typography variant="h6" fontWeight={700}>
           {user?.nome ?? user?.username ?? 'Usuario'}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
           {role?.cargo ?? ''} {role?.departamento ? `- ${role.departamento}` : ''}
         </Typography>
-      </Stack>
+      </Paper>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-          Localizacao GPS
-        </Typography>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 1.5,
+          border: '1px solid',
+          borderColor: gpsEnabled
+            ? (theme) => alpha(theme.palette.success.main, 0.3)
+            : 'divider',
+          bgcolor: gpsEnabled
+            ? (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.08 : 0.02)
+            : 'background.paper',
+        }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+          {gpsEnabled ? (
+            <GpsFixed sx={{ fontSize: 20, color: 'success.main' }} />
+          ) : (
+            <MyLocation sx={{ fontSize: 20, color: 'text.secondary' }} />
+          )}
+          <Typography variant="subtitle2" fontWeight={700}>
+            Localizacao GPS
+          </Typography>
+        </Stack>
         <FormControlLabel
           control={
             <Switch
@@ -87,30 +116,33 @@ export function PerfilPage() {
             />
           }
           label="Compartilhar minha localizacao"
-          sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.75rem' } }}
+          sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }}
         />
 
         {gps.isTracking && gps.latitude && (
-          <Typography
-            variant="caption"
-            display="block"
-            color="text.secondary"
-            sx={{ fontFamily: 'monospace', fontSize: '0.65rem', mt: 0.5 }}
+          <Paper
+            variant="outlined"
+            sx={{ p: 1, mt: 1, bgcolor: 'transparent' }}
           >
-            {gps.latitude.toFixed(6)}, {gps.longitude?.toFixed(6)}
-            {gps.accuracy ? ` (~${Math.round(gps.accuracy)}m)` : ''}
-          </Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+            >
+              {gps.latitude.toFixed(6)}, {gps.longitude?.toFixed(6)}
+              {gps.accuracy ? ` (~${Math.round(gps.accuracy)}m)` : ''}
+            </Typography>
+          </Paper>
         )}
 
         {gps.error && (
-          <Typography variant="caption" color="error" display="block" sx={{ mt: 0.5 }}>
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
             {gps.error}
           </Typography>
         )}
       </Paper>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+      <Paper elevation={0} sx={{ p: 2, mb: 1.5, border: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>
           Banco de dados
         </Typography>
         <ToggleButtonGroup
@@ -121,7 +153,7 @@ export function PerfilPage() {
           sx={{
             '& .MuiToggleButton-root': {
               minHeight: 44,
-              fontSize: 12,
+              fontSize: '0.8rem',
               fontWeight: 600,
               textTransform: 'none',
             },
@@ -133,21 +165,21 @@ export function PerfilPage() {
         </ToggleButtonGroup>
       </Paper>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
+      <Paper elevation={0} sx={{ p: 2, mb: 2.5, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="subtitle2" fontWeight={700}>
             Tema
           </Typography>
-          <IconButton onClick={toggleTheme} size="small">
-            {mode === 'dark' ? <LightMode /> : <DarkMode />}
-          </IconButton>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              {mode === 'dark' ? 'Escuro' : 'Claro'}
+            </Typography>
+            <IconButton onClick={toggleTheme} size="small">
+              {mode === 'dark' ? <LightMode /> : <DarkMode />}
+            </IconButton>
+          </Stack>
         </Stack>
-        <Typography variant="caption" color="text.secondary">
-          {mode === 'dark' ? 'Escuro' : 'Claro'}
-        </Typography>
       </Paper>
-
-      <Divider sx={{ my: 2 }} />
 
       <Button
         variant="outlined"
@@ -155,7 +187,7 @@ export function PerfilPage() {
         fullWidth
         startIcon={<Logout />}
         onClick={handleLogout}
-        sx={{ minHeight: 48, fontWeight: 600 }}
+        sx={{ minHeight: 48, fontWeight: 700, textTransform: 'none' }}
       >
         Sair
       </Button>
@@ -164,7 +196,7 @@ export function PerfilPage() {
         variant="caption"
         display="block"
         color="text.disabled"
-        sx={{ textAlign: 'center', mt: 3, fontSize: '0.6rem' }}
+        sx={{ textAlign: 'center', mt: 3, fontSize: '0.65rem' }}
       >
         Corridas PWA v1.0.0
       </Typography>
