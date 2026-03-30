@@ -1,9 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { getRedisClient } from '@/infra/redis/redis-client';
+import { adminGuard } from '../plugins/admin-guard';
 
 const TTL_MS = 300_000; // 5 minutes
 
 export async function usersOnlineRoutes(app: FastifyInstance) {
+  app.addHook('onRequest', adminGuard);
   app.get('/monitoring/users-online', async (request) => {
     const redis = getRedisClient();
     if (!redis) return { online: [], total: 0, source: 'unavailable', message: 'Redis not connected' };

@@ -77,7 +77,6 @@ export class HealthController {
       return {
         status: 'error',
         message: 'Database connection or query failed',
-        error: error.message,
       };
     }
   }
@@ -96,7 +95,7 @@ export class HealthController {
     if (result.connected) {
       return { status: 'ok', message: 'Database server is reachable' };
     } else {
-      return { status: 'error', message: 'Database server not reachable', error: result.error };
+      return { status: 'error', message: 'Database server not reachable' };
     }
   }
 

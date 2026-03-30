@@ -9,8 +9,8 @@ const PUBLIC_AUTH_PATHS = [
 ];
 
 const PUBLIC_PREFIXES = IS_PROD
-  ? ['/health', '/version', '/metrics', '/painel-saidas/stream']
-  : ['/health', '/version', '/metrics', '/docs', '/documentation', '/painel-saidas/stream'];
+  ? ['/health', '/version']
+  : ['/health', '/version', '/docs', '/documentation'];
 const PUBLIC_PATTERNS = [
   /^\/armarios\/publico\//,
 ];

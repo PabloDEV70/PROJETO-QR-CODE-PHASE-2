@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { AuthService } from '../../../domain/services/auth.service';
 import { ApiMotherAuthService } from '../../api-mother/login';
-import { decodeJwtPayload } from '../../api-mother/database-context';
+import { decodeJwtPayload, verifyJwt } from '../../api-mother/database-context';
 import { isDev, devLog, R, B, D, GREEN, CYAN, YELLOW, MAGENTA } from '../../../shared/log-colors';
 import { getRedisClient } from '@/infra/redis/redis-client';
 import { env } from '@/config/env';
@@ -109,7 +109,7 @@ export async function authRoutes(app: FastifyInstance) {
       turnstileToken = parsed.turnstileToken;
     } catch (err) {
       request.log.warn(
-        { ip, origin, body: request.body },
+        { ip, origin },
         '[AUTH] Login validation failed — invalid payload',
       );
       throw err;
@@ -192,7 +192,10 @@ export async function authRoutes(app: FastifyInstance) {
     }
     try {
       const token = authHeader.slice(7);
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const payload = verifyJwt(token, env.JWT_SECRET);
+      if (!payload) {
+        return reply.status(401).send({ statusCode: 401, error: 'Unauthorized', message: 'Invalid token' });
+      }
       const codusu = Number(payload.sub);
       if (!codusu || isNaN(codusu)) {
         return reply.status(401).send({ statusCode: 401, error: 'Unauthorized', message: 'Invalid token' });
@@ -227,7 +230,7 @@ export async function authRoutes(app: FastifyInstance) {
       turnstileToken = parsed.turnstileToken;
     } catch (err) {
       request.log.warn(
-        { ip, origin, body: request.body },
+        { ip, origin },
         '[AUTH] Colaborador login validation failed — invalid payload',
       );
       throw err;

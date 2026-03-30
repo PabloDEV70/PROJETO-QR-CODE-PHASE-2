@@ -57,19 +57,7 @@ export async function registerUserTracking(app: FastifyInstance): Promise<void> 
       }
     }
 
-    // Also read from query token (foto routes)
-    if (!(request as any)._trackUser) {
-      const queryToken = (request.query as Record<string, string>)?.token;
-      if (queryToken) {
-        const payload = decodeJwtPayload(queryToken);
-        if (payload) {
-          (request as any)._trackUser = {
-            userId: payload.sub != null ? String(payload.sub) : null,
-            username: (payload.username as string) ?? (payload.idusu as string) ?? null,
-          };
-        }
-      }
-    }
+    // Query token support removed for security (tokens leaked in logs/referer)
   });
 
   app.addHook('onResponse', async (request, reply) => {
