@@ -58,7 +58,7 @@ export class ServicosGrupoMutationService {
     let grau = 1;
     if (input.CODGRUPAI && input.CODGRUPAI > 0) {
       const rows = await this.qe.executeQuery<Record<string, unknown>>(
-        `SELECT GRAU FROM TGFGRU WHERE CODGRUPOPROD = ${input.CODGRUPAI}`,
+        `SELECT GRAU FROM TGFGRU WHERE CODGRUPOPROD = ${Number(input.CODGRUPAI)}`,
       );
       if (rows.length === 0) {
         throw new ValidationError(`Grupo pai ${input.CODGRUPAI} nao encontrado`);
@@ -135,7 +135,7 @@ export class ServicosGrupoMutationService {
 
     // Verificar se grupo existe
     const grupoRows = await this.qe.executeQuery<Record<string, unknown>>(
-      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${input.CODGRUPOPROD}`,
+      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${Number(input.CODGRUPOPROD)}`,
     );
     if (grupoRows.length === 0) {
       throw new ValidationError(`Grupo ${input.CODGRUPOPROD} nao encontrado`);
@@ -204,7 +204,7 @@ export class ServicosGrupoMutationService {
     }
 
     const rows = await this.qe.executeQuery<Record<string, unknown>>(
-      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${novoCodGrupo}`,
+      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${Number(novoCodGrupo)}`,
     );
     if (rows.length === 0) {
       throw new ValidationError(`Grupo destino ${novoCodGrupo} nao encontrado`);

@@ -170,7 +170,7 @@ export class OsMutationService {
 
     // Get current status to validate transition
     const rows = await this.qe.executeQuery<{ STATUS: string }>(
-      `SELECT TOP 1 STATUS FROM TCFOSCAB WHERE NUOS = ${nuos}`,
+      `SELECT TOP 1 STATUS FROM TCFOSCAB WHERE NUOS = ${Number(nuos)}`,
     );
     if (rows.length === 0) {
       throw new ValidationError(`OS ${nuos} not found`);
@@ -206,7 +206,7 @@ export class OsMutationService {
 
     // Validate: current status must be 'E'
     const rows = await this.qe.executeQuery<{ STATUS: string }>(
-      `SELECT TOP 1 STATUS FROM TCFOSCAB WHERE NUOS = ${nuos}`,
+      `SELECT TOP 1 STATUS FROM TCFOSCAB WHERE NUOS = ${Number(nuos)}`,
     );
     if (rows.length === 0) {
       throw new ValidationError(`OS ${nuos} not found`);

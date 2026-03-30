@@ -85,8 +85,12 @@ export async function tempRoutes(fastify: FastifyInstance) {
 
   // Casos semelhantes
   fastify.get('/temp/casos-similares', async (request, reply) => {
-    const qtdItens = (request.query as Record<string, string>).qtd || '8';
-    
+    const qtdItensRaw = (request.query as Record<string, string>).qtd || '8';
+    const qtdItens = parseInt(qtdItensRaw, 10);
+    if (isNaN(qtdItens) || qtdItens <= 0) {
+      return reply.status(400).send({ error: 'qtd invalido' });
+    }
+
     // Casos onde pedido teve devolução com menos itens
     const casos = await db.executeQuery(`
       WITH PEDIDO AS (
@@ -130,6 +134,6 @@ export async function tempRoutes(fastify: FastifyInstance) {
       ORDER BY PEDIDO.DTMOV DESC
     `);
 
-    return { qtdItens: parseInt(qtdItens), casos: casos.linhas };
+    return { qtdItens, casos: casos.linhas };
   });
 }

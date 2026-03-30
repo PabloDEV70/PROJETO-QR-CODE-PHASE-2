@@ -58,10 +58,10 @@ export class HstVeiService {
     const offset = (page - 1) * limit;
 
     const conditions: string[] = [];
-    if (codveiculo) conditions.push(`h.CODVEICULO = ${codveiculo}`);
-    if (idsit) conditions.push(`h.IDSIT = ${idsit}`);
-    if (idpri !== undefined && idpri !== null) conditions.push(`h.IDPRI = ${idpri}`);
-    if (coddep) conditions.push(`s.CODDEP = ${coddep}`);
+    if (codveiculo) conditions.push(`h.CODVEICULO = ${Number(codveiculo)}`);
+    if (idsit) conditions.push(`h.IDSIT = ${Number(idsit)}`);
+    if (idpri !== undefined && idpri !== null) conditions.push(`h.IDPRI = ${Number(idpri)}`);
+    if (coddep) conditions.push(`s.CODDEP = ${Number(coddep)}`);
     if (ativas === true) conditions.push('h.DTFIM IS NULL');
     if (ativas === false) conditions.push('h.DTFIM IS NOT NULL');
     if (busca) {
@@ -132,7 +132,7 @@ export class HstVeiService {
       .replace(/@codveiculo/g, codveiculo.toString())
       .replace(/@OFFSET/g, offset.toString())
       .replace(/@LIMIT/g, limit.toString());
-    const veiculoSql = `SELECT PLACA, CAST(MARCAMODELO AS VARCHAR(200)) AS marcaModelo FROM TGFVEI WHERE CODVEICULO = ${codveiculo}`;
+    const veiculoSql = `SELECT PLACA, CAST(MARCAMODELO AS VARCHAR(200)) AS marcaModelo FROM TGFVEI WHERE CODVEICULO = ${Number(codveiculo)}`;
 
     const [countRows, data, veiculoRows] = await Promise.all([
       this.qe.executeQuery<{ totalRegistros: number }>(countSql),

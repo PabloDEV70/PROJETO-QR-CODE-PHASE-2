@@ -245,26 +245,11 @@ export class SqlAnalyzerService {
     const values = params.slice(0, paramCount);
 
     let paramIndex = 0;
-    let parsedQuery = query.replace(/\?/g, () => {
-      const value = values[paramIndex];
+    const parsedQuery = query.replace(/\?/g, () => {
       paramIndex++;
-      return this.formatValue(value);
+      return `@param${paramIndex}`;
     });
 
     return { parsedQuery, values };
-  }
-
-  private formatValue(value: any): string {
-    if (value === null || value === undefined) {
-      return 'NULL';
-    }
-    if (typeof value === 'number') {
-      return value.toString();
-    }
-    if (typeof value === 'boolean') {
-      return value ? '1' : '0';
-    }
-    const escaped = String(value).replace(/'/g, "''").replace(/\\/g, '\\\\');
-    return `'${escaped}'`;
   }
 }

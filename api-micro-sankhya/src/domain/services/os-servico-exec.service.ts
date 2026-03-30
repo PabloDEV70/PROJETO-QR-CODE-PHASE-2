@@ -44,7 +44,7 @@ export class OsServicoExecService {
 
     // 1. Check current service status
     const srvRows = await this.qe.executeQuery<{ STATUS: string | null }>(
-      `SELECT TOP 1 STATUS FROM TCFSERVOS WHERE NUOS = ${nuos} AND SEQUENCIA = ${sequencia}`,
+      `SELECT TOP 1 STATUS FROM TCFSERVOS WHERE NUOS = ${Number(nuos)} AND SEQUENCIA = ${Number(sequencia)}`,
     );
     if (srvRows.length === 0) {
       throw new ValidationError(`Servico NUOS=${nuos} SEQUENCIA=${sequencia} not found`);
@@ -66,7 +66,7 @@ export class OsServicoExecService {
 
     // 3. Update TCFOSCAB -> STATUS='E' if currently 'A'
     const osRows = await this.qe.executeQuery<{ STATUS: string }>(
-      `SELECT TOP 1 STATUS FROM TCFOSCAB WHERE NUOS = ${nuos}`,
+      `SELECT TOP 1 STATUS FROM TCFOSCAB WHERE NUOS = ${Number(nuos)}`,
     );
     if (osRows.length > 0 && osRows[0]!.STATUS === 'A') {
       const osResult = await this.me.update(
@@ -93,7 +93,7 @@ export class OsServicoExecService {
 
     // 1. Check service exists and is not already F
     const srvRows = await this.qe.executeQuery<{ STATUS: string | null }>(
-      `SELECT TOP 1 STATUS FROM TCFSERVOS WHERE NUOS = ${nuos} AND SEQUENCIA = ${sequencia}`,
+      `SELECT TOP 1 STATUS FROM TCFSERVOS WHERE NUOS = ${Number(nuos)} AND SEQUENCIA = ${Number(sequencia)}`,
     );
     if (srvRows.length === 0) {
       throw new ValidationError(`Servico NUOS=${nuos} SEQUENCIA=${sequencia} not found`);
@@ -133,13 +133,13 @@ export class OsServicoExecService {
     dtini: string | null, dtfin: string | null, userToken?: string,
   ) {
     const codusuRows = await this.qe.executeQuery<{ CODUSU: number }>(
-      `SELECT TOP 1 CODUSU FROM TFPFUN WHERE CODPARC = ${codparc} AND CODUSU > 0`,
+      `SELECT TOP 1 CODUSU FROM TFPFUN WHERE CODPARC = ${Number(codparc)} AND CODUSU > 0`,
     );
     const codusu = codusuRows.length > 0 ? codusuRows[0]!.CODUSU : null;
     if (!codusu || codusu <= 0) return;
 
     const execRows = await this.qe.executeQuery<{ NUOS: number }>(
-      `SELECT TOP 1 NUOS FROM AD_TCFEXEC WHERE NUOS = ${nuos} AND SEQUENCIA = ${sequencia}`,
+      `SELECT TOP 1 NUOS FROM AD_TCFEXEC WHERE NUOS = ${Number(nuos)} AND SEQUENCIA = ${Number(sequencia)}`,
     );
 
     try {
