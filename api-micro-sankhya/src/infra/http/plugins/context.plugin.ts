@@ -1,10 +1,11 @@
 import { FastifyInstance } from 'fastify';
+import { env } from '@/config/env';
 import {
   VALID_DATABASES,
   enterDatabase,
   enterUserToken,
   enterUserInfo,
-  decodeJwtPayload,
+  verifyJwt,
 } from '@/infra/api-mother/database-context';
 
 export async function registerContext(app: FastifyInstance): Promise<void> {
@@ -24,7 +25,7 @@ export async function registerContext(app: FastifyInstance): Promise<void> {
 
     if (token) {
       enterUserToken(token);
-      const payload = decodeJwtPayload(token);
+      const payload = verifyJwt(token, env.JWT_SECRET);
       if (payload) {
         enterUserInfo({
           codusu: typeof payload.sub === 'number' ? payload.sub : Number(payload.sub) || null,

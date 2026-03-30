@@ -1,8 +1,6 @@
 import { Injectable, NestMiddleware, ForbiddenException, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
-const IS_PROD = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
-
 const ALLOWED_IP_PATTERNS = [
   /^192\.168\./,
   /^10\./,
@@ -52,8 +50,6 @@ export class NetworkGuardMiddleware implements NestMiddleware {
   private readonly logger = new Logger('NetworkGuard');
 
   use(req: Request, _res: Response, next: NextFunction) {
-    if (!IS_PROD) return next();
-
     // Bypass for trusted services with valid key (read at request time, after dotenv loads)
     const bypassKey = req.headers['x-network-bypass-key'] as string | undefined;
     const networkBypassKey = process.env.NETWORK_BYPASS_KEY || '';

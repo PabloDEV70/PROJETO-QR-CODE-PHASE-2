@@ -36,6 +36,12 @@ const envSchema = z.object({
   // Redis (optional — enables online users tracking + request feed)
   REDIS_URL: z.string().optional(),
 
+  // JWT secret (same as API Mother for token verification)
+  JWT_SECRET: z.string().optional(),
+
+  // Admin groups (comma-separated codgrupo IDs)
+  ADMIN_CODGRUPOS: z.string().default('1'),
+
   // Cloudflare Turnstile (optional — bot protection on login)
   TURNSTILE_SECRET_KEY: z.string().optional(),
 
