@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { DbMonitorService } from '../../../domain/services/db-monitor.service';
+import { adminGuard } from '../plugins/admin-guard';
 
 const limiteSchema = z.object({
   limite: z.coerce.number().min(1).max(500).optional(),
@@ -12,6 +13,7 @@ const queriesPesadasSchema = z.object({
 });
 
 export async function dbMonitorRoutes(app: FastifyInstance) {
+  app.addHook('onRequest', adminGuard);
   const service = new DbMonitorService();
 
   app.get('/db/monitor/queries-ativas', async () => {

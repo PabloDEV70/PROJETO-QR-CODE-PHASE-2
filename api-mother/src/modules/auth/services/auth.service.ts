@@ -29,6 +29,7 @@ export class AuthService {
       const payload = {
         username: result.user.NOMEUSU,
         sub: result.user.CODUSU,
+        codgrupo: result.user.CODGRUPO ?? 0,
       };
 
       const accessToken = this.tokenService.generateAccessToken(payload);
@@ -71,6 +72,7 @@ export class AuthService {
       const payload = {
         username: decodedRefreshToken.username,
         sub: parseInt(decodedRefreshToken.sub),
+        codgrupo: (decodedRefreshToken as any).codgrupo ?? 0,
       };
 
       const accessToken = this.tokenService.generateAccessToken(payload);

@@ -10,6 +10,8 @@ export function createFastifyInstance(): FastifyInstance {
   const logLevel = isDev ? 'warn' : (env.LOG_LEVEL || 'info');
 
   const server = Fastify({
+    bodyLimit: 1_048_576, // 1 MB max request body
+    maxParamLength: 200,
     logger: {
       level: logLevel,
       transport: isDev

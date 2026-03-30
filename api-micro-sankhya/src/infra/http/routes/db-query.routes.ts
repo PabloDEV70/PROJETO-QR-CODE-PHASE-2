@@ -2,12 +2,14 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { DbQueryService } from '../../../domain/services/db-query.service';
 import { ValidationError } from '../../../domain/errors';
+import { adminGuard } from '../plugins/admin-guard';
 
 const querySchema = z.object({
   query: z.string().min(1, 'Query is required'),
 });
 
 export async function dbQueryRoutes(app: FastifyInstance) {
+  app.addHook('onRequest', adminGuard);
   const service = new DbQueryService();
 
   app.post('/db/query', async (request) => {

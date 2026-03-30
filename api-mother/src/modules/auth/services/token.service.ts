@@ -22,11 +22,11 @@ export class TokenService {
     this.REFRESH_TOKEN_EXPIRATION = this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION') || '7d';
   }
 
-  generateAccessToken(payload: { username: string; sub: number }): string {
+  generateAccessToken(payload: { username: string; sub: number; codgrupo?: number }): string {
     return this.jwtService.sign(payload, { expiresIn: this.ACCESS_TOKEN_EXPIRATION as any });
   }
 
-  generateRefreshToken(payload: { username: string; sub: number }): string {
+  generateRefreshToken(payload: { username: string; sub: number; codgrupo?: number }): string {
     return this.jwtService.sign(payload, { expiresIn: this.REFRESH_TOKEN_EXPIRATION as any });
   }
 
