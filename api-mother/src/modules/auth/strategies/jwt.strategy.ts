@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (token && await this.tokenRevocationService.isRevoked(token)) {
       throw new UnauthorizedException('Token revogado');
     }
-    return { userId: payload.sub, username: payload.username };
+    return { sub: payload.sub, userId: payload.sub, username: payload.username, codgrupo: payload.codgrupo ?? 0 };
   }
 }

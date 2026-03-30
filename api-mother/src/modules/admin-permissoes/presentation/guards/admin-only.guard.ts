@@ -1,4 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { GatewayException } from '../../../../common/exceptions/gateway.exception';
 import { GatewayErrorCode } from '../../../../common/enums/gateway-error-code.enum';
@@ -16,18 +17,27 @@ export const AdminOnly = () => {
 /**
  * Guard que verifica se o usuario tem permissao administrativa.
  *
- * Este guard deve ser usado em conjunto com o JwtAuthGuard.
- * Verifica se o usuario autenticado possui a role de administrador.
+ * Valida apenas pelo codgrupo presente no JWT assinado.
+ * NAO confia em claims auto-declarados como isAdmin, role, roles.
  */
 @Injectable()
 export class AdminOnlyGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  private readonly adminGroups: number[];
+
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly configService: ConfigService,
+  ) {
+    const raw = this.configService.get<string>('ADMIN_CODGRUPOS') || '1';
+    this.adminGroups = raw
+      .split(',')
+      .map((g) => Number(g.trim()))
+      .filter((n) => !Number.isNaN(n) && n > 0);
+  }
 
   canActivate(context: ExecutionContext): boolean {
-    // Verificar se o endpoint requer admin
     const isAdminOnly = this.reflector.get<boolean>('isAdminOnly', context.getHandler());
 
-    // Se nao requer admin, permitir acesso
     if (!isAdminOnly) {
       return true;
     }
@@ -35,7 +45,6 @@ export class AdminOnlyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    // Verificar se usuario esta autenticado
     if (!user) {
       throw new GatewayException(
         GatewayErrorCode.ERR_UNAUTHORIZED,
@@ -45,11 +54,6 @@ export class AdminOnlyGuard implements CanActivate {
       );
     }
 
-    // Verificar se usuario e administrador
-    // Por padrao, considera admin se:
-    // 1. Usuario tem role 'admin' ou 'ADMIN'
-    // 2. Usuario tem codUsuario = 0 (superusuario Sankhya)
-    // 3. Usuario tem flag isAdmin = true
     const isAdmin = this.verificarAdmin(user);
 
     if (!isAdmin) {
@@ -65,34 +69,15 @@ export class AdminOnlyGuard implements CanActivate {
   }
 
   private verificarAdmin(user: any): boolean {
-    // Verificar por codigo de usuario (superusuario Sankhya = 0)
-    if (user.sub === 0 || user.codUsuario === 0) {
+    // Superusuario Sankhya (CODUSU=0) - hardcoded, cannot be forged via JWT
+    if (user.sub === 0) {
       return true;
     }
 
-    // Verificar por flag isAdmin
-    if (user.isAdmin === true) {
+    // Validate by codgrupo from signed JWT payload only
+    const codgrupo = typeof user.codgrupo === 'number' ? user.codgrupo : Number(user.codgrupo);
+    if (codgrupo && this.adminGroups.includes(codgrupo)) {
       return true;
-    }
-
-    // Verificar por role
-    if (user.role) {
-      const role = String(user.role).toUpperCase();
-      if (role === 'ADMIN' || role === 'ADMINISTRADOR' || role === 'SUPERUSER') {
-        return true;
-      }
-    }
-
-    // Verificar por array de roles
-    if (user.roles && Array.isArray(user.roles)) {
-      const rolesUpperCase = user.roles.map((r: string) => String(r).toUpperCase());
-      if (
-        rolesUpperCase.includes('ADMIN') ||
-        rolesUpperCase.includes('ADMINISTRADOR') ||
-        rolesUpperCase.includes('SUPERUSER')
-      ) {
-        return true;
-      }
     }
 
     return false;

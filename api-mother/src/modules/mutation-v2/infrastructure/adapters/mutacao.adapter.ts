@@ -34,22 +34,16 @@ export class MutacaoAdapter implements IProvedorMutacao {
       // Verificar se há coluna PK não fornecida que precisa de ID automático
       const chavesPrimarias = await this.provedorValidacao.obterChavesPrimarias(operacao.nomeTabela);
 
+      // Track which PKs need auto-ID so we can generate atomically
+      const autoIdPKs: string[] = [];
       for (const chavePK of chavesPrimarias) {
         const chavePKUpper = chavePK.toUpperCase();
         const colunaPK = colunasMap.get(chavePKUpper);
 
-        // Se coluna PK não foi fornecida e é numérica, gerar próximo ID
         if (!Object.keys(dados).some((k) => k.toUpperCase() === chavePKUpper)) {
           if (colunaPK && ['int', 'numeric', 'decimal', 'bigint', 'smallint'].includes(colunaPK.tipo)) {
-            this.logger.log(`Gerando ID automático para coluna PK: ${chavePK}`);
-
-            // Buscar MAX ID + 1
-            const maxIdQuery = `SELECT COALESCE(MAX(${safeBracket(chavePK, 'column')}), 0) + 1 as novoId FROM ${safeBracket(operacao.nomeTabela, 'table')}`;
-            const resultMaxId = await this.sqlServerService.executeSQL(maxIdQuery, []);
-            const proximoId = resultMaxId?.[0]?.novoId ?? resultMaxId?.[0]?.NOVOID ?? 1;
-
-            dados[chavePK] = proximoId;
-            this.logger.log(`ID automático gerado: ${chavePK} = ${proximoId}`);
+            autoIdPKs.push(chavePK);
+            dados[chavePK] = 0; // placeholder - replaced by atomic query
           }
         }
       }
@@ -60,7 +54,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       const placeholders = campos.map((_, i) => `@param${i + 1}`).join(', ');
 
       const quotedCampos = campos.map((c) => safeBracket(c, 'column')).join(', ');
-      const query = `INSERT INTO ${safeBracket(operacao.nomeTabela, 'table')} (${quotedCampos}) VALUES (${placeholders})`;
+      const tabelaSegura = safeBracket(operacao.nomeTabela, 'table');
 
       // Se dry-run, apenas retornar preview
       if (operacao.dryRun) {
@@ -74,8 +68,28 @@ export class MutacaoAdapter implements IProvedorMutacao {
         });
       }
 
-      // Executar INSERT - executeSQL returns recordset (empty for INSERT)
-      await this.sqlServerService.executeSQL(query, valores);
+      let insertQuery: string;
+
+      if (autoIdPKs.length > 0) {
+        // Atomic auto-ID: SELECT MAX + INSERT with UPDLOCK, SERIALIZABLE hints
+        const pkCol = safeBracket(autoIdPKs[0], 'column');
+        const pkIdx = campos.findIndex((c) => c.toUpperCase() === autoIdPKs[0].toUpperCase());
+
+        // Re-index params to be sequential (skip the PK slot which uses @newId)
+        const reindexedPlaceholders = campos
+          .map((_, i) => i === pkIdx ? '@newId' : `@param${i < pkIdx ? i + 1 : i}`)
+          .join(', ');
+        const atomicParams = valores.filter((_, i) => i !== pkIdx);
+
+        insertQuery = `DECLARE @newId INT; SELECT @newId = COALESCE(MAX(${pkCol}), 0) + 1 FROM ${tabelaSegura} WITH (UPDLOCK, SERIALIZABLE); INSERT INTO ${tabelaSegura} (${quotedCampos}) VALUES (${reindexedPlaceholders}); SELECT @newId AS novoId;`;
+        const result = await this.sqlServerService.executeSQL(insertQuery, atomicParams);
+        const novoId = result?.[0]?.novoId ?? result?.[0]?.NOVOID;
+        if (novoId) dados[autoIdPKs[0]] = novoId;
+        this.logger.log(`ID automatico atomico gerado: ${autoIdPKs[0]} = ${novoId}`);
+      } else {
+        insertQuery = `INSERT INTO ${tabelaSegura} (${quotedCampos}) VALUES (${placeholders})`;
+        await this.sqlServerService.executeSQL(insertQuery, valores);
+      }
 
       const duracao = Date.now() - inicio;
 
@@ -86,7 +100,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
         ip: 'internal',
         database,
         operation: `INSERT:${operacao.nomeTabela}`,
-        sql: query,
+        sql: insertQuery,
         success: true,
         duration: duracao,
       });
@@ -145,8 +159,6 @@ export class MutacaoAdapter implements IProvedorMutacao {
       const camposWhere = Object.keys(operacao.condicao);
       const valoresWhere = Object.values(operacao.condicao);
       const whereClauseForUpdate = camposWhere.map((c, i) => `${safeBracket(c, 'column')} = @param${camposSet.length + i + 1}`).join(' AND ');
-      // WHERE clause para COUNT query (params começam em @param1)
-      const whereClauseForCount = camposWhere.map((c, i) => `${safeBracket(c, 'column')} = @param${i + 1}`).join(' AND ');
 
       const limiteSeguro = Math.min(Math.max(1, Number(operacao.limiteRegistros) || 1), 10000);
       const query = `UPDATE TOP(${limiteSeguro}) ${safeBracket(operacao.nomeTabela, 'table')} SET ${setClause} WHERE ${whereClauseForUpdate}`;
@@ -163,13 +175,10 @@ export class MutacaoAdapter implements IProvedorMutacao {
         });
       }
 
-      // Count matching records before update
-      const countQuery = `SELECT COUNT(*) as total FROM ${safeBracket(operacao.nomeTabela, 'table')} WHERE ${whereClauseForCount}`;
-      const countResult = await this.sqlServerService.executeSQL(countQuery, valoresWhere);
-      const matchingCount = Math.min(countResult?.[0]?.total ?? countResult?.[0]?.TOTAL ?? 0, limiteSeguro);
-
-      // Executar UPDATE - executeSQL returns recordset (empty for UPDATE)
-      await this.sqlServerService.executeSQL(query, params);
+      // Execute UPDATE and get actual affected rows atomically via @@ROWCOUNT
+      const queryWithRowCount = `${query}; SELECT @@ROWCOUNT AS affectedRows;`;
+      const updateResult = await this.sqlServerService.executeSQL(queryWithRowCount, params);
+      const affectedRows = updateResult?.[0]?.affectedRows ?? updateResult?.[0]?.AFFECTEDROWS ?? 0;
 
       const duracao = Date.now() - inicio;
 
@@ -188,7 +197,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       return ResultadoMutacao.sucesso({
         tipo: 'UPDATE',
         nomeTabela: operacao.nomeTabela,
-        registrosAfetados: matchingCount,
+        registrosAfetados: affectedRows,
         tempoExecucao: duracao,
         dryRun: false,
       });
@@ -265,13 +274,10 @@ export class MutacaoAdapter implements IProvedorMutacao {
         });
       }
 
-      // Count matching records before delete
-      const countQuery = `SELECT COUNT(*) as total FROM ${tabelaSegura} WHERE ${whereClause}`;
-      const countResult = await this.sqlServerService.executeSQL(countQuery, valoresWhere);
-      const matchingCount = Math.min(countResult?.[0]?.total ?? countResult?.[0]?.TOTAL ?? 0, limiteSeguro);
-
-      // Executar DELETE - executeSQL returns recordset (empty for DELETE/UPDATE)
-      await this.sqlServerService.executeSQL(query, valoresWhere);
+      // Execute DELETE and get actual affected rows atomically via @@ROWCOUNT
+      const queryWithRowCount = `${query}; SELECT @@ROWCOUNT AS affectedRows;`;
+      const deleteResult = await this.sqlServerService.executeSQL(queryWithRowCount, valoresWhere);
+      const affectedRows = deleteResult?.[0]?.affectedRows ?? deleteResult?.[0]?.AFFECTEDROWS ?? 0;
 
       const duracao = Date.now() - inicio;
 
@@ -290,7 +296,7 @@ export class MutacaoAdapter implements IProvedorMutacao {
       return ResultadoMutacao.sucesso({
         tipo: 'DELETE',
         nomeTabela: operacao.nomeTabela,
-        registrosAfetados: matchingCount,
+        registrosAfetados: affectedRows,
         mensagem: usarSoftDelete ? 'Registros marcados como inativos' : 'Registros removidos permanentemente',
         tempoExecucao: duracao,
         dryRun: false,
