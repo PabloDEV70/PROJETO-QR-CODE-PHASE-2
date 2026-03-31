@@ -52,7 +52,7 @@ SELECT U.CODUSU, RTRIM(U.NOMEUSU) AS NOMEUSU,
   U.CODGRUPO, RTRIM(G.NOMEGRUPO) AS NOMEGRUPO
 FROM TSIUSU U
 LEFT JOIN TSIGRU G ON U.CODGRUPO = G.CODGRUPO
-WHERE U.CODUSU = ${Number(codusu)}`;
+WHERE U.CODUSU = ${codusu}`;
 
     const [userRows, diretasRows, herdadasRows] = await Promise.all([
       this.qe.executeQuery<{

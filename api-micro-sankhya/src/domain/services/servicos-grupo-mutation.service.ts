@@ -58,7 +58,7 @@ export class ServicosGrupoMutationService {
     let grau = 1;
     if (input.CODGRUPAI && input.CODGRUPAI > 0) {
       const rows = await this.qe.executeQuery<Record<string, unknown>>(
-        `SELECT GRAU FROM TGFGRU WHERE CODGRUPOPROD = ${Number(input.CODGRUPAI)}`,
+        `SELECT GRAU FROM TGFGRU WHERE CODGRUPOPROD = ${input.CODGRUPAI}`,
       );
       if (rows.length === 0) {
         throw new ValidationError(`Grupo pai ${input.CODGRUPAI} nao encontrado`);
@@ -125,57 +125,6 @@ export class ServicosGrupoMutationService {
     return result;
   }
 
-  async createServico(input: { DESCRPROD: string; CODGRUPOPROD: number }, userToken?: string) {
-    if (!input.DESCRPROD || input.DESCRPROD.trim().length === 0) {
-      throw new ValidationError('DESCRPROD e obrigatorio');
-    }
-    if (!input.CODGRUPOPROD || input.CODGRUPOPROD <= 0) {
-      throw new ValidationError('CODGRUPOPROD deve ser um numero positivo');
-    }
-
-    // Verificar se grupo existe
-    const grupoRows = await this.qe.executeQuery<Record<string, unknown>>(
-      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${Number(input.CODGRUPOPROD)}`,
-    );
-    if (grupoRows.length === 0) {
-      throw new ValidationError(`Grupo ${input.CODGRUPOPROD} nao encontrado`);
-    }
-
-    // Proximo CODPROD na faixa de servicos (USOPROD='S', ate 99999)
-    // Servicos usam faixa separada de produtos para evitar conflitos
-    const codRows = await this.qe.executeQuery<Record<string, unknown>>(
-      `SELECT ISNULL(MAX(CODPROD), 1999) AS MAX_COD FROM TGFPRO WHERE USOPROD = 'S' AND CODPROD < 100000`,
-    );
-    const nextCodProd = ((codRows[0]?.MAX_COD as number) || 1999) + 1;
-    logger.info({ nextCodProd }, '[ServicosGrupoMutation] createServico — proximo CODPROD');
-
-    const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-    const dados: Record<string, unknown> = {
-      CODPROD: nextCodProd,
-      DESCRPROD: input.DESCRPROD.trim().toUpperCase(),
-      CODGRUPOPROD: input.CODGRUPOPROD,
-      USOPROD: 'S',
-      ATIVO: 'S',
-      CODVOL: 'UN',
-      CODVOLCOMPRA: '0',
-      DTALTER: now,
-      CODMOEDA: 0,
-      CODUSU: 0,
-      CODNAT: 0,
-      CODCENCUS: 0,
-      CODPROJ: 0,
-      PESOBRUTO: 0,
-      PESOLIQ: 0,
-      PERCINSS: 0,
-      REDBASEINSS: 0,
-    };
-
-    const result = await this.me.insert('TGFPRO', dados, { userToken });
-    assertMutationSuccess(result, 'criar servico');
-    bustCache();
-    return result;
-  }
-
   async updateServico(codProd: number, input: UpdateServicoInput, userToken?: string) {
     if (!codProd || codProd <= 0) {
       throw new ValidationError('CODPROD deve ser um numero positivo');
@@ -204,7 +153,7 @@ export class ServicosGrupoMutationService {
     }
 
     const rows = await this.qe.executeQuery<Record<string, unknown>>(
-      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${Number(novoCodGrupo)}`,
+      `SELECT CODGRUPOPROD FROM TGFGRU WHERE CODGRUPOPROD = ${novoCodGrupo}`,
     );
     if (rows.length === 0) {
       throw new ValidationError(`Grupo destino ${novoCodGrupo} nao encontrado`);

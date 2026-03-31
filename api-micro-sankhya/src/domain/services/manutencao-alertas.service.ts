@@ -180,7 +180,6 @@ export class ManutencaoAlertasService {
     codprod: number;
     dataInicio?: string;
     dataFim?: string;
-    codveiculo?: number;
   }) {
     let whereClause = '';
     if (params.dataInicio) {
@@ -188,9 +187,6 @@ export class ManutencaoAlertasService {
     }
     if (params.dataFim) {
       whereClause += ` AND O.DTABERTURA <= '${params.dataFim}'`;
-    }
-    if (params.codveiculo) {
-      whereClause += ` AND O.CODVEICULO = ${params.codveiculo}`;
     }
 
     const applyWhere = (sql: string) =>
@@ -243,7 +239,6 @@ export class ManutencaoAlertasService {
     codprod: number;
     dataInicio?: string;
     dataFim?: string;
-    codveiculo?: number;
   }) {
     let whereClause = '';
     if (params.dataInicio) {
@@ -251,9 +246,6 @@ export class ManutencaoAlertasService {
     }
     if (params.dataFim) {
       whereClause += ` AND O.DTABERTURA <= '${params.dataFim}'`;
-    }
-    if (params.codveiculo) {
-      whereClause += ` AND O.CODVEICULO = ${params.codveiculo}`;
     }
 
     const sql = Q.performanceServicoExecucoes

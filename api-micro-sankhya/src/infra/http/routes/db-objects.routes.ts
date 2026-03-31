@@ -1,7 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { DbObjectsService } from '../../../domain/services/db-objects.service';
-import { adminGuard } from '../plugins/admin-guard';
 
 const listSchema = z.object({
   schema: z.string().optional(),
@@ -29,7 +28,6 @@ const relSchema = z.object({
 });
 
 export async function dbObjectsRoutes(app: FastifyInstance) {
-  app.addHook('onRequest', adminGuard);
   const service = new DbObjectsService();
 
   app.get('/db/views', async (request) => {

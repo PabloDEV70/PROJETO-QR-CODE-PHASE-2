@@ -27,7 +27,6 @@ export interface ListApontamentosOptions {
   codveiculo?: number;
   dtInicio?: string;
   dtFim?: string;
-  search?: string;
 }
 
 const ALLOWED_ORDER_COLS: Record<string, string> = {
@@ -130,41 +129,8 @@ export class ApontamentosService {
     return this.queryExecutor.executeQuery<IAdAponTsolWithProduto>(sql);
   }
 
-  async getHistoricoServico(codveiculo: number, codprod: number) {
-    const sql = `
-      SELECT TOP 20
-        SOL.CODIGO, SOL.SEQ, SOL.QTD, SOL.NUOS, SOL.DTPROGRAMACAO,
-        AP.DTINCLUSAO, AP.KM AS KM_APON, AP.HORIMETRO AS HR_APON, AP.TAG,
-        U.NOMEUSU,
-        CAST(SOL.DESCRITIVO AS VARCHAR(500)) AS DESCRITIVO,
-        P.DESCRPROD,
-        OS.STATUS,
-        CASE OS.STATUS
-          WHEN 'A' THEN 'Aberta' WHEN 'R' THEN 'Reaberta'
-          WHEN 'E' THEN 'Em execucao' WHEN 'F' THEN 'Finalizada'
-          ELSE OS.STATUS END AS STATUSOS,
-        OS.DTABERTURA, OS.DATAFIN, OS.DATAINI, OS.PREVISAO,
-        OS.MANUTENCAO,
-        CASE OS.MANUTENCAO
-          WHEN 'C' THEN 'Corretiva' WHEN 'P' THEN 'Preventiva'
-          WHEN 'D' THEN 'Preditiva' ELSE OS.MANUTENCAO END AS TIPOMANUT,
-        OS.KM AS KM_OS, OS.HORIMETRO AS HR_OS,
-        OS.AD_STATUSGIG,
-        DATEDIFF(DAY, OS.DTABERTURA, ISNULL(OS.DATAFIN, GETDATE())) AS DIAS_OS
-      FROM AD_APONTSOL SOL
-      JOIN AD_APONTAMENTO AP ON AP.CODIGO = SOL.CODIGO
-      LEFT JOIN TGFPRO P ON P.CODPROD = SOL.CODPROD
-      LEFT JOIN TSIUSU U ON U.CODUSU = AP.CODUSU
-      LEFT JOIN TCFOSCAB OS ON OS.NUOS = SOL.NUOS
-      WHERE SOL.CODPROD = ${Number(codprod)} AND AP.CODVEICULO = ${Number(codveiculo)}
-      ORDER BY AP.DTINCLUSAO DESC
-    `;
-    return this.queryExecutor.executeQuery<Record<string, unknown>>(sql);
-  }
-
-  // Search support: code, placa, tag, usuario, marca/modelo
   async list(options: ListApontamentosOptions) {
-    const { page, limit, orderBy, orderDir, statusOs, codveiculo, dtInicio, dtFim, search } = options;
+    const { page, limit, orderBy, orderDir, statusOs, codveiculo, dtInicio, dtFim } = options;
     const offset = (page - 1) * limit;
 
     const whereParts: string[] = [];
@@ -172,15 +138,6 @@ export class ApontamentosService {
     if (codveiculo) whereParts.push(`AND A.CODVEICULO = ${Number(codveiculo)}`);
     if (dtInicio) whereParts.push(`AND A.DTINCLUSAO >= ${escapeSqlDate(dtInicio)}`);
     if (dtFim) whereParts.push(`AND A.DTINCLUSAO <= '${escapeSqlString(dtFim)} 23:59:59'`);
-    if (search) {
-      const s = escapeSqlString(search);
-      const isNumeric = /^\d+$/.test(search);
-      if (isNumeric) {
-        whereParts.push(`AND (A.CODIGO = ${Number(search)} OR V.PLACA LIKE '%${s}%' OR A.TAG LIKE '%${s}%')`);
-      } else {
-        whereParts.push(`AND (V.PLACA LIKE '%${s}%' OR A.TAG LIKE '%${s}%' OR U.NOMEUSU LIKE '%${s}%' OR CAST(V.MARCAMODELO AS VARCHAR(200)) LIKE '%${s}%')`);
-      }
-    }
     const whereSql = whereParts.join('\n  ');
 
     const col = ALLOWED_ORDER_COLS[(orderBy ?? 'codigo').toLowerCase()] ?? 'A.CODIGO';

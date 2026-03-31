@@ -82,23 +82,21 @@ export async function manutencaoRoutes(app: FastifyInstance) {
   });
 
   app.get('/man/performance-servico-executor', async (request) => {
-    const { codprod, dataInicio, dataFim, codveiculo } = z.object({
+    const { codprod, dataInicio, dataFim } = z.object({
       codprod: z.coerce.number(),
       dataInicio: z.string().optional(),
       dataFim: z.string().optional(),
-      codveiculo: z.coerce.number().optional(),
     }).parse(request.query);
-    return alertasService.getPerformanceServicoExecutor({ codprod, dataInicio, dataFim, codveiculo });
+    return alertasService.getPerformanceServicoExecutor({ codprod, dataInicio, dataFim });
   });
 
   app.get('/man/performance-servico-execucoes', async (request) => {
-    const { codprod, dataInicio, dataFim, codveiculo } = z.object({
+    const { codprod, dataInicio, dataFim } = z.object({
       codprod: z.coerce.number(),
       dataInicio: z.string().optional(),
       dataFim: z.string().optional(),
-      codveiculo: z.coerce.number().optional(),
     }).parse(request.query);
-    return alertasService.getPerformanceServicoExecucoes({ codprod, dataInicio, dataFim, codveiculo });
+    return alertasService.getPerformanceServicoExecucoes({ codprod, dataInicio, dataFim });
   });
 
   // === Listagem e Busca ===

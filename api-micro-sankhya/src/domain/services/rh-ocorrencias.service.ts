@@ -27,10 +27,10 @@ export class RhOcorrenciasService {
   async getOcorrenciasAtivas(params?: OcorrenciaParams): Promise<Ocorrencia[]> {
     let sql = ocorrenciasAtivas;
     if (params?.codemp) {
-      sql = sql.replace('ORDER BY', `AND OCO.CODEMP = ${Number(params.codemp)}\nORDER BY`);
+      sql = sql.replace('ORDER BY', `AND OCO.CODEMP = ${params.codemp}\nORDER BY`);
     }
     if (params?.coddep) {
-      sql = sql.replace('ORDER BY', `AND FUN.CODDEP = ${Number(params.coddep)}\nORDER BY`);
+      sql = sql.replace('ORDER BY', `AND FUN.CODDEP = ${params.coddep}\nORDER BY`);
     }
     const rows = await this.queryExecutor.executeQuery<OcorrenciaRow>(sql);
     return rows.map(this.mapRow);

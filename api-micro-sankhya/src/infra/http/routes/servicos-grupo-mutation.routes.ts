@@ -21,11 +21,6 @@ const toggleAtivoSchema = z.object({
   ativo: z.enum(['S', 'N']),
 });
 
-const createServicoSchema = z.object({
-  DESCRPROD: z.string(),
-  CODGRUPOPROD: z.number(),
-});
-
 const updateServicoSchema = z.object({
   DESCRPROD: z.string(),
 });
@@ -73,14 +68,6 @@ export async function servicosGrupoMutationRoutes(app: FastifyInstance) {
     const body = toggleAtivoSchema.parse(request.body);
     const userToken = extractUserToken(request);
     return mutationService.toggleGrupoAtivo(codGrupo, body.ativo, userToken);
-  });
-
-  // POST create servico
-  app.post('/servicos-grupo/servicos', async (request, reply) => {
-    const body = createServicoSchema.parse(request.body);
-    const userToken = extractUserToken(request);
-    reply.status(201);
-    return mutationService.createServico(body, userToken);
   });
 
   // PUT update servico

@@ -47,13 +47,6 @@ export class HstVeiMutationService {
       throw new ValidationError('IDSIT deve ser um número positivo');
     }
 
-    // Encerrar situacoes ativas anteriores — veiculo so pode ter 1 situacao ativa
-    const ativasSql = `SELECT ID FROM AD_HSTVEI WHERE CODVEICULO = ${input.codveiculo} AND DTFIM IS NULL`;
-    const ativas = await this.qe.executeQuery<{ ID: number }>(ativasSql);
-    for (const row of ativas) {
-      await this.encerrar(row.ID, codusu, userToken);
-    }
-
     const dados: Record<string, unknown> = {
       CODVEICULO: input.codveiculo,
       IDSIT: input.idsit,
@@ -134,82 +127,7 @@ export class HstVeiMutationService {
   }
 
   async trocarSituacao(idAtual: number, novaInput: CriarHstVeiInput, codusu: number, userToken?: string) {
-    // Encerrar TODAS as situacoes ativas do veiculo (nao so a atual)
-    // para garantir que veiculo tenha no maximo 1 situacao ativa
-    if (novaInput.codveiculo) {
-      const ativasSql = `SELECT ID FROM AD_HSTVEI WHERE CODVEICULO = ${novaInput.codveiculo} AND DTFIM IS NULL`;
-      const ativas = await this.qe.executeQuery<{ ID: number }>(ativasSql);
-      for (const row of ativas) {
-        await this.encerrar(row.ID, codusu, userToken);
-      }
-    } else {
-      await this.encerrar(idAtual, codusu, userToken);
-    }
+    await this.encerrar(idAtual, codusu, userToken);
     return this.criar(novaInput, codusu, userToken);
-  }
-
-  // --- CRUD Situacoes (AD_ADHSTVEISIT) ---
-
-  // --- CRUD Situacoes (AD_ADHSTVEISIT) ---
-  // Requer AD_ADHSTVEISIT na allowlist da API Mother (table-permissions.config.ts)
-
-  async createSituacao(input: { DESCRICAO: string; CODDEP: number; OBS?: string }, userToken?: string) {
-    const result = await this.me.insert('AD_ADHSTVEISIT', {
-      DESCRICAO: input.DESCRICAO.trim(),
-      CODDEP: input.CODDEP,
-      OBS: input.OBS?.trim() || null,
-    }, { userToken });
-    assertMutationSuccess(result, 'criar situacao');
-    bustCache();
-    return result;
-  }
-
-  async updateSituacao(id: number, input: Record<string, unknown>, userToken?: string) {
-    const dados: Record<string, unknown> = {};
-    if (input.DESCRICAO) dados.DESCRICAO = (input.DESCRICAO as string).trim();
-    if (input.CODDEP) dados.CODDEP = input.CODDEP;
-    if (input.OBS !== undefined) dados.OBS = input.OBS ? (input.OBS as string).trim() : null;
-    const result = await this.me.update('AD_ADHSTVEISIT', { ID: id }, dados, { userToken });
-    assertMutationSuccess(result, 'atualizar situacao');
-    bustCache();
-    return result;
-  }
-
-  async deleteSituacao(id: number, userToken?: string) {
-    const result = await this.me.delete('AD_ADHSTVEISIT', { ID: id }, { userToken });
-    assertMutationSuccess(result, 'deletar situacao');
-    bustCache();
-    return result;
-  }
-
-  // --- CRUD Prioridades (AD_ADHSTVEIPRI) ---
-  // Requer AD_ADHSTVEIPRI na allowlist da API Mother (table-permissions.config.ts)
-
-  async createPrioridade(input: { IDPRI: number; SIGLA: string; DESCRICAO: string }, userToken?: string) {
-    const result = await this.me.insert('AD_ADHSTVEIPRI', {
-      IDPRI: input.IDPRI,
-      SIGLA: input.SIGLA.trim().toUpperCase(),
-      DESCRICAO: input.DESCRICAO.trim(),
-    }, { userToken });
-    assertMutationSuccess(result, 'criar prioridade');
-    bustCache();
-    return result;
-  }
-
-  async updatePrioridade(idpri: number, input: Record<string, unknown>, userToken?: string) {
-    const dados: Record<string, unknown> = {};
-    if (input.SIGLA) dados.SIGLA = (input.SIGLA as string).trim().toUpperCase();
-    if (input.DESCRICAO) dados.DESCRICAO = (input.DESCRICAO as string).trim();
-    const result = await this.me.update('AD_ADHSTVEIPRI', { IDPRI: idpri }, dados, { userToken });
-    assertMutationSuccess(result, 'atualizar prioridade');
-    bustCache();
-    return result;
-  }
-
-  async deletePrioridade(idpri: number, userToken?: string) {
-    const result = await this.me.delete('AD_ADHSTVEIPRI', { IDPRI: idpri }, { userToken });
-    assertMutationSuccess(result, 'deletar prioridade');
-    bustCache();
-    return result;
   }
 }

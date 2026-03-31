@@ -120,63 +120,8 @@ export async function hstveiRoutes(app: FastifyInstance) {
     return service.getSituacoes();
   });
 
-  // CRUD Situacoes
-  app.post('/hstvei/situacoes', async (request) => {
-    const body = z.object({
-      DESCRICAO: z.string().max(50),
-      CODDEP: z.number(),
-      OBS: z.string().max(200).optional(),
-    }).parse(request.body);
-    const userToken = extractUserToken(request);
-    return mutation.createSituacao(body, userToken);
-  });
-
-  app.put('/hstvei/situacoes/:id', async (request) => {
-    const { id } = z.object({ id: z.coerce.number() }).parse(request.params);
-    const body = z.object({
-      DESCRICAO: z.string().max(50).optional(),
-      CODDEP: z.number().optional(),
-      OBS: z.string().max(200).optional(),
-    }).parse(request.body);
-    const userToken = extractUserToken(request);
-    return mutation.updateSituacao(id, body, userToken);
-  });
-
-  app.delete('/hstvei/situacoes/:id', async (request) => {
-    const { id } = z.object({ id: z.coerce.number() }).parse(request.params);
-    const userToken = extractUserToken(request);
-    return mutation.deleteSituacao(id, userToken);
-  });
-
   app.get('/hstvei/prioridades', async () => {
     return service.getPrioridades();
-  });
-
-  // CRUD Prioridades
-  app.post('/hstvei/prioridades', async (request) => {
-    const body = z.object({
-      IDPRI: z.number(),
-      SIGLA: z.string().max(5),
-      DESCRICAO: z.string().max(50),
-    }).parse(request.body);
-    const userToken = extractUserToken(request);
-    return mutation.createPrioridade(body, userToken);
-  });
-
-  app.put('/hstvei/prioridades/:idpri', async (request) => {
-    const { idpri } = z.object({ idpri: z.coerce.number() }).parse(request.params);
-    const body = z.object({
-      SIGLA: z.string().max(5).optional(),
-      DESCRICAO: z.string().max(50).optional(),
-    }).parse(request.body);
-    const userToken = extractUserToken(request);
-    return mutation.updatePrioridade(idpri, body, userToken);
-  });
-
-  app.delete('/hstvei/prioridades/:idpri', async (request) => {
-    const { idpri } = z.object({ idpri: z.coerce.number() }).parse(request.params);
-    const userToken = extractUserToken(request);
-    return mutation.deletePrioridade(idpri, userToken);
   });
 
   app.get('/hstvei/:id', async (request) => {
@@ -200,14 +145,6 @@ export async function hstveiRoutes(app: FastifyInstance) {
     if (!item) throw new NotFoundError('Situação não encontrada');
     if (!item.NUNOTA) return [];
     return service.getItensNota(item.NUNOTA);
-  });
-
-  app.get('/hstvei/:id/itens-os-comercial', async (request) => {
-    const { id } = idSchema.parse(request.params);
-    const item = await service.getById(id);
-    if (!item) throw new NotFoundError('Situação não encontrada');
-    if (!item.NUMOS) return [];
-    return service.getItensOsComercial(item.NUMOS);
   });
 
   app.get('/hstvei/veiculo/:codveiculo', async (request) => {

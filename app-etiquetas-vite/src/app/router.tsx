@@ -16,6 +16,14 @@ const ArmarioListPage = lazy(() =>
   import('@/pages/armario-list-page').then((m) => ({ default: m.ArmarioListPage })),
 );
 
+const TreinamentoListPage = lazy(() =>
+  import('@/pages/treinamento-list-page').then((m) => ({ default: m.TreinamentoListPage })),
+);
+
+const TreinamentoPublicPage = lazy(() =>
+  import('@/pages/treinamento-public-page').then((m) => ({ default: m.TreinamentoPublicPage })),
+);
+
 function Loading() {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -30,6 +38,14 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<Loading />}>
         <LoginPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/p/treinamento/:codfunc',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <TreinamentoPublicPage />
       </Suspense>
     ),
   },
@@ -53,6 +69,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <ArmarioListPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'treinamentos',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <TreinamentoListPage />
           </Suspense>
         ),
       },

@@ -1,15 +1,22 @@
 import { Box, Typography, Stack, Paper } from '@mui/material';
-import { Label, ArrowForward } from '@mui/icons-material';
+import { Label, School, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 
-const ETIQUETAS = [
+const MODULOS = [
   {
     title: 'Armarios',
     description: 'Etiquetas com QR Code para armarios de funcionarios',
     path: '/armarios',
     icon: Label,
     count: 'Listagem, filtros, impressao individual e em lote',
+  },
+  {
+    title: 'Treinamentos',
+    description: 'Etiquetas com QR Code contendo treinamentos ativos dos colaboradores',
+    path: '/treinamentos',
+    icon: School,
+    count: 'Listagem, filtros, impressão individual e em lote',
   },
 ];
 
@@ -23,11 +30,11 @@ export function HomePage() {
         Ola, {user?.nome || user?.username || 'Usuario'}
       </Typography>
       <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 4 }}>
-        Selecione o tipo de etiqueta que deseja gerar
+        Selecione um módulo para continuar
       </Typography>
 
       <Stack spacing={2} sx={{ maxWidth: 600 }}>
-        {ETIQUETAS.map((item) => (
+        {MODULOS.map((item) => (
           <Paper
             key={item.path}
             onClick={() => navigate(item.path)}

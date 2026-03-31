@@ -80,8 +80,7 @@ export class ColaboradorTimelineService {
     dataInicio: string,
     dataFim: string,
   ): Promise<AtividadeRow[]> {
-    const { escapeSqlDate } = await import('@/shared/sql-sanitize');
-    const where = `AND rdo.DTREF >= '${escapeSqlDate(dataInicio)}' AND rdo.DTREF <= '${escapeSqlDate(dataFim)}'`;
+    const where = `AND rdo.DTREF >= '${dataInicio}' AND rdo.DTREF <= '${dataFim}'`;
     const sql = Q.colaboradorTimeline
       .replace(/@codparc/g, codparc.toString())
       .replace('-- @WHERE', where);

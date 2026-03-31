@@ -8,10 +8,9 @@ const qe = new QueryExecutor();
 
 export class DbAuditService {
   async getHistorico(filters: AuditoriaFilters): Promise<ListaAuditoria> {
-    const page = Math.max(1, Math.floor(Number(filters.page) || 1));
-    const limit = Math.min(100, Math.max(1, Math.floor(Number(filters.limit) || 50)));
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 50;
     const offset = (page - 1) * limit;
-    const end = offset + limit;
 
     const where = this.buildWhere(filters);
 
@@ -25,7 +24,7 @@ export class DbAuditService {
           ROW_NUMBER() OVER (ORDER BY ID DESC) AS RowNum
         FROM AD_GIG_LOG${where}
       ) AS T
-      WHERE RowNum > ${Number(offset)} AND RowNum <= ${Number(end)}`;
+      WHERE RowNum > ${offset} AND RowNum <= ${offset + limit}`;
 
     const rows = await qe.executeQuery<RegistroAuditoria>(dataSql);
 

@@ -1,7 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { DbAuditService } from '../../../domain/services/db-audit.service';
-import { adminGuard } from '../plugins/admin-guard';
 
 const historicoSchema = z.object({
   tabela: z.string().optional(),
@@ -16,7 +15,6 @@ const estatisticasSchema = z.object({
 });
 
 export async function dbAuditRoutes(app: FastifyInstance) {
-  app.addHook('onRequest', adminGuard);
   const service = new DbAuditService();
 
   app.get('/db/audit/historico', async (request) => {

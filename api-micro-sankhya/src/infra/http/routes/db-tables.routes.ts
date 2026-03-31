@@ -1,14 +1,12 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { DbTablesService } from '../../../domain/services/db-tables.service';
-import { adminGuard } from '../plugins/admin-guard';
 
 const tableNameSchema = z.object({
   tableName: z.string().min(1),
 });
 
 export async function dbTablesRoutes(app: FastifyInstance) {
-  app.addHook('onRequest', adminGuard);
   const service = new DbTablesService();
 
   app.get('/db/tables', async () => {

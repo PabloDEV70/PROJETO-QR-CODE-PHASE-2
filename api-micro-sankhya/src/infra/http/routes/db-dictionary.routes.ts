@@ -1,10 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { DbDictionaryService } from '../../../domain/services/db-dictionary.service';
-import { adminGuard } from '../plugins/admin-guard';
 
 export async function dbDictionaryRoutes(app: FastifyInstance) {
-  app.addHook('onRequest', adminGuard);
   const service = new DbDictionaryService();
 
   app.get('/db/dictionary/tables', async () => {

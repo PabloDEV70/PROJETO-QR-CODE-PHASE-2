@@ -28,10 +28,10 @@ export class RhFeriasService {
   async getFeriasAtuais(params?: FeriasParams): Promise<Ferias[]> {
     let sql = feriasAtuais;
     if (params?.codemp) {
-      sql = sql.replace('ORDER BY', `AND FER.CODEMP = ${Number(params.codemp)}\nORDER BY`);
+      sql = sql.replace('ORDER BY', `AND FER.CODEMP = ${params.codemp}\nORDER BY`);
     }
     if (params?.coddep) {
-      sql = sql.replace('ORDER BY', `AND FUN.CODDEP = ${Number(params.coddep)}\nORDER BY`);
+      sql = sql.replace('ORDER BY', `AND FUN.CODDEP = ${params.coddep}\nORDER BY`);
     }
     const rows = await this.queryExecutor.executeQuery<FeriasRow>(sql);
     return rows.map(this.mapRow);
@@ -40,10 +40,10 @@ export class RhFeriasService {
   async getFeriasProximas(dias?: number, params?: FeriasParams): Promise<Ferias[]> {
     let sql = feriasProximas.replace(/@dias/g, (dias || 30).toString());
     if (params?.codemp) {
-      sql = sql.replace('ORDER BY', `AND FER.CODEMP = ${Number(params.codemp)}\nORDER BY`);
+      sql = sql.replace('ORDER BY', `AND FER.CODEMP = ${params.codemp}\nORDER BY`);
     }
     if (params?.coddep) {
-      sql = sql.replace('ORDER BY', `AND FUN.CODDEP = ${Number(params.coddep)}\nORDER BY`);
+      sql = sql.replace('ORDER BY', `AND FUN.CODDEP = ${params.coddep}\nORDER BY`);
     }
     const rows = await this.queryExecutor.executeQuery<FeriasRow>(sql);
     return rows.map(this.mapRow);

@@ -35,7 +35,6 @@ const listarSchema = z.object({
   codveiculo: z.coerce.number().optional(),
   dtInicio: z.string().optional(),
   dtFim: z.string().optional(),
-  search: z.string().optional(),
 });
 
 export async function apontamentosRoutes(app: FastifyInstance) {
@@ -87,15 +86,5 @@ export async function apontamentosRoutes(app: FastifyInstance) {
   app.get('/apontamentos/:codigo', async (request) => {
     const { codigo } = codigoSchema.parse(request.params);
     return service.getByApontamento(codigo);
-  });
-
-  const historicoServicoSchema = z.object({
-    codveiculo: z.coerce.number(),
-    codprod: z.coerce.number(),
-  });
-
-  app.get('/apontamentos/historico-servico', async (request) => {
-    const { codveiculo, codprod } = historicoServicoSchema.parse(request.query);
-    return service.getHistoricoServico(codveiculo, codprod);
   });
 }

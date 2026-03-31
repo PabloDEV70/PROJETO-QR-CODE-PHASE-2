@@ -73,6 +73,67 @@ SELECT * FROM (
 WHERE RowNum > @offset AND RowNum <= (@offset + @limit)
 `;
 
+export const listarFuncionariosTodos = `
+SELECT
+  par.CODPARC AS codparc,
+  par.NOMEPARC AS nomeparc,
+  par.CGC_CPF AS cgcCpf,
+  par.CLIENTE AS cliente,
+  par.FORNECEDOR AS fornecedor,
+  fun.CODFUNC AS codfunc,
+  fun.CODEMP AS codemp,
+  fun.SITUACAO AS situacao,
+  CONVERT(VARCHAR(10), fun.DTADM, 120) AS dtadm,
+  CONVERT(VARCHAR(10), fun.DTNASC, 120) AS dtnasc,
+  CASE WHEN fun.DTNASC IS NOT NULL THEN
+    DATEDIFF(YEAR, fun.DTNASC, GETDATE())
+    - CASE
+        WHEN MONTH(fun.DTNASC) > MONTH(GETDATE())
+          OR (MONTH(fun.DTNASC) = MONTH(GETDATE())
+              AND DAY(fun.DTNASC) > DAY(GETDATE()))
+        THEN 1 ELSE 0
+      END
+  ELSE NULL END AS idade,
+  DATEDIFF(DAY, fun.DTADM, GETDATE()) AS diasNaEmpresa,
+  car.DESCRCARGO AS cargo,
+  fun.CODDEP AS coddep,
+  dep.DESCRDEP AS departamento,
+  emp.NOMEFANTASIA AS empresa,
+  CASE WHEN fun.IMAGEM IS NOT NULL THEN 1 ELSE 0 END AS temFoto,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM TSIUSU u2
+    WHERE u2.CODPARC = par.CODPARC
+      AND (u2.DTLIMACESSO IS NULL OR u2.DTLIMACESSO > GETDATE())
+  ) THEN 1 ELSE 0 END AS temUsuario,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM AD_ARMARIO arm
+    WHERE arm.CODEMP = fun.CODEMP AND arm.CODFUNC = fun.CODFUNC
+  ) THEN 1 ELSE 0 END AS temArmario,
+  CONVERT(VARCHAR(10), fun.DTAFASTAMENTO, 120) AS dtAfastamento,
+  fun.CAUSAAFAST AS causaAfastamento,
+  (SELECT TOP 1 CONVERT(VARCHAR(10), fer.DTSAIDA, 120) FROM TFPFER fer
+    WHERE fer.CODFUNC = fun.CODFUNC AND fer.CODEMP = fun.CODEMP
+    AND fer.DTSAIDA IS NOT NULL
+    ORDER BY fer.DTSAIDA DESC) AS feriasInicio,
+  (SELECT TOP 1 fer.NUMDIASFER FROM TFPFER fer
+    WHERE fer.CODFUNC = fun.CODFUNC AND fer.CODEMP = fun.CODEMP
+    AND fer.DTSAIDA IS NOT NULL
+    ORDER BY fer.DTSAIDA DESC) AS feriasDias
+FROM TGFPAR par
+INNER JOIN TFPFUN fun ON fun.CODPARC = par.CODPARC
+  AND CAST(fun.CODEMP AS VARCHAR) + '-' + CAST(fun.CODFUNC AS VARCHAR) = (
+    SELECT TOP 1 CAST(f2.CODEMP AS VARCHAR) + '-' + CAST(f2.CODFUNC AS VARCHAR)
+    FROM TFPFUN f2
+    WHERE f2.CODPARC = par.CODPARC AND f2.SITUACAO = fun.SITUACAO
+    ORDER BY f2.DTADM DESC, f2.CODEMP DESC
+  )
+LEFT JOIN TFPCAR car ON car.CODCARGO = fun.CODCARGO
+LEFT JOIN TFPDEP dep ON dep.CODDEP = fun.CODDEP
+LEFT JOIN TSIEMP emp ON emp.CODEMP = fun.CODEMP
+WHERE par.CODPARC > 0 @whereClause
+ORDER BY @orderBy
+`;
+
 /**
  * Query de contagem total para paginação
  * Placeholder: @whereClause

@@ -7,8 +7,8 @@ import { FuncionariosResumoService } from '../../../domain/services/funcionarios
 import { FuncionarioPerfilSuperService } from '../../../domain/services/funcionario-perfil-super.service';
 import { FuncionariosFiltrosService } from '../../../domain/services/funcionarios-filtros.service';
 import { FuncionarioCardService } from '../../../domain/services/funcionario-card.service';
+import { FuncionariosHabilitadosService } from '../../../domain/services/funcionarios-habilitados.service';
 import { NotFoundError } from '../../../domain/errors';
-import { enterUserToken } from '../../api-mother/database-context';
 
 const codparcSchema = z.object({
   codparc: z.coerce.number(),
@@ -54,6 +54,12 @@ export async function funcionariosRoutes(app: FastifyInstance) {
   const perfilSuperService = new FuncionarioPerfilSuperService();
   const filtrosService = new FuncionariosFiltrosService();
   const cardService = new FuncionarioCardService();
+  const habilitadosService = new FuncionariosHabilitadosService();
+
+  // Lista funcionários com habilitação válida
+  app.get('/funcionarios/habilitados', async () => {
+    return habilitadosService.listar();
+  });
 
   // Resumo para dashboard (totais por situação, empresa, departamento)
   app.get('/funcionarios/resumo', async () => {
@@ -123,8 +129,6 @@ export async function funcionariosRoutes(app: FastifyInstance) {
   const FOTO_TTL = 5 * 60 * 1000; // 5min
 
   app.get('/funcionarios/:codparc/foto', async (request, reply) => {
-    const auth = request.headers.authorization;
-    if (auth?.startsWith('Bearer ')) enterUserToken(auth.slice(7));
     const { codparc } = codparcSchema.parse(request.params);
 
     const cached = fotoCache.get(codparc);
@@ -149,7 +153,7 @@ export async function funcionariosRoutes(app: FastifyInstance) {
     if (!buf) throw new NotFoundError('Foto não encontrada para este funcionário');
     return reply
       .type('image/jpeg')
-      .header('Cache-Control', 'public, max-age=3600')
+      .header('Cache-control', 'public, max-age=3600')
       .send(buf);
   });
 

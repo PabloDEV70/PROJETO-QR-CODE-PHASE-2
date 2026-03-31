@@ -30,11 +30,11 @@ export class AuthService {
     userAgent: string,
   ): Promise<AuthResponse> {
     const identifier = username;
-    await this.enforceRateLimit(identifier, ip, 'standard', userAgent);
+    this.enforceRateLimit(identifier, ip, 'standard', userAgent);
 
     try {
       const { accessToken, refreshToken } = await this.apiMotherAuth.login(username, pass);
-      await rateLimiter.recordSuccess(identifier, ip);
+      rateLimiter.recordSuccess(identifier, ip);
 
       logAudit({
         eventType: 'login_success',
@@ -45,7 +45,7 @@ export class AuthService {
       });
       return { token: accessToken, refreshToken, type: 'standard', username };
     } catch {
-      await rateLimiter.recordFailure(identifier, ip);
+      rateLimiter.recordFailure(identifier, ip);
       logAudit({
         eventType: 'login_failed',
         loginType: 'standard',
@@ -64,11 +64,11 @@ export class AuthService {
     userAgent: string,
   ): Promise<AuthResponse> {
     const identifier = String(codparc);
-    await this.enforceRateLimit(identifier, ip, 'colaborador', userAgent);
+    this.enforceRateLimit(identifier, ip, 'colaborador', userAgent);
 
     const isValid = await this.validateColaboradorDirect(codparc, cpf);
     if (!isValid) {
-      await rateLimiter.recordFailure(identifier, ip);
+      rateLimiter.recordFailure(identifier, ip);
       logAudit({
         eventType: 'login_failed',
         loginType: 'colaborador',
@@ -98,7 +98,7 @@ export class AuthService {
       usuario.NOMEUSU,
     );
 
-    await rateLimiter.recordSuccess(identifier, ip);
+    rateLimiter.recordSuccess(identifier, ip);
 
     logAudit({
       eventType: 'login_success',
@@ -116,13 +116,13 @@ export class AuthService {
     );
   }
 
-  private async enforceRateLimit(
+  private enforceRateLimit(
     identifier: string,
     ip: string,
     loginType: string,
     userAgent: string,
-  ): Promise<void> {
-    const secondsLeft = await rateLimiter.checkLimit(identifier, ip);
+  ): void {
+    const secondsLeft = rateLimiter.checkLimit(identifier, ip);
     if (secondsLeft !== null) {
       logAudit({
         eventType: 'account_locked',
