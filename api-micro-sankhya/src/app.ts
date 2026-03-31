@@ -30,6 +30,10 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Plugins
   await registerCors(app);
+  // Allow token via query param for image/asset requests (inject into Authorization header)
+  // This hook must run before the auth guard is attached.
+  const { registerTokenQueryParam } = await import('@/infra/http/plugins/token-query.plugin');
+  await registerTokenQueryParam(app);
   await app.register(helmet, {
     global: true,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
