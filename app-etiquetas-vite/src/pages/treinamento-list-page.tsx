@@ -9,6 +9,16 @@ import { getTreinamentosTodos } from '@/api/treinamentos';
 import { printTreinamentosBatch } from '@/components/treinamentos/treinamento-batch-print';
 import type { ColaboradorListItem, OpcaoFiltro } from '@/types/treinamento-types';
 
+const DEPARTAMENTOS = [
+  'ADM', 'ALMOXARIFADO', 'COMERCIAL.', 'COMPRAS', 'CONTABILIDADE',
+  'CONTROLADORIA', 'DIRETORIA', 'FINANCEIRO', 'GERÊNCIA',
+  'LOGISTICA / PATIO', 'MANUTENÇÃO', 'OPERAÇÃO', 'OPERADORES ROTINA',
+  'OPERADORES SERRA', 'PARADA', 'PORTARIA', 'PROGRAMAÇÃO', 'QUALIDADE',
+  'RECURSOS HUMANOS', 'SEGURANCA DO TRABALHO', 'SERVIÇOS GERAIS',
+  'TECNOLOGIA DA INFORMAÇÃO',
+];
+
+
 function getTreinamentoRowId(row: ColaboradorListItem) {
   return `${row.CODEMP}-${row.CODFUNC}`;
 }
@@ -28,12 +38,28 @@ export function TreinamentoListPage() {
   const termo = sp.get('termo') || '';
   const sortModel: GridSortModel = [];
 
-  const { data, isLoading, refetch } = useColaboradoresTodos(
-    departamento ? Number(departamento) : undefined
-  );
   const { data: filtroOpcoes } = useFiltroOpcoes();
 
-  const departamentos = useMemo(() => filtroOpcoes?.departamentos ?? [], [filtroOpcoes]);
+  const coddep = useMemo(() => {
+    if (!departamento) return undefined;
+    const n = Number(departamento);
+    if (!Number.isNaN(n)) return n;
+    // try to resolve via filtroOpcoes first (descricao -> codigo), then fallback to DEPARTAMENTOS index
+    const found = filtroOpcoes?.departamentos?.find(
+      (d) => d.descricao === departamento || String(d.codigo) === departamento,
+    );
+    if (found) return found.codigo;
+    const idx = DEPARTAMENTOS.findIndex((d) => d === departamento);
+    return idx >= 0 ? idx + 1 : undefined;
+  }, [departamento, filtroOpcoes]);
+
+  const { data, isLoading, refetch } = useColaboradoresTodos(coddep);
+
+  const departamentos = useMemo<OpcaoFiltro[]>(() => {
+    return (
+      filtroOpcoes?.departamentos ?? DEPARTAMENTOS.map((d, i) => ({ codigo: i + 1, descricao: d }))
+    );
+  }, [filtroOpcoes]);
   
   const selectedCount = selectionModel.type === 'include' ? selectionModel.ids.size : 0;
   const total = data?.length ?? 0;
@@ -55,7 +81,8 @@ export function TreinamentoListPage() {
   }, []);
   
   const handleDepartamentoChange = useCallback((v: OpcaoFiltro | null) => {
-    update({ departamento: v ? String(v.codigo) : null });
+    // store departamento as descricao (name) so it matches armario-list behavior
+    update({ departamento: v ? v.descricao : null });
   }, [update]);
 
   const handleSituacaoChange = useCallback((v: string) => {
@@ -83,11 +110,11 @@ export function TreinamentoListPage() {
     setPrinting(true);
     try {
       const all = await getTreinamentosTodos({
-        coddep: departamento ? Number(departamento) : undefined,
+        coddep: coddep,
       });
       if (all.length > 0) printTreinamentosBatch(all, { columns: printCols });
     } finally { setPrinting(false); }
-  }, [departamento, printCols]);
+  }, [coddep, printCols]);
 
   const filteredRows = useMemo(() => {
     const allRows = Array.isArray(data) ? data.filter((r) => r && typeof r === 'object') : [];

@@ -85,7 +85,7 @@ export function TreinamentosGridToolbar(props: TreinamentosGridToolbarProps) {
 
 
   const selectedDepartamento =
-    departamentos.find((d) => String(d.codigo) === departamento) ?? null;
+    departamentos.find((d) => String(d.codigo) === departamento || d.descricao === departamento) ?? null;
 
   return (
     <Toolbar>

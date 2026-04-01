@@ -8,7 +8,7 @@ import {
 } from '@mui/x-data-grid';
 import { ptBR } from '@mui/x-data-grid/locales';
 import { Box, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import { Visibility } from '@mui/icons-material';
+import { Visibility, OpenInNew } from '@mui/icons-material';
 import { FuncionarioAvatar } from '@/components/shared/funcionario-avatar';
 import {
   TreinamentosGridToolbar,
@@ -77,6 +77,7 @@ export function TreinamentosDataGrid({
   selectedCount, totalCount, printCols, printing,
   onPrintSelected, onPrintAll, onPrintColsChange,
 }: TreinamentosDataGridProps) {
+  const baseUrl = (import.meta.env.VITE_PUBLIC_URL as string) || window.location.origin || 'https://publico.gigantao.net';
   const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: [] });
 
   const columns: GridColDef<ColaboradorListItem>[] = useMemo(() => [
@@ -128,6 +129,15 @@ export function TreinamentosDataGrid({
           <Stack direction="row" spacing={0.25}>
             <IconButton size="small" onClick={() => onPreview(row)}>
               <Visibility sx={{ fontSize: 18, color: '#94a3b8' }} />
+            </IconButton>
+            <IconButton
+              size="small"
+              component="a"
+              href={`${baseUrl}/p/treinamento/${row.CODFUNC}`}
+              target="_blank"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+              <OpenInNew sx={{ fontSize: 16, color: '#94a3b8' }} />
             </IconButton>
           </Stack>
         ),

@@ -13,7 +13,8 @@ export class ColaboradoresListaService {
     const offset = params.offset ?? 0;
 
     const whereConditions = ["AND fun.SITUACAO = '1'"];
-    if (params.coddep) {
+    // Apply coddep filter only when a valid number is provided (allows 0)
+    if (typeof params.coddep === 'number' && !Number.isNaN(params.coddep)) {
       whereConditions.push(`AND fun.CODDEP = ${params.coddep}`);
     }
     const whereClause = whereConditions.join(' ');
@@ -55,7 +56,7 @@ export class ColaboradoresListaService {
 
   async listarTodos(params: { coddep?: number }) {
     const whereConditions = ["AND fun.SITUACAO = '1'"];
-    if (params.coddep) {
+    if (typeof params.coddep === 'number' && !Number.isNaN(params.coddep)) {
       whereConditions.push(`AND fun.CODDEP = ${params.coddep}`);
     }
     const whereClause = whereConditions.join(' ');

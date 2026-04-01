@@ -54,8 +54,8 @@ function validateProductionConfig(configService: ConfigService): void {
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: false,
-  });
+  logger: ['error', 'warn', 'log', 'debug', 'verbose'], // Ative tudo por enquanto
+});
   app.enableShutdownHooks();
 
   const structuredLogger = app.get(StructuredLogger);

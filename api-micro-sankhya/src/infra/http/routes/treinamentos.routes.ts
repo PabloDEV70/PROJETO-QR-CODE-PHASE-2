@@ -55,4 +55,23 @@ export async function treinamentosRoutes(app: FastifyInstance) {
       return reply.status(500).send({ error: 'Erro ao processar a requisição' });
     }
   });
+
+  // Public endpoint: lista habilitações (treinamentos) ativas para um colaborador (codfunc)
+  app.get('/treinamentos/:codfunc/habilitacoes', async (request, reply) => {
+    try {
+      const codfunc = Number((request.params as any).codfunc);
+      if (Number.isNaN(codfunc)) return reply.status(400).send({ error: 'codfunc inválido' });
+      // Optional query param: codemp (company). If provided, use it to disambiguate employees
+      const codempRaw = (request.query as any).codemp;
+      const codemp = codempRaw == null ? undefined : Number(codempRaw);
+      // Lazy-import the service that knows how to read the SQL
+      const { FuncionariosHabilitadosService } = await import('../../../domain/services/funcionarios-habilitados.service');
+      const svc = new FuncionariosHabilitadosService();
+      const rows = await svc.listarPorCodfunc(codfunc, codemp);
+      return { codfunc, data: rows, total: rows.length };
+    } catch (error) {
+      console.error('Erro ao buscar habilitações por codfunc:', error);
+      return reply.status(500).send({ error: 'Erro ao processar a requisição' });
+    }
+  });
 }

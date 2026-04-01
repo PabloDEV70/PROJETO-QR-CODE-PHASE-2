@@ -57,11 +57,14 @@ export const listarColaboradores = async (
 
 // Lista treinamentos de um colaborador específico
 export const listarTreinamentosDoColaborador = async (
-  codfunc: number
+  codfunc: number,
+  codemp?: number,
 ): Promise<TreinamentoListResponse> => {
   try {
+    const params: Record<string, unknown> = {};
+    if (codemp != null) params.codemp = codemp;
     const response = await apiClient.get<TreinamentoListResponse>(
-      `/treinamentos/${codfunc}/habilitacoes`
+      `/treinamentos/${codfunc}/habilitacoes`, { params }
     );
 
     // Validar estrutura

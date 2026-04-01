@@ -72,8 +72,13 @@ export class QueryExecutor {
     if (label.includes('TGFCAB') || label.includes('TGFTOP')) {
       logger.info('[QueryExecutor] DEBUG sending query to mother: length=%d first100=%s', cleanSql.length, cleanSql.substring(0,100));
     }
+    const requestBody = { query: cleanSql, params: [] };
+    if (label.includes('TGFCAB') || label.includes('TGFTOP')) {
+      logger.info('[QueryExecutor] sending payload to mother: %o', { length: cleanSql.length, preview: cleanSql.substring(0, 200) });
+    }
+
     const promise = apiMotherClient
-      .post('/inspection/query', { query: cleanSql }, axiosConfig)
+      .post('/inspection/query', requestBody, axiosConfig)
       .then((response) => {
         const elapsed = Date.now() - t0;
         const rows = parseRows(response.data);
